@@ -9,11 +9,15 @@ The system is built as a monorepo with a React TypeScript frontend using shadcn/
 - **Prompt Management System**: Added comprehensive prompt template management with categorization, variable substitution, AI-powered prompt refinement, and integration with AI chat functionality
 - **Enhanced AI Chat Interface**: Integrated prompt templates directly into the chat interface with quick selection and variable input dialogs  
 - **File System Integration**: AI can now access and analyze project files directly, providing contextual responses based on actual code and file structure
+- **Windows Optimization**: Complete Windows setup with PowerShell scripts, Supabase integration, sample data seeders, and comprehensive documentation
 - **Tabbed Interface**: Reorganized right-side panels into a tabbed interface (AI Chat, Prompts, Documentation) for better space utilization
 
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
+Target platform: Windows machines with PowerShell support
+Database preference: Supabase (serverless PostgreSQL)
+Deployment target: Local Windows development with option for Windows Server production
 
 # System Architecture
 
