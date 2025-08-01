@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Bot, User, Send, Paperclip, Mic, Plus, Settings, Loader2, Brain, Sparkles } from "lucide-react";
+import { Bot, User, Send, Paperclip, Mic, Plus, Loader2, Brain, Sparkles } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { ChatMessage } from "@shared/schema";
@@ -210,9 +210,6 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
           <div className="flex space-x-1">
             <Button variant="ghost" size="sm" onClick={handleNewChat} title="New Chat">
               <Plus size={12} className="text-replit-text-secondary" />
-            </Button>
-            <Button variant="ghost" size="sm" title="Settings">
-              <Settings size={12} className="text-replit-text-secondary" />
             </Button>
           </div>
         </div>
