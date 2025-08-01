@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { GoogleGenAI } from "@google/genai";
 import { ChatMessage, AnalysisResult } from "@shared/schema";
+import { storage } from "../storage";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
@@ -223,6 +224,196 @@ Return only the refined prompt text, ready to use. Include variable placeholders
     } catch (error) {
       console.error("Prompt refinement error:", error);
       return promptText; // Return original if refinement fails
+    }
+  }
+
+  async generateChatResponseWithContext(
+    messages: ChatMessage[], 
+    projectId: string,
+    model: string = "gpt-4o"
+  ): Promise<string> {
+    try {
+      // Get project data for context
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return await this.generateChatResponse(messages, model);
+      }
+
+      // Check if the user is asking about files or needs file access
+      const lastMessage = messages[messages.length - 1];
+      const needsFileAccess = this.detectFileAccessNeed(lastMessage.content);
+      
+      let contextualMessages = [...messages];
+      
+      if (needsFileAccess) {
+        // Add project context to the conversation
+        const projectContext = this.buildProjectContext(project);
+        
+        // Insert context before the last user message
+        const systemMessage: ChatMessage = {
+          id: `context-${Date.now()}`,
+          role: "assistant",
+          content: `I have access to your project files. Here's the current project structure and content:\n\n${projectContext}`,
+          timestamp: new Date(),
+          model
+        };
+        
+        // Insert context message before the last user message
+        contextualMessages.splice(-1, 0, systemMessage);
+      }
+
+      return await this.generateChatResponse(contextualMessages, model);
+    } catch (error) {
+      console.error("AI Service Context Error:", error);
+      // Fallback to regular chat response
+      return await this.generateChatResponse(messages, model);
+    }
+  }
+
+  private detectFileAccessNeed(message: string): boolean {
+    const fileKeywords = [
+      'file', 'code', 'debug', 'error', 'function', 'class', 'variable',
+      'analyze', 'review', 'check', 'look at', 'examine', 'read',
+      'structure', 'project', 'import', 'export', 'module',
+      'bug', 'issue', 'problem', 'fix', 'update', 'modify'
+    ];
+    
+    const lowerMessage = message.toLowerCase();
+    return fileKeywords.some(keyword => lowerMessage.includes(keyword));
+  }
+
+  private buildProjectContext(project: any): string {
+    const files = project.files || {};
+    let context = `Project: ${project.name}\n`;
+    context += `Description: ${project.description || 'No description'}\n\n`;
+    context += `File Structure:\n`;
+    
+    // Build file tree
+    const fileList = Object.keys(files);
+    fileList.forEach(filePath => {
+      context += `📁 ${filePath}\n`;
+    });
+    
+    context += `\nFile Contents:\n\n`;
+    
+    // Add file contents (limit to reasonable size)
+    fileList.forEach(filePath => {
+      const fileData = files[filePath];
+      const content = fileData.content || '';
+      const language = fileData.language || 'text';
+      
+      context += `## ${filePath} (${language})\n`;
+      context += '```' + language + '\n';
+      
+      // Limit content size to prevent token overflow
+      if (content.length > 2000) {
+        context += content.substring(0, 2000) + '\n... (truncated)';
+      } else {
+        context += content;
+      }
+      
+      context += '\n```\n\n';
+    });
+    
+    return context;
+  }
+
+  async analyzeSpecificFile(
+    projectId: string, 
+    filePath: string, 
+    analysisType: 'debug' | 'review' | 'explain' | 'optimize' = 'review'
+  ): Promise<string> {
+    try {
+      const project = await storage.getProject(projectId);
+      if (!project || !project.files) {
+        throw new Error("Project or files not found");
+      }
+
+      const files = project.files as any;
+      const fileData = files[filePath];
+      if (!fileData) {
+        throw new Error(`File ${filePath} not found in project`);
+      }
+
+      const content = fileData.content || '';
+      const language = fileData.language || 'text';
+
+      let prompt = '';
+      switch (analysisType) {
+        case 'debug':
+          prompt = `Debug this ${language} file and identify potential issues:\n\nFile: ${filePath}\n\n\`\`\`${language}\n${content}\n\`\`\`\n\nProvide:\n1. Potential bugs or errors\n2. Logic issues\n3. Performance problems\n4. Security concerns\n5. Recommended fixes`;
+          break;
+        case 'review':
+          prompt = `Review this ${language} code for quality and best practices:\n\nFile: ${filePath}\n\n\`\`\`${language}\n${content}\n\`\`\`\n\nProvide feedback on:\n1. Code quality and style\n2. Best practices adherence\n3. Performance optimizations\n4. Maintainability\n5. Suggestions for improvement`;
+          break;
+        case 'explain':
+          prompt = `Explain this ${language} code in detail:\n\nFile: ${filePath}\n\n\`\`\`${language}\n${content}\n\`\`\`\n\nProvide:\n1. Overall purpose and functionality\n2. Key components and their roles\n3. Data flow and logic\n4. Dependencies and integrations\n5. Usage examples`;
+          break;
+        case 'optimize':
+          prompt = `Suggest optimizations for this ${language} code:\n\nFile: ${filePath}\n\n\`\`\`${language}\n${content}\n\`\`\`\n\nFocus on:\n1. Performance improvements\n2. Memory usage optimization\n3. Code simplification\n4. Better algorithms or patterns\n5. Refactoring opportunities`;
+          break;
+      }
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.3,
+        max_tokens: 2000
+      });
+
+      return response.choices[0].message.content || "Could not analyze the file.";
+    } catch (error) {
+      console.error("File analysis error:", error);
+      throw new Error(`Failed to analyze file: ${error.message}`);
+    }
+  }
+
+  async searchProjectFiles(
+    projectId: string, 
+    query: string
+  ): Promise<{ filePath: string; content: string; relevance: number }[]> {
+    try {
+      const project = await storage.getProject(projectId);
+      if (!project || !project.files) {
+        return [];
+      }
+
+      const files = project.files as any;
+      const results: { filePath: string; content: string; relevance: number }[] = [];
+
+      Object.entries(files).forEach(([filePath, fileData]: [string, any]) => {
+        const content = fileData.content || '';
+        const lowerQuery = query.toLowerCase();
+        const lowerContent = content.toLowerCase();
+        const lowerPath = filePath.toLowerCase();
+
+        // Calculate relevance score
+        let relevance = 0;
+        
+        // File name matches
+        if (lowerPath.includes(lowerQuery)) relevance += 50;
+        
+        // Content matches
+        const contentMatches = (lowerContent.match(new RegExp(lowerQuery, 'g')) || []).length;
+        relevance += contentMatches * 10;
+        
+        // Exact phrase matches
+        if (lowerContent.includes(lowerQuery)) relevance += 25;
+
+        if (relevance > 0) {
+          results.push({
+            filePath,
+            content: content.substring(0, 500), // Preview only
+            relevance
+          });
+        }
+      });
+
+      // Sort by relevance
+      return results.sort((a, b) => b.relevance - a.relevance);
+    } catch (error) {
+      console.error("File search error:", error);
+      return [];
     }
   }
 }

@@ -7,7 +7,8 @@ The system is built as a monorepo with a React TypeScript frontend using shadcn/
 ## Recent Updates (January 2025)
 
 - **Prompt Management System**: Added comprehensive prompt template management with categorization, variable substitution, AI-powered prompt refinement, and integration with AI chat functionality
-- **Enhanced AI Chat Interface**: Integrated prompt templates directly into the chat interface with quick selection and variable input dialogs
+- **Enhanced AI Chat Interface**: Integrated prompt templates directly into the chat interface with quick selection and variable input dialogs  
+- **File System Integration**: AI can now access and analyze project files directly, providing contextual responses based on actual code and file structure
 - **Tabbed Interface**: Reorganized right-side panels into a tabbed interface (AI Chat, Prompts, Documentation) for better space utilization
 
 # User Preferences

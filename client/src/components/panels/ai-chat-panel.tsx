@@ -8,9 +8,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { ChatMessage } from "@shared/schema";
 import { usePromptTemplates } from "@/hooks/use-prompt-templates";
+import { useFileSystem } from "@/hooks/use-file-system";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface AiChatPanelProps {
   projectId: string;
@@ -36,6 +38,13 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
     getDefaultTemplates,
     getPopularTemplates,
   } = usePromptTemplates({ projectId });
+
+  const {
+    fileStructure,
+    searchFiles,
+    analyzeFile,
+    isAnalyzing
+  } = useFileSystem(projectId);
 
   const { data: chats } = useQuery({
     queryKey: ["/api/projects", projectId, "ai-chats"],
@@ -88,6 +97,17 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
       setCurrentMessage(prompt);
       setShowTemplateDialog(false);
       clearSelection();
+    }
+  };
+
+  const handleFileAnalysis = async (filePath: string, analysisType: 'debug' | 'review' | 'explain' | 'optimize') => {
+    try {
+      const analysis = await analyzeFile(filePath, analysisType);
+      const fileName = filePath.split('/').pop() || filePath;
+      const prompt = `Please analyze the file "${fileName}" for ${analysisType}:\n\n${analysis}`;
+      setCurrentMessage(prompt);
+    } catch (error) {
+      console.error("File analysis failed:", error);
     }
   };
 
@@ -344,9 +364,73 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
                 </DialogContent>
               </Dialog>
               
-              <Button variant="ghost" size="sm" title="Attach file">
-                <Paperclip size={12} className="text-replit-text-secondary" />
-              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm" title="Analyze project files">
+                    <Paperclip size={12} className="text-replit-text-secondary" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Analyze Project Files</DialogTitle>
+                    <DialogDescription>
+                      Select a file and analysis type to get AI insights
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    {fileStructure.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">
+                        No files found in project
+                      </p>
+                    ) : (
+                      <ScrollArea className="h-48">
+                        <div className="space-y-2">
+                          {fileStructure.map((file) => (
+                            <div key={file.path} className="border rounded p-2">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-medium">{file.name}</span>
+                                <Badge variant="outline" className="text-xs">
+                                  {file.language}
+                                </Badge>
+                              </div>
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-xs"
+                                  onClick={() => handleFileAnalysis(file.path, 'review')}
+                                  disabled={isAnalyzing}
+                                >
+                                  Review
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-xs"
+                                  onClick={() => handleFileAnalysis(file.path, 'debug')}
+                                  disabled={isAnalyzing}
+                                >
+                                  Debug
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-xs"
+                                  onClick={() => handleFileAnalysis(file.path, 'explain')}
+                                  disabled={isAnalyzing}
+                                >
+                                  Explain
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
               <Button variant="ghost" size="sm" title="Voice input">
                 <Mic size={12} className="text-replit-text-secondary" />
               </Button>

@@ -201,7 +201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updatedMessages = [...(chat.messages as ChatMessage[]), userMessage];
       
-      const aiResponse = await aiService.generateChatResponse(updatedMessages, model);
+      const aiResponse = await aiService.generateChatResponseWithContext(updatedMessages, chat.projectId, model);
       
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -432,6 +432,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Prompt refinement error:", error);
       res.status(500).json({ message: "Failed to refine prompt" });
+    }
+  });
+
+  // File Analysis Routes
+  app.post("/api/projects/:id/files/:filePath/analyze", async (req, res) => {
+    try {
+      const { id: projectId, filePath } = req.params;
+      const { analysisType = 'review' } = req.body;
+      
+      const decodedFilePath = decodeURIComponent(filePath);
+      const analysis = await aiService.analyzeSpecificFile(projectId, decodedFilePath, analysisType);
+      
+      res.json({ analysis });
+    } catch (error) {
+      console.error("File analysis error:", error);
+      res.status(500).json({ message: error.message || "Failed to analyze file" });
+    }
+  });
+
+  app.get("/api/projects/:id/files/search", async (req, res) => {
+    try {
+      const { id: projectId } = req.params;
+      const { query } = req.query;
+      
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ message: "Query parameter is required" });
+      }
+      
+      const results = await aiService.searchProjectFiles(projectId, query);
+      res.json({ results });
+    } catch (error) {
+      console.error("File search error:", error);
+      res.status(500).json({ message: "Failed to search files" });
+    }
+  });
+
+  // Get project file structure
+  app.get("/api/projects/:id/files-structure", async (req, res) => {
+    try {
+      const project = await storage.getProject(req.params.id);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      const files = project.files || {};
+      const structure = Object.keys(files).map(filePath => ({
+        path: filePath,
+        name: filePath.split('/').pop() || filePath,
+        language: files[filePath].language || 'text',
+        size: files[filePath].content?.length || 0
+      }));
+
+      res.json({ structure });
+    } catch (error) {
+      console.error("File structure error:", error);
+      res.status(500).json({ message: "Failed to get file structure" });
     }
   });
 
