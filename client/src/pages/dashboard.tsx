@@ -35,7 +35,7 @@ export default function Dashboard() {
             <div className="w-8 h-8 bg-gradient-to-br from-replit-blue to-replit-blue-secondary rounded-lg flex items-center justify-center">
               <Database className="text-white" size={16} />
             </div>
-            <h1 className="font-bold text-lg gradient-text">DataScraper Pro</h1>
+            <h1 className="font-bold text-lg gradient-text">LeviatanCode</h1>
           </div>
           <div className="flex items-center space-x-2">
             <span className="text-replit-text-secondary text-sm">Workspace:</span>
@@ -44,9 +44,9 @@ export default function Dashboard() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="demo-project-1">ProductData_Analysis</SelectItem>
-                <SelectItem value="social-scraper">SocialMedia_Scraper</SelectItem>
-                <SelectItem value="competitor-research">Competitor_Research</SelectItem>
+                <SelectItem value="demo-project-1">React_Portfolio_App</SelectItem>
+                <SelectItem value="social-scraper">Python_ML_Project</SelectItem>
+                <SelectItem value="competitor-research">NodeJS_API_Server</SelectItem>
               </SelectContent>
             </Select>
           </div>

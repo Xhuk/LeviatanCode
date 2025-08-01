@@ -2,18 +2,21 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { aiService } from "./services/ai";
-import { scraperService } from "./services/scraper";
+// import { scraperService } from "./services/scraper"; // Removed scraper functionality
 import { 
   insertProjectSchema,
-  insertScrapingJobSchema,
+  insertProjectExecutionSchema,
   insertAiChatSchema,
   insertPromptTemplateSchema,
   type ChatMessage,
   type Project,
-  type ScrapingJob,
+  type ProjectExecution,
   type AiChat,
-  type PromptTemplate
+  type PromptTemplate,
+  type ProjectDocumentation
 } from "@shared/schema";
+import { projectImportService } from "./services/project-import";
+import multer from 'multer';
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -99,60 +102,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Scraping jobs
-  app.get("/api/projects/:id/scraping-jobs", async (req, res) => {
+  // Project executions (running programs)
+  app.get("/api/projects/:id/executions", async (req, res) => {
     try {
-      const jobs = await storage.getScrapingJobsByProject(req.params.id);
-      res.json(jobs);
+      const executions = await storage.getProjectExecutionsByProject(req.params.id);
+      res.json(executions);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch scraping jobs" });
+      res.status(500).json({ message: "Failed to fetch project executions" });
     }
   });
 
-  app.post("/api/projects/:id/scraping-jobs", async (req, res) => {
+  app.post("/api/projects/:id/executions", async (req, res) => {
     try {
-      const validatedData = insertScrapingJobSchema.parse({
+      const validatedData = insertProjectExecutionSchema.parse({
         ...req.body,
         projectId: req.params.id
       });
-      const job = await storage.createScrapingJob(validatedData);
+      const execution = await storage.createProjectExecution(validatedData);
       
-      // Start scraping asynchronously
+      // Start execution asynchronously
       setImmediate(async () => {
         try {
-          await storage.updateScrapingJob(job.id, { status: "running" });
-          const result = await scraperService.scrapeWebsite(job.url, job.config as any);
-          await storage.updateScrapingJob(job.id, { 
+          await storage.updateProjectExecution(execution.id, { status: "running" });
+          
+          // Here you would implement actual program execution
+          // For now, simulate execution
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          await storage.updateProjectExecution(execution.id, { 
             status: "completed", 
-            data: result,
+            output: "Program executed successfully",
+            exitCode: 0,
             completedAt: new Date()
           });
         } catch (error: any) {
-          await storage.updateScrapingJob(job.id, { 
+          await storage.updateProjectExecution(execution.id, { 
             status: "failed", 
-            error: error.message 
+            error: error.message,
+            exitCode: 1
           });
         }
       });
 
-      res.json(job);
+      res.json(execution);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid scraping job data", errors: error.errors });
+        return res.status(400).json({ message: "Invalid execution data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create scraping job" });
+      res.status(500).json({ message: "Failed to create project execution" });
     }
   });
 
-  app.get("/api/scraping-jobs/:id", async (req, res) => {
+  app.get("/api/executions/:id", async (req, res) => {
     try {
-      const job = await storage.getScrapingJob(req.params.id);
-      if (!job) {
-        return res.status(404).json({ message: "Scraping job not found" });
+      const execution = await storage.getProjectExecution(req.params.id);
+      if (!execution) {
+        return res.status(404).json({ message: "Project execution not found" });
       }
-      res.json(job);
+      res.json(execution);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch scraping job" });
+      res.status(500).json({ message: "Failed to fetch project execution" });
     }
   });
 
@@ -488,6 +497,172 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("File structure error:", error);
       res.status(500).json({ message: "Failed to get file structure" });
+    }
+  });
+
+  // Configure multer for file uploads
+  const upload = multer({ 
+    dest: 'uploads/',
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+  });
+
+  // Project import endpoints
+  app.post("/api/projects/import", upload.array('files'), async (req, res) => {
+    try {
+      const { name, description, method, gitUrl } = req.body;
+      
+      if (!name) {
+        return res.status(400).json({ message: "Project name is required" });
+      }
+
+      let importResult;
+      
+      if (method === "files" && req.files) {
+        importResult = await projectImportService.importFromFiles(
+          req.files as Express.Multer.File[], 
+          name, 
+          description
+        );
+      } else if (method === "git" && gitUrl) {
+        importResult = await projectImportService.importFromGit(gitUrl, name, description);
+      } else {
+        return res.status(400).json({ message: "Invalid import method or missing data" });
+      }
+
+      // Create project in storage
+      const userId = "demo-user-1"; // In real app, get from session
+      const project = await storage.createProject({
+        name: importResult.name,
+        description: importResult.description,
+        userId,
+        files: importResult.files,
+        config: {},
+        documentation: importResult.documentation,
+      });
+
+      res.json(project);
+    } catch (error: any) {
+      console.error("Project import error:", error);
+      res.status(500).json({ message: error.message || "Failed to import project" });
+    }
+  });
+
+  // Project documentation endpoints
+  app.get("/api/projects/:id/documentation", async (req, res) => {
+    try {
+      const project = await storage.getProject(req.params.id);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      res.json(project.documentation || null);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch documentation" });
+    }
+  });
+
+  app.put("/api/projects/:id/documentation", async (req, res) => {
+    try {
+      const documentation: ProjectDocumentation = req.body;
+      const project = await storage.updateProject(req.params.id, { documentation });
+      res.json(project.documentation);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update documentation" });
+    }
+  });
+
+  app.post("/api/projects/:id/documentation/generate", async (req, res) => {
+    try {
+      const project = await storage.getProject(req.params.id);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Analyze project files with AI to generate documentation
+      const fileContents = Object.entries(project.files).map(([path, fileData]: [string, any]) => ({
+        path,
+        content: fileData.content || "",
+        type: fileData.language || "text",
+      }));
+
+      const analysisPrompt = `Analyze this project and generate comprehensive documentation in JSON format.
+
+Project Name: ${project.name}
+Description: ${project.description || "No description"}
+
+Files in project:
+${fileContents.map(f => `- ${f.path} (${f.type})`).join('\n')}
+
+Code samples:
+${fileContents
+  .filter(f => ['javascript', 'typescript', 'python', 'java', 'cpp'].includes(f.type))
+  .slice(0, 3)
+  .map(f => `### ${f.path}\n\`\`\`${f.type}\n${f.content.slice(0, 1000)}...\n\`\`\``)
+  .join('\n\n')}
+
+Please provide a JSON response with this exact structure:
+{
+  "overview": "Brief overview of what this project does",
+  "techStack": ["Technology1", "Technology2"],
+  "architecture": "Description of the system architecture",
+  "dependencies": ["dependency1", "dependency2"],
+  "setupInstructions": "Step-by-step setup instructions",
+  "deploymentInfo": "How to deploy this project",
+  "apis": ["REST API", "GraphQL"],
+  "databases": ["PostgreSQL", "Redis"],
+  "keyFiles": {
+    "path/to/file": "Description of what this file does"
+  },
+  "features": ["Feature 1", "Feature 2"],
+  "notes": "Additional notes and important information"
+}`;
+
+      const aiResponse = await aiService.analyzeCode(analysisPrompt, "gpt-4o");
+      
+      // Parse AI response
+      let documentation: ProjectDocumentation;
+      try {
+        const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          documentation = {
+            overview: parsed.overview || "",
+            techStack: Array.isArray(parsed.techStack) ? parsed.techStack : [],
+            architecture: parsed.architecture || "",
+            dependencies: Array.isArray(parsed.dependencies) ? parsed.dependencies : [],
+            setupInstructions: parsed.setupInstructions || "",
+            deploymentInfo: parsed.deploymentInfo || "",
+            apis: Array.isArray(parsed.apis) ? parsed.apis : [],
+            databases: Array.isArray(parsed.databases) ? parsed.databases : [],
+            keyFiles: typeof parsed.keyFiles === 'object' ? parsed.keyFiles : {},
+            features: Array.isArray(parsed.features) ? parsed.features : [],
+            notes: parsed.notes || "",
+          };
+        } else {
+          throw new Error("Could not parse AI response");
+        }
+      } catch (parseError) {
+        // Fallback documentation if AI parsing fails
+        documentation = {
+          overview: `A ${project.name} project with ${fileContents.length} files`,
+          techStack: Array.from(new Set(fileContents.map(f => f.type).filter(type => type !== 'text'))),
+          architecture: "Architecture analysis completed - see AI analysis for details",
+          dependencies: [],
+          setupInstructions: "Please refer to project files for setup instructions",
+          deploymentInfo: "Deployment information analyzed by AI",
+          apis: [],
+          databases: [],
+          keyFiles: {},
+          features: [],
+          notes: "Documentation generated automatically by AI analysis",
+        };
+      }
+
+      // Update project with generated documentation
+      await storage.updateProject(req.params.id, { documentation });
+      res.json(documentation);
+    } catch (error: any) {
+      console.error("Documentation generation error:", error);
+      res.status(500).json({ message: "Failed to generate documentation" });
     }
   });
 

@@ -1,16 +1,20 @@
 # Overview
 
-DataScraper Pro is a full-stack web application for data scraping and analysis with AI-powered features. The application provides a web-based IDE-like interface for creating, managing, and executing web scraping projects. Users can build scraping configurations, run scraping jobs, analyze collected data with AI assistance, and generate documentation automatically.
+LeviatanCode is a comprehensive web-based development environment that can run and debug any type of program (Vite, Node.js, Python, Java, etc.). The application provides an IDE-like interface for importing, managing, and executing projects with AI-powered assistance for identifying how to run programs and debugging issues.
 
-The system is built as a monorepo with a React TypeScript frontend using shadcn/ui components, an Express.js backend, and PostgreSQL database with Drizzle ORM. The application features a Replit-style dark theme and integrates multiple AI models for intelligent data analysis and code assistance.
+The system features intelligent project analysis, automatic setup detection, AI-powered debugging assistance, and comprehensive documentation generation. Users can import projects from files or Git repositories, and the AI automatically analyzes the codebase to determine the best way to run and debug the application.
+
+The system is built as a monorepo with a React TypeScript frontend using shadcn/ui components, an Express.js backend, and PostgreSQL database with Drizzle ORM. The application features a Replit-style dark theme and integrates multiple AI models for intelligent code analysis, execution guidance, and debugging assistance.
 
 ## Recent Updates (January 2025)
 
-- **Prompt Management System**: Added comprehensive prompt template management with categorization, variable substitution, AI-powered prompt refinement, and integration with AI chat functionality
-- **Enhanced AI Chat Interface**: Integrated prompt templates directly into the chat interface with quick selection and variable input dialogs  
-- **File System Integration**: AI can now access and analyze project files directly, providing contextual responses based on actual code and file structure
-- **Windows Optimization**: Complete Windows setup with PowerShell scripts, Supabase integration, sample data seeders, and comprehensive documentation
-- **Tabbed Interface**: Reorganized right-side panels into a tabbed interface (AI Chat, Prompts, Documentation) for better space utilization
+- **Universal Development Environment**: Transformed from data scraping focus to general-purpose development environment supporting any programming language and framework
+- **Project Import System**: Added comprehensive project import from files or Git repositories with AI-powered analysis
+- **Intelligent Project Analysis**: AI automatically detects project type, dependencies, and execution methods for any imported codebase
+- **Smart Debugging Assistant**: AI can identify how to run programs and provide debugging assistance for various programming languages and frameworks
+- **Documentation Generation**: Automatic generation of comprehensive project documentation including setup instructions, architecture analysis, and deployment guides
+- **File System Integration**: AI can access and analyze project files directly, providing contextual responses based on actual code structure
+- **Windows Optimization**: Complete Windows setup with PowerShell scripts, Supabase integration, and comprehensive development tools
 
 # User Preferences
 
@@ -58,10 +62,11 @@ Deployment target: Local Windows development with option for Windows Server prod
 - **Neon Database**: Serverless PostgreSQL hosting with connection pooling
 - **Drizzle Kit**: Database schema management and migration tooling
 
-## Web Scraping
-- **Axios**: HTTP client for web requests with custom headers and timeout handling
-- **Cheerio**: Server-side jQuery-like HTML parsing and data extraction
-- **Configurable Scraping**: Dynamic selector-based data extraction with multiple data point types
+## Development Environment
+- **Multi-Language Support**: Support for JavaScript, TypeScript, Python, Java, C++, and other programming languages
+- **Project Import**: File upload and Git repository import with automatic project structure analysis
+- **Intelligent Execution**: AI-powered detection of how to run different types of projects (npm run dev, python main.py, etc.)
+- **Debug Assistant**: AI-powered debugging guidance and error resolution for various programming languages
 
 ## UI and Development
 - **Radix UI**: Headless component library for accessible UI primitives

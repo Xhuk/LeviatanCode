@@ -3,8 +3,8 @@ import {
   type InsertUser, 
   type Project, 
   type InsertProject,
-  type ScrapingJob,
-  type InsertScrapingJob,
+  type ProjectExecution,
+  type InsertProjectExecution,
   type AiChat,
   type InsertAiChat,
   type Documentation,
@@ -29,11 +29,11 @@ export interface IStorage {
   updateProject(id: string, updates: Partial<Project>): Promise<Project>;
   deleteProject(id: string): Promise<void>;
   
-  // Scraping Jobs
-  getScrapingJob(id: string): Promise<ScrapingJob | undefined>;
-  getScrapingJobsByProject(projectId: string): Promise<ScrapingJob[]>;
-  createScrapingJob(job: InsertScrapingJob): Promise<ScrapingJob>;
-  updateScrapingJob(id: string, updates: Partial<ScrapingJob>): Promise<ScrapingJob>;
+  // Project Executions
+  getProjectExecution(id: string): Promise<ProjectExecution | undefined>;
+  getProjectExecutionsByProject(projectId: string): Promise<ProjectExecution[]>;
+  createProjectExecution(execution: InsertProjectExecution): Promise<ProjectExecution>;
+  updateProjectExecution(id: string, updates: Partial<ProjectExecution>): Promise<ProjectExecution>;
   
   // AI Chats
   getAiChat(id: string): Promise<AiChat | undefined>;
@@ -58,7 +58,7 @@ export interface IStorage {
 export class MemStorage implements IStorage {
   private users: Map<string, User> = new Map();
   private projects: Map<string, Project> = new Map();
-  private scrapingJobs: Map<string, ScrapingJob> = new Map();
+  private projectExecutions: Map<string, ProjectExecution> = new Map();
   private aiChats: Map<string, AiChat> = new Map();
   private documentation: Map<string, Documentation> = new Map();
   private promptTemplates: Map<string, PromptTemplate> = new Map();
@@ -230,37 +230,38 @@ export class MemStorage implements IStorage {
     this.projects.delete(id);
   }
 
-  // Scraping Jobs
-  async getScrapingJob(id: string): Promise<ScrapingJob | undefined> {
-    return this.scrapingJobs.get(id);
+  // Project Executions
+  async getProjectExecution(id: string): Promise<ProjectExecution | undefined> {
+    return this.projectExecutions.get(id);
   }
 
-  async getScrapingJobsByProject(projectId: string): Promise<ScrapingJob[]> {
-    return Array.from(this.scrapingJobs.values()).filter(job => job.projectId === projectId);
+  async getProjectExecutionsByProject(projectId: string): Promise<ProjectExecution[]> {
+    return Array.from(this.projectExecutions.values()).filter(exec => exec.projectId === projectId);
   }
 
-  async createScrapingJob(insertJob: InsertScrapingJob): Promise<ScrapingJob> {
+  async createProjectExecution(insertExecution: InsertProjectExecution): Promise<ProjectExecution> {
     const id = randomUUID();
-    const job: ScrapingJob = {
-      ...insertJob,
+    const execution: ProjectExecution = {
+      ...insertExecution,
       id,
       status: "pending",
       createdAt: new Date(),
       completedAt: null,
-      data: {},
-      error: null
+      output: null,
+      error: null,
+      exitCode: null
     };
-    this.scrapingJobs.set(id, job);
-    return job;
+    this.projectExecutions.set(id, execution);
+    return execution;
   }
 
-  async updateScrapingJob(id: string, updates: Partial<ScrapingJob>): Promise<ScrapingJob> {
-    const job = this.scrapingJobs.get(id);
-    if (!job) throw new Error("Scraping job not found");
+  async updateProjectExecution(id: string, updates: Partial<ProjectExecution>): Promise<ProjectExecution> {
+    const execution = this.projectExecutions.get(id);
+    if (!execution) throw new Error("Project execution not found");
     
-    const updatedJob = { ...job, ...updates };
-    this.scrapingJobs.set(id, updatedJob);
-    return updatedJob;
+    const updatedExecution = { ...execution, ...updates };
+    this.projectExecutions.set(id, updatedExecution);
+    return updatedExecution;
   }
 
   // AI Chats

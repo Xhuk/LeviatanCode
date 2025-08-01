@@ -16,19 +16,21 @@ export const projects = pgTable("projects", {
   userId: varchar("user_id").notNull(),
   files: jsonb("files").notNull().default({}),
   config: jsonb("config").notNull().default({}),
+  documentation: jsonb("documentation").$type<ProjectDocumentation>(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const scrapingJobs = pgTable("scraping_jobs", {
+export const projectExecutions = pgTable("project_executions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   projectId: varchar("project_id").notNull(),
   name: text("name").notNull(),
-  url: text("url").notNull(),
-  status: text("status").notNull().default("pending"), // pending, running, completed, failed
-  config: jsonb("config").notNull().default({}),
-  data: jsonb("data").default({}),
+  command: text("command").notNull(), // e.g., "npm run dev", "python main.py"
+  workingDirectory: text("working_directory"),
+  status: text("status").notNull().default("pending"), // 'pending', 'running', 'completed', 'failed'
+  output: text("output"),
   error: text("error"),
+  exitCode: integer("exit_code"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   completedAt: timestamp("completed_at"),
 });
@@ -66,6 +68,21 @@ export const promptTemplates = pgTable("prompt_templates", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Project Documentation Interface
+export interface ProjectDocumentation {
+  overview: string;
+  techStack: string[];
+  architecture: string;
+  dependencies: string[];
+  setupInstructions: string;
+  deploymentInfo: string;
+  apis: string[];
+  databases: string[];
+  keyFiles: Record<string, string>; // filepath -> description
+  features: string[];
+  notes: string;
+}
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -78,13 +95,14 @@ export const insertProjectSchema = createInsertSchema(projects).pick({
   userId: true,
   files: true,
   config: true,
+  documentation: true,
 });
 
-export const insertScrapingJobSchema = createInsertSchema(scrapingJobs).pick({
+export const insertProjectExecutionSchema = createInsertSchema(projectExecutions).pick({
   projectId: true,
   name: true,
-  url: true,
-  config: true,
+  command: true,
+  workingDirectory: true,
 });
 
 export const insertAiChatSchema = createInsertSchema(aiChats).pick({
@@ -118,8 +136,8 @@ export type User = typeof users.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = typeof projects.$inferSelect;
 
-export type InsertScrapingJob = z.infer<typeof insertScrapingJobSchema>;
-export type ScrapingJob = typeof scrapingJobs.$inferSelect;
+export type InsertProjectExecution = z.infer<typeof insertProjectExecutionSchema>;
+export type ProjectExecution = typeof projectExecutions.$inferSelect;
 
 export type InsertAiChat = z.infer<typeof insertAiChatSchema>;
 export type AiChat = typeof aiChats.$inferSelect;
