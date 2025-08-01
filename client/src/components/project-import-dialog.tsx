@@ -331,7 +331,7 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="grid grid-cols-2 gap-3 text-sm text-[#124780]">
                   <div className="flex items-center space-x-2">
                     <CheckCircle className="h-4 w-4 text-green-600" />
                     <span>Auto-detect framework</span>
