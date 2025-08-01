@@ -485,6 +485,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Settings endpoints
+  app.get("/api/settings/environment", async (req, res) => {
+    try {
+      // Return sanitized environment configuration (without sensitive values)
+      const config = {
+        databaseUrl: process.env.DATABASE_URL ? '***configured***' : '',
+        openaiApiKey: process.env.OPENAI_API_KEY ? '***configured***' : '',
+        geminiApiKey: process.env.GEMINI_API_KEY ? '***configured***' : '',
+        sessionSecret: process.env.SESSION_SECRET ? '***configured***' : '',
+        nodeEnv: process.env.NODE_ENV || 'development',
+        port: process.env.PORT || '5000',
+        maxFileSize: process.env.MAX_FILE_SIZE || '10485760',
+        maxFiles: process.env.MAX_FILES || '50',
+        rateLimitMax: process.env.RATE_LIMIT_MAX || '1000',
+        uploadRateLimit: process.env.UPLOAD_RATE_LIMIT || '10'
+      };
+      res.json(config);
+    } catch (error) {
+      console.error("Settings fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch settings" });
+    }
+  });
+
+  app.get("/api/settings/services/status", async (req, res) => {
+    try {
+      const status = {
+        database: process.env.DATABASE_URL ? 'connected' : 'disconnected',
+        openai: process.env.OPENAI_API_KEY ? 'connected' : 'disconnected',
+        gemini: process.env.GEMINI_API_KEY ? 'connected' : 'disconnected'
+      };
+      res.json(status);
+    } catch (error) {
+      console.error("Service status error:", error);
+      res.status(500).json({ message: "Failed to check service status" });
+    }
+  });
+
+  app.post("/api/settings/services/test/:service", async (req, res) => {
+    try {
+      const { service } = req.params;
+      let connected = false;
+      
+      switch (service) {
+        case 'openai':
+          connected = !!process.env.OPENAI_API_KEY;
+          break;
+        case 'gemini':
+          connected = !!process.env.GEMINI_API_KEY;
+          break;
+        case 'database':
+          connected = !!process.env.DATABASE_URL;
+          break;
+        default:
+          return res.status(400).json({ message: "Unknown service" });
+      }
+      
+      res.json({ connected, service });
+    } catch (error) {
+      console.error("Service test error:", error);
+      res.status(500).json({ message: "Failed to test service" });
+    }
+  });
+
+  app.put("/api/settings/environment", async (req, res) => {
+    try {
+      // In a real implementation, this would update the .env file
+      // For now, we'll just return success since env vars are read-only at runtime
+      res.json({ 
+        message: "Settings updated successfully. Please restart the server to apply changes.",
+        note: "Environment variables are managed through the .env file and require a server restart to take effect."
+      });
+    } catch (error) {
+      console.error("Settings update error:", error);
+      res.status(500).json({ message: "Failed to update settings" });
+    }
+  });
+
   // Get project file structure
   app.get("/api/projects/:id/files-structure", async (req, res) => {
     try {

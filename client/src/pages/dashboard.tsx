@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Database, Play, Settings, UserCircle, Cog, Brain, FileText, MessageSquare, AlertTriangle, Upload } from "lucide-react";
 import { ServiceStatusIndicator } from "@/components/service-status-indicator";
 import { ProjectImportDialog } from "@/components/project-import-dialog";
+import { SettingsDialog } from "@/components/settings-dialog";
 
 export default function Dashboard() {
   const [currentProject, setCurrentProject] = useState<string>("demo-project-1");
@@ -72,9 +73,7 @@ export default function Dashboard() {
             Run Project
           </Button>
           <div className="flex items-center space-x-1">
-            <Button variant="ghost" size="sm">
-              <Settings size={16} className="text-replit-text-secondary" />
-            </Button>
+            <SettingsDialog />
             <Button variant="ghost" size="sm">
               <UserCircle size={16} className="text-replit-text-secondary" />
             </Button>
