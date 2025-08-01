@@ -4,7 +4,14 @@ LeviatanCode is a comprehensive web-based development environment that can run a
 
 The system features intelligent project analysis, automatic setup detection, AI-powered debugging assistance, and comprehensive documentation generation. Users can import projects from files or Git repositories, and the AI automatically analyzes the codebase to determine the best way to run and debug the application.
 
-The system is built as a monorepo with a React TypeScript frontend using shadcn/ui components, an Express.js backend, and PostgreSQL database with Drizzle ORM. The application features a Replit-style dark theme and integrates multiple AI models for intelligent code analysis, execution guidance, and debugging assistance.
+The system is built as a monorepo with a React TypeScript frontend using shadcn/ui components, an Express.js backend with comprehensive middleware stack, and PostgreSQL database with Drizzle ORM. The application features a Replit-style dark theme and integrates multiple AI models for intelligent code analysis, execution guidance, and debugging assistance.
+
+## Production-Ready Features
+- **Security Middleware**: Helmet.js, rate limiting, CORS protection
+- **Session Management**: Express sessions with secure cookie handling  
+- **Error Handling**: Global error handlers with detailed logging
+- **File Upload Security**: Multer with size and type restrictions
+- **Windows Compatibility**: Complete PowerShell setup scripts and documentation
 
 ## Recent Updates (January 2025)
 

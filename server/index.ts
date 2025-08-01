@@ -1,10 +1,18 @@
 import express, { type Request, Response, NextFunction } from "express";
+import dotenv from "dotenv";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
+// Load environment variables first
+dotenv.config();
+
+// Import middleware (using dynamic imports for CommonJS modules)
+
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+// Basic parsing middleware
+app.use(express.json({ limit: process.env.MAX_FILE_SIZE || '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: process.env.MAX_FILE_SIZE || '10mb' }));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -37,15 +45,31 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Load and apply middleware
+  try {
+    const corsModule = await import("../middleware/cors.js");
+    const securityModule = await import("../middleware/security.js");
+    const sessionModule = await import("../middleware/session.js");
+    const loggingModule = await import("../middleware/logging.js");
+    const errorModule = await import("../middleware/errorHandler.js");
+
+    // Apply CORS middleware
+    app.use(corsModule.default);
+
+    // Apply security middleware
+    securityModule.default(app);
+
+    // Apply logging middleware
+    loggingModule.default(app);
+
+    // Apply session middleware
+    app.use(sessionModule.default);
+  } catch (error) {
+    console.warn("Some middleware failed to load:", error.message);
+    console.log("Continuing with basic setup...");
+  }
+
   const server = await registerRoutes(app);
-
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
-  });
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
