@@ -127,7 +127,7 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
           Import Project
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl h-auto relative top-[33vh] transform-none overflow-visible">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto sm:top-[10vh]">
         <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 rounded-lg opacity-75 blur-sm animate-pulse -z-10"></div>
         <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 rounded-lg animate-gradient-x -z-10"></div>
         <DialogHeader>
