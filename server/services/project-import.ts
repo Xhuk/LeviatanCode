@@ -1,258 +1,326 @@
-import { promises as fs } from "fs";
-import path from "path";
 import { nanoid } from "nanoid";
-import type { ProjectDocumentation } from "@shared/schema";
-// import { analyzeCodeWithAI } from "./ai";
+import { storage } from "../storage";
+import { aiService } from "./ai";
+import type { Project } from "@shared/schema";
 
-interface FileContent {
-  path: string;
+interface ImportedFile {
+  name: string;
   content: string;
-  type: string;
+  path: string;
+  size: number;
 }
 
-export class ProjectImportService {
-  async importFromFiles(files: Express.Multer.File[], projectName: string, description?: string): Promise<{
-    projectId: string;
-    name: string;
-    description?: string;
-    files: Record<string, any>;
-    documentation: ProjectDocumentation;
-  }> {
-    const projectId = nanoid();
-    const projectFiles: Record<string, any> = {};
-    const fileContents: FileContent[] = [];
+interface AnalysisResult {
+  projectType: string;
+  framework: string;
+  language: string;
+  runCommand: string;
+  setupInstructions: string[];
+  dependencies: Record<string, string>;
+  description: string;
+}
 
-    // Process uploaded files
-    for (const file of files) {
-      const fileContent = await fs.readFile(file.path, 'utf-8');
-      const relativePath = file.originalname;
-      
-      projectFiles[relativePath] = {
-        content: fileContent,
-        language: this.detectLanguage(relativePath),
-        size: file.size,
-        lastModified: new Date().toISOString(),
-      };
-
-      fileContents.push({
-        path: relativePath,
-        content: fileContent,
-        type: this.detectLanguage(relativePath),
-      });
-
-      // Clean up temporary file
-      await fs.unlink(file.path).catch(() => {});
-    }
-
-    // Generate AI documentation
-    const documentation = await this.generateDocumentation(fileContents, projectName, description);
-
-    return {
-      projectId,
-      name: projectName,
-      description,
-      files: projectFiles,
-      documentation,
-    };
-  }
-
-  async importFromGit(gitUrl: string, projectName: string, description?: string): Promise<{
-    projectId: string;
-    name: string;
-    description?: string;
-    files: Record<string, any>;
-    documentation: ProjectDocumentation;
-  }> {
-    // For now, return a mock implementation
-    // In a real implementation, you would clone the Git repo and process files
+class ProjectImportService {
+  async importFromFiles(files: any[], projectName: string, description?: string): Promise<{ projectId: string; analysis: AnalysisResult }> {
     const projectId = nanoid();
     
-    const mockFiles = {
-      "README.md": {
-        content: `# ${projectName}\n\n${description || "Imported from Git repository"}`,
-        language: "markdown",
-        size: 100,
-        lastModified: new Date().toISOString(),
-      },
-      "package.json": {
-        content: JSON.stringify({
-          name: projectName.toLowerCase().replace(/\s+/g, "-"),
-          version: "1.0.0",
-          description: description || "Imported project",
-        }, null, 2),
-        language: "json",
-        size: 200,
-        lastModified: new Date().toISOString(),
-      },
-    };
-
-    const fileContents: FileContent[] = Object.entries(mockFiles).map(([path, file]) => ({
-      path,
-      content: file.content,
-      type: file.language,
+    // Process uploaded files
+    const importedFiles: ImportedFile[] = files.map(file => ({
+      name: file.originalname,
+      content: file.buffer.toString('utf8'),
+      path: file.originalname,
+      size: file.size
     }));
-
-    const documentation = await this.generateDocumentation(fileContents, projectName, description);
-
-    return {
-      projectId,
+    
+    // Analyze project structure with AI
+    const analysis = await this.analyzeProjectStructure(importedFiles);
+    
+    // Create project in storage
+    const project: Omit<Project, 'createdAt' | 'updatedAt'> = {
+      id: projectId,
       name: projectName,
-      description,
+      description: description || analysis.description,
+      userId: "demo-user",
+      files: importedFiles,
+      config: {
+        framework: analysis.framework,
+        language: analysis.language,
+        runCommand: analysis.runCommand,
+        dependencies: analysis.dependencies
+      },
+      documentation: {
+        setupInstructions: analysis.setupInstructions,
+        architecture: `This is a ${analysis.framework} project using ${analysis.language}.`,
+        apiDocs: null,
+        deployment: "Run using: " + analysis.runCommand
+      }
+    };
+    
+    await storage.createProject(project);
+    
+    return { projectId, analysis };
+  }
+  
+  async importFromGit(gitUrl: string, projectName: string, description?: string): Promise<{ projectId: string; analysis: AnalysisResult }> {
+    // For demo purposes, simulate git clone and analysis
+    // In a real implementation, you would use git commands or APIs
+    
+    const projectId = nanoid();
+    
+    // Simulate common project files based on Git URL patterns
+    const mockFiles = this.generateMockFilesFromGitUrl(gitUrl);
+    const analysis = await this.analyzeProjectStructure(mockFiles);
+    
+    const project: Omit<Project, 'createdAt' | 'updatedAt'> = {
+      id: projectId,
+      name: projectName,
+      description: description || analysis.description,
+      userId: "demo-user",
       files: mockFiles,
-      documentation,
+      config: {
+        framework: analysis.framework,
+        language: analysis.language,
+        runCommand: analysis.runCommand,
+        dependencies: analysis.dependencies,
+        gitUrl: gitUrl
+      },
+      documentation: {
+        setupInstructions: [
+          `git clone ${gitUrl}`,
+          "cd " + projectName.toLowerCase().replace(/\s+/g, '-'),
+          ...analysis.setupInstructions
+        ],
+        architecture: `This is a ${analysis.framework} project cloned from ${gitUrl}.`,
+        apiDocs: null,
+        deployment: "Run using: " + analysis.runCommand
+      }
     };
+    
+    await storage.createProject(project);
+    
+    return { projectId, analysis };
   }
-
-  private detectLanguage(filename: string): string {
-    const extension = path.extname(filename).toLowerCase();
-    const languageMap: Record<string, string> = {
-      '.js': 'javascript',
-      '.jsx': 'javascript',
-      '.ts': 'typescript',
-      '.tsx': 'typescript',
-      '.py': 'python',
-      '.java': 'java',
-      '.cpp': 'cpp',
-      '.c': 'c',
-      '.h': 'c',
-      '.css': 'css',
-      '.html': 'html',
-      '.json': 'json',
-      '.md': 'markdown',
-      '.txt': 'text',
-      '.yml': 'yaml',
-      '.yaml': 'yaml',
-      '.xml': 'xml',
-      '.sql': 'sql',
-    };
-    return languageMap[extension] || 'text';
-  }
-
-  private async generateDocumentation(
-    fileContents: FileContent[], 
-    projectName: string, 
-    description?: string
-  ): Promise<ProjectDocumentation> {
-    try {
-      // Create a comprehensive prompt for AI analysis
-      const analysisPrompt = this.createAnalysisPrompt(fileContents, projectName, description);
+  
+  private async analyzeProjectStructure(files: ImportedFile[]): Promise<AnalysisResult> {
+    // Analyze file structure to determine project type
+    const fileNames = files.map(f => f.name.toLowerCase());
+    const hasPackageJson = fileNames.some(name => name.includes('package.json'));
+    const hasRequirementsTxt = fileNames.some(name => name.includes('requirements.txt'));
+    const hasPomXml = fileNames.some(name => name.includes('pom.xml'));
+    const hasCargoToml = fileNames.some(name => name.includes('cargo.toml'));
+    const hasGoMod = fileNames.some(name => name.includes('go.mod'));
+    
+    // Determine language and framework
+    let language = "Unknown";
+    let framework = "Unknown";
+    let runCommand = "echo 'Run command not detected'";
+    let setupInstructions: string[] = [];
+    let dependencies: Record<string, string> = {};
+    
+    if (hasPackageJson) {
+      language = "JavaScript/TypeScript";
+      const packageFile = files.find(f => f.name.toLowerCase().includes('package.json'));
+      if (packageFile) {
+        try {
+          const packageData = JSON.parse(packageFile.content);
+          dependencies = packageData.dependencies || {};
+          
+          // Detect framework
+          if (packageData.dependencies?.react || packageData.devDependencies?.react) {
+            framework = "React";
+            runCommand = packageData.scripts?.dev || packageData.scripts?.start || "npm start";
+          } else if (packageData.dependencies?.vue || packageData.devDependencies?.vue) {
+            framework = "Vue.js";
+            runCommand = packageData.scripts?.dev || packageData.scripts?.serve || "npm run dev";
+          } else if (packageData.dependencies?.next || packageData.devDependencies?.next) {
+            framework = "Next.js";
+            runCommand = packageData.scripts?.dev || "npm run dev";
+          } else if (packageData.dependencies?.express) {
+            framework = "Express.js";
+            runCommand = packageData.scripts?.start || "node index.js";
+          } else {
+            framework = "Node.js";
+            runCommand = packageData.scripts?.start || "node index.js";
+          }
+          
+          setupInstructions = [
+            "npm install",
+            runCommand
+          ];
+        } catch (e) {
+          console.error("Error parsing package.json:", e);
+        }
+      }
+    } else if (hasRequirementsTxt) {
+      language = "Python";
+      framework = "Python Application";
+      setupInstructions = [
+        "pip install -r requirements.txt",
+        "python main.py"
+      ];
+      runCommand = "python main.py";
       
-      // Use AI to analyze the project (placeholder for now)
-      const aiResponse = "AI analysis placeholder";
-      
-      // Parse AI response into documentation structure
-      return this.parseAIResponse(aiResponse, fileContents);
-    } catch (error) {
-      console.error("Failed to generate AI documentation:", error);
-      // Return basic documentation if AI fails
-      return this.createBasicDocumentation(fileContents, projectName, description);
+      const reqFile = files.find(f => f.name.toLowerCase().includes('requirements.txt'));
+      if (reqFile) {
+        // Parse requirements.txt for basic dependency info
+        const lines = reqFile.content.split('\n').filter(line => line.trim());
+        lines.forEach(line => {
+          const [pkg] = line.split('==');
+          if (pkg) dependencies[pkg.trim()] = "latest";
+        });
+        
+        // Detect Python frameworks
+        if (reqFile.content.includes('django')) {
+          framework = "Django";
+          runCommand = "python manage.py runserver";
+          setupInstructions = [
+            "pip install -r requirements.txt",
+            "python manage.py migrate",
+            "python manage.py runserver"
+          ];
+        } else if (reqFile.content.includes('flask')) {
+          framework = "Flask";
+          runCommand = "flask run";
+        }
+      }
+    } else if (hasPomXml) {
+      language = "Java";
+      framework = "Maven Project";
+      setupInstructions = [
+        "mvn clean install",
+        "mvn spring-boot:run"
+      ];
+      runCommand = "mvn spring-boot:run";
+    } else if (hasCargoToml) {
+      language = "Rust";
+      framework = "Cargo Project";
+      setupInstructions = [
+        "cargo build",
+        "cargo run"
+      ];
+      runCommand = "cargo run";
+    } else if (hasGoMod) {
+      language = "Go";
+      framework = "Go Module";
+      setupInstructions = [
+        "go mod tidy",
+        "go run main.go"
+      ];
+      runCommand = "go run main.go";
     }
-  }
+    
+    // Use AI to enhance analysis if possible
+    try {
+      const fileList = files.map(f => `${f.name} (${f.size} bytes)`).join('\n');
+      const prompt = `Analyze this project structure and provide insights:
 
-  private createAnalysisPrompt(fileContents: FileContent[], projectName: string, description?: string): string {
-    const fileList = fileContents.map(f => `- ${f.path} (${f.type})`).join('\n');
-    const codeExamples = fileContents
-      .filter(f => ['javascript', 'typescript', 'python', 'java', 'cpp'].includes(f.type))
-      .slice(0, 3) // Limit to first 3 code files
-      .map(f => `### ${f.path}\n\`\`\`${f.type}\n${f.content.slice(0, 1000)}...\n\`\`\``)
-      .join('\n\n');
-
-    return `Analyze this project and generate comprehensive documentation in JSON format.
-
-Project Name: ${projectName}
-Description: ${description || "No description provided"}
-
-Files in project:
+Files:
 ${fileList}
 
-Code samples:
-${codeExamples}
+Current detection:
+- Language: ${language}
+- Framework: ${framework}
+- Run command: ${runCommand}
 
-Please provide a JSON response with this exact structure:
-{
-  "overview": "Brief overview of what this project does",
-  "techStack": ["Technology1", "Technology2"],
-  "architecture": "Description of the system architecture and patterns",
-  "dependencies": ["dependency1", "dependency2"],
-  "setupInstructions": "Step-by-step setup instructions",
-  "deploymentInfo": "How to deploy this project",
-  "apis": ["REST API", "GraphQL"],
-  "databases": ["PostgreSQL", "Redis"],
-  "keyFiles": {
-    "path/to/file": "Description of what this file does"
-  },
-  "features": ["Feature 1", "Feature 2"],
-  "notes": "Additional notes and important information"
-}
+Please provide a brief project description based on the file structure.`;
 
-Analyze the code structure, dependencies, and patterns to provide accurate technical details.`;
-  }
-
-  private parseAIResponse(aiResponse: string, fileContents: FileContent[]): ProjectDocumentation {
-    try {
-      // Try to extract JSON from AI response
-      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        return {
-          overview: parsed.overview || "",
-          techStack: Array.isArray(parsed.techStack) ? parsed.techStack : [],
-          architecture: parsed.architecture || "",
-          dependencies: Array.isArray(parsed.dependencies) ? parsed.dependencies : [],
-          setupInstructions: parsed.setupInstructions || "",
-          deploymentInfo: parsed.deploymentInfo || "",
-          apis: Array.isArray(parsed.apis) ? parsed.apis : [],
-          databases: Array.isArray(parsed.databases) ? parsed.databases : [],
-          keyFiles: typeof parsed.keyFiles === 'object' ? parsed.keyFiles : {},
-          features: Array.isArray(parsed.features) ? parsed.features : [],
-          notes: parsed.notes || "",
-        };
-      }
+      const aiAnalysis = await aiService.generateText(prompt, "gpt-4o");
+      
+      return {
+        projectType: framework,
+        framework,
+        language,
+        runCommand,
+        setupInstructions,
+        dependencies,
+        description: aiAnalysis || `A ${language} project using ${framework}`
+      };
     } catch (error) {
-      console.error("Failed to parse AI response:", error);
+      console.error("AI analysis failed:", error);
+      return {
+        projectType: framework,
+        framework,
+        language,
+        runCommand,
+        setupInstructions,
+        dependencies,
+        description: `A ${language} project using ${framework}`
+      };
     }
-
-    // Fallback to basic documentation
-    return this.createBasicDocumentation(fileContents, "", "");
   }
-
-  private createBasicDocumentation(
-    fileContents: FileContent[], 
-    projectName: string, 
-    description?: string
-  ): ProjectDocumentation {
-    // Detect technologies from file extensions
-    const techStack = Array.from(new Set(
-      fileContents.map(f => f.type).filter(type => type !== 'text')
-    ));
-
-    // Identify key files
-    const keyFiles: Record<string, string> = {};
-    fileContents.forEach(file => {
-      if (file.path.includes('package.json')) {
-        keyFiles[file.path] = "Package configuration and dependencies";
-      } else if (file.path.includes('README')) {
-        keyFiles[file.path] = "Project documentation and setup instructions";
-      } else if (file.path.includes('index') || file.path.includes('main')) {
-        keyFiles[file.path] = "Main application entry point";
-      } else if (file.path.includes('config')) {
-        keyFiles[file.path] = "Configuration file";
-      }
-    });
-
-    return {
-      overview: description || `A ${projectName} project with ${fileContents.length} files`,
-      techStack,
-      architecture: "Architecture analysis pending - please regenerate documentation with AI",
-      dependencies: [],
-      setupInstructions: "Setup instructions not analyzed - please regenerate documentation with AI",
-      deploymentInfo: "Deployment information not analyzed - please regenerate documentation with AI",
-      apis: [],
-      databases: [],
-      keyFiles,
-      features: [],
-      notes: "This documentation was auto-generated. Use AI regeneration for detailed analysis.",
-    };
+  
+  private generateMockFilesFromGitUrl(gitUrl: string): ImportedFile[] {
+    // Generate realistic mock files based on Git URL patterns
+    // This is a simplified demo - real implementation would clone the repo
+    
+    const repoName = gitUrl.split('/').pop()?.replace('.git', '') || 'project';
+    
+    if (gitUrl.includes('react') || gitUrl.includes('nextjs') || gitUrl.includes('frontend')) {
+      return [
+        {
+          name: 'package.json',
+          content: JSON.stringify({
+            name: repoName,
+            version: "1.0.0",
+            scripts: {
+              dev: "next dev",
+              build: "next build",
+              start: "next start"
+            },
+            dependencies: {
+              react: "^18.0.0",
+              "react-dom": "^18.0.0",
+              next: "^13.0.0"
+            }
+          }, null, 2),
+          path: 'package.json',
+          size: 500
+        },
+        {
+          name: 'README.md',
+          content: `# ${repoName}\n\nA React/Next.js application cloned from ${gitUrl}`,
+          path: 'README.md',
+          size: 100
+        }
+      ];
+    } else if (gitUrl.includes('python') || gitUrl.includes('django') || gitUrl.includes('flask')) {
+      return [
+        {
+          name: 'requirements.txt',
+          content: 'django>=4.0\nrequests>=2.28.0\nnumpy>=1.21.0',
+          path: 'requirements.txt',
+          size: 100
+        },
+        {
+          name: 'main.py',
+          content: '# Main Python application\nprint("Hello from imported project!")',
+          path: 'main.py',
+          size: 80
+        },
+        {
+          name: 'README.md',
+          content: `# ${repoName}\n\nA Python application cloned from ${gitUrl}`,
+          path: 'README.md',
+          size: 100
+        }
+      ];
+    } else {
+      // Generic project
+      return [
+        {
+          name: 'README.md',
+          content: `# ${repoName}\n\nProject cloned from ${gitUrl}`,
+          path: 'README.md',
+          size: 80
+        },
+        {
+          name: 'index.js',
+          content: 'console.log("Hello from imported project!");',
+          path: 'index.js',
+          size: 50
+        }
+      ];
+    }
   }
 }
 

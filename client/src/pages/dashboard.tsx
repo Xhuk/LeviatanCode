@@ -11,8 +11,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Database, Play, Settings, UserCircle, Cog, Brain, FileText, MessageSquare, AlertTriangle } from "lucide-react";
+import { Database, Play, Settings, UserCircle, Cog, Brain, FileText, MessageSquare, AlertTriangle, Upload } from "lucide-react";
 import { ServiceStatusIndicator } from "@/components/service-status-indicator";
+import { ProjectImportDialog } from "@/components/project-import-dialog";
 
 export default function Dashboard() {
   const [currentProject, setCurrentProject] = useState<string>("demo-project-1");
@@ -65,6 +66,7 @@ export default function Dashboard() {
               <span className="text-sm text-replit-text-secondary">AI Online</span>
             </div>
           </div>
+          <ProjectImportDialog onProjectImported={setCurrentProject} />
           <Button className="bg-replit-blue hover:bg-replit-blue-secondary">
             <Play size={14} className="mr-1" />
             Run Project
@@ -156,7 +158,7 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center space-x-1">
             <Database size={12} className="text-blue-400" />
-            <span className="text-replit-text-secondary">127 records scraped</span>
+            <span className="text-replit-text-secondary">Project loaded</span>
           </div>
           <div className="flex items-center space-x-1">
             <i className="fas fa-clock text-purple-400"></i>

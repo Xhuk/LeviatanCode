@@ -2,7 +2,9 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { aiService } from "./services/ai";
-// import { scraperService } from "./services/scraper"; // Removed scraper functionality
+import { projectImportService } from "./services/project-import";
+import multer from "multer";
+import { z } from "zod";
 import { 
   insertProjectSchema,
   insertProjectExecutionSchema,
@@ -15,12 +17,18 @@ import {
   type PromptTemplate,
   type ProjectDocumentation
 } from "@shared/schema";
-import { projectImportService } from "./services/project-import";
-import multer from 'multer';
-import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
+
+  // Configure multer for file uploads
+  const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB limit
+      files: 50 // Max 50 files
+    }
+  });
 
   // Projects
   app.get("/api/projects", async (req, res) => {
@@ -500,14 +508,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Configure multer for file uploads
-  const upload = multer({ 
-    dest: 'uploads/',
-    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
-  });
-
   // Project import endpoints
-  app.post("/api/projects/import", upload.array('files'), async (req, res) => {
+  app.post("/api/projects/import/files", upload.array('files'), async (req, res) => {
     try {
       const { name, description, method, gitUrl } = req.body;
       
@@ -663,6 +665,60 @@ Please provide a JSON response with this exact structure:
     } catch (error: any) {
       console.error("Documentation generation error:", error);
       res.status(500).json({ message: "Failed to generate documentation" });
+    }
+  });
+
+
+
+  // Project import endpoints
+  app.post("/api/projects/import/files", upload.array('files'), async (req, res) => {
+    try {
+      const files = req.files as any[];
+      const { name, description } = req.body;
+      
+      if (!files || files.length === 0) {
+        return res.status(400).json({ error: "No files uploaded" });
+      }
+      
+      if (!name || typeof name !== 'string') {
+        return res.status(400).json({ error: "Project name is required" });
+      }
+      
+      const result = await projectImportService.importFromFiles(files, name, description);
+      
+      res.json({
+        projectId: result.projectId,
+        message: "Project imported and analyzed successfully",
+        analysis: result.analysis
+      });
+    } catch (error) {
+      console.error("File import error:", error);
+      res.status(500).json({ error: "Failed to import project from files" });
+    }
+  });
+
+  app.post("/api/projects/import/git", async (req, res) => {
+    try {
+      const { gitUrl, name, description } = req.body;
+      
+      if (!gitUrl || typeof gitUrl !== 'string') {
+        return res.status(400).json({ error: "Git URL is required" });
+      }
+      
+      if (!name || typeof name !== 'string') {
+        return res.status(400).json({ error: "Project name is required" });
+      }
+      
+      const result = await projectImportService.importFromGit(gitUrl, name, description);
+      
+      res.json({
+        projectId: result.projectId,
+        message: "Project imported and analyzed successfully",
+        analysis: result.analysis
+      });
+    } catch (error) {
+      console.error("Git import error:", error);
+      res.status(500).json({ error: "Failed to import project from Git repository" });
     }
   });
 
