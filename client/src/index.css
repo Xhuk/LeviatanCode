@@ -226,3 +226,19 @@ select:focus {
   border-color: var(--replit-blue);
   box-shadow: 0 0 0 2px rgba(9, 105, 218, 0.2);
 }
+
+/* Animated gradient border animation */
+@keyframes gradient-x {
+  0%, 100% {
+    background-size: 200% 200%;
+    background-position: left center;
+  }
+  50% {
+    background-size: 200% 200%;
+    background-position: right center;
+  }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 3s ease infinite;
+}

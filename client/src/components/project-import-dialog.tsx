@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Upload, FolderOpen, GitBranch, FileText, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { Upload, FolderOpen, GitBranch, FileText, CheckCircle, AlertCircle, Loader2, Brain } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -323,34 +323,78 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
             </Tabs>
 
             {/* AI Analysis Info */}
-            <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center space-x-2">
-                  <span className="text-purple-600">🤖</span>
-                  <span>AI Analysis Features</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-3 text-sm text-[#124780]">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Auto-detect framework</span>
+            <div className="relative">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 rounded-lg opacity-75 blur-sm animate-pulse"></div>
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 rounded-lg animate-gradient-x"></div>
+              <Card className="relative bg-white dark:bg-gray-900 border-0">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-xl flex items-center space-x-3">
+                    <div className="relative">
+                      <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
+                        <Brain className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full opacity-30 animate-ping"></div>
+                    </div>
+                    <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent font-bold">
+                      AI-Powered Project Analysis
+                    </span>
+                  </CardTitle>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    Our intelligent system automatically analyzes your codebase to provide instant setup and execution guidance
+                  </p>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="flex items-start space-x-3 p-3 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20">
+                      <div className="flex-shrink-0 w-6 h-6 bg-green-100 dark:bg-green-800 rounded-full flex items-center justify-center mt-0.5">
+                        <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900 dark:text-gray-100">Framework Detection</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Automatically identifies React, Django, Express, Next.js, and 50+ other frameworks</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start space-x-3 p-3 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20">
+                      <div className="flex-shrink-0 w-6 h-6 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center mt-0.5">
+                        <CheckCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900 dark:text-gray-100">Smart Command Generation</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Creates the exact commands needed to install, build, test, and run your project</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start space-x-3 p-3 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
+                      <div className="flex-shrink-0 w-6 h-6 bg-purple-100 dark:bg-purple-800 rounded-full flex items-center justify-center mt-0.5">
+                        <CheckCircle className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900 dark:text-gray-100">Dependency Analysis</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Scans package.json, requirements.txt, pom.xml and other config files</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start space-x-3 p-3 rounded-lg bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20">
+                      <div className="flex-shrink-0 w-6 h-6 bg-orange-100 dark:bg-orange-800 rounded-full flex items-center justify-center mt-0.5">
+                        <CheckCircle className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900 dark:text-gray-100">Documentation Creation</h4>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Generates comprehensive setup guides, architecture insights, and troubleshooting tips</p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Generate run commands</span>
+                  
+                  <div className="mt-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg">
+                    <div className="flex items-center space-x-2 text-sm">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">Analysis typically completes in 10-30 seconds</span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Identify dependencies</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Setup documentation</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         )}
       </DialogContent>
