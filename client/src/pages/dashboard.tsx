@@ -11,7 +11,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Database, Play, Settings, UserCircle, Cog, Brain, FileText, MessageSquare } from "lucide-react";
+import { Database, Play, Settings, UserCircle, Cog, Brain, FileText, MessageSquare, AlertTriangle } from "lucide-react";
+import { ServiceStatusIndicator } from "@/components/service-status-indicator";
 
 export default function Dashboard() {
   const [currentProject, setCurrentProject] = useState<string>("demo-project-1");
@@ -52,13 +53,21 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <div className="status-indicator running w-2 h-2 bg-replit-success rounded-full"></div>
-            <span className="text-sm text-replit-text-secondary">AI Models: Online</span>
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 px-2 py-1 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded">
+              <AlertTriangle className="h-3 w-3 text-yellow-600 dark:text-yellow-400" />
+              <span className="text-xs text-yellow-700 dark:text-yellow-300 font-medium">
+                Free Tier
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm text-replit-text-secondary">AI Online</span>
+            </div>
           </div>
           <Button className="bg-replit-blue hover:bg-replit-blue-secondary">
             <Play size={14} className="mr-1" />
-            Run Scraper
+            Run Project
           </Button>
           <div className="flex items-center space-x-1">
             <Button variant="ghost" size="sm">

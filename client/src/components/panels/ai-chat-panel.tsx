@@ -9,6 +9,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { ChatMessage } from "@shared/schema";
 import { usePromptTemplates } from "@/hooks/use-prompt-templates";
 import { useFileSystem } from "@/hooks/use-file-system";
+import { ServiceStatusIndicator } from "@/components/service-status-indicator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -216,16 +217,24 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
           </div>
         </div>
         
-        <Select value={selectedModel} onValueChange={setSelectedModel}>
-          <SelectTrigger className="w-full bg-replit-elevated border-replit-border">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="gpt-4o">GPT-4 Turbo</SelectItem>
-            <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
-            <SelectItem value="gemini-2.5-flash">Gemini Pro</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="space-y-2">
+          <Select value={selectedModel} onValueChange={setSelectedModel}>
+            <SelectTrigger className="w-full bg-replit-elevated border-replit-border">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="gpt-4o">GPT-4 Turbo</SelectItem>
+              <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+              <SelectItem value="gemini-2.5-flash">Gemini Pro</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          {/* Service Status Indicator */}
+          <ServiceStatusIndicator 
+            service={selectedModel.startsWith("gpt") ? "openai" : "gemini"}
+            model={selectedModel}
+          />
+        </div>
       </div>
       
       {/* Messages */}
