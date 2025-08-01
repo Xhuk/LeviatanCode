@@ -211,42 +211,6 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
               </div>
             </div>
 
-            {/* AI Analysis Info - Compact */}
-            <div className="p-4 bg-gradient-to-r from-purple-50 via-blue-50 to-purple-50 dark:from-purple-900/20 dark:via-blue-900/20 dark:to-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="relative">
-                  <div className="w-6 h-6 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
-                    <Brain className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full opacity-30 animate-ping"></div>
-                </div>
-                <h3 className="font-semibold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  AI-Powered Analysis
-                </h3>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-3 w-3 text-green-600" />
-                  <span className="text-gray-700 dark:text-gray-300">Auto-detect framework</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-3 w-3 text-blue-600" />
-                  <span className="text-gray-700 dark:text-gray-300">Generate commands</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-3 w-3 text-purple-600" />
-                  <span className="text-gray-700 dark:text-gray-300">Scan dependencies</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-3 w-3 text-orange-600" />
-                  <span className="text-gray-700 dark:text-gray-300">Create documentation</span>
-                </div>
-              </div>
-              <div className="mt-3 flex items-center justify-center space-x-2 text-xs">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-gray-600 dark:text-gray-400">Analysis completes in 10-30 seconds</span>
-              </div>
-            </div>
 
             {/* Import Method Selection */}
             <Tabs value={importMethod} onValueChange={(value) => setImportMethod(value as "file" | "git")}>
