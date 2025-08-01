@@ -1,0 +1,228 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(210, 30%, 8%);
+  --foreground: hsl(210, 40%, 98%);
+  --muted: hsl(210, 40%, 96%);
+  --muted-foreground: hsl(215, 13.8%, 34.1%);
+  --popover: hsl(210, 30%, 8%);
+  --popover-foreground: hsl(210, 40%, 98%);
+  --card: hsl(210, 30%, 8%);
+  --card-foreground: hsl(210, 40%, 98%);
+  --border: hsl(215, 27.9%, 16.9%);
+  --input: hsl(215, 27.9%, 16.9%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(210, 40%, 98%);
+  --secondary: hsl(215, 27.9%, 16.9%);
+  --secondary-foreground: hsl(210, 40%, 98%);
+  --accent: hsl(215, 27.9%, 16.9%);
+  --accent-foreground: hsl(210, 40%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --ring: hsl(215, 20.2%, 65.1%);
+  --radius: 0.5rem;
+
+  /* Replit-specific colors */
+  --replit-dark: hsl(210, 30%, 8%);
+  --replit-panel: hsl(217, 19%, 12%);
+  --replit-elevated: hsl(215, 16%, 17%);
+  --replit-border: hsl(215, 20%, 19%);
+  --replit-blue: hsl(207, 90%, 54%);
+  --replit-blue-secondary: hsl(215, 100%, 60%);
+  --replit-text: hsl(210, 40%, 98%);
+  --replit-text-secondary: hsl(215, 13%, 65%);
+  --replit-text-muted: hsl(215, 13%, 45%);
+  --replit-success: hsl(142, 71%, 45%);
+  --replit-error: hsl(0, 84%, 60%);
+  --replit-warning: hsl(35, 91%, 55%);
+}
+
+.dark {
+  --background: hsl(210, 30%, 8%);
+  --foreground: hsl(210, 40%, 98%);
+  --muted: hsl(215, 27.9%, 16.9%);
+  --muted-foreground: hsl(215, 13.8%, 34.1%);
+  --popover: hsl(210, 30%, 8%);
+  --popover-foreground: hsl(210, 40%, 98%);
+  --card: hsl(210, 30%, 8%);
+  --card-foreground: hsl(210, 40%, 98%);
+  --border: hsl(215, 27.9%, 16.9%);
+  --input: hsl(215, 27.9%, 16.9%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(210, 40%, 98%);
+  --secondary: hsl(215, 27.9%, 16.9%);
+  --secondary-foreground: hsl(210, 40%, 98%);
+  --accent: hsl(215, 27.9%, 16.9%);
+  --accent-foreground: hsl(210, 40%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --ring: hsl(215, 20.2%, 65.1%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow: hidden;
+  }
+}
+
+@layer components {
+  .replit-panel {
+    @apply bg-[var(--replit-panel)] border-[var(--replit-border)];
+  }
+  
+  .replit-elevated {
+    @apply bg-[var(--replit-elevated)] border-[var(--replit-border)];
+  }
+  
+  .replit-text-secondary {
+    color: var(--replit-text-secondary);
+  }
+  
+  .replit-text-muted {
+    color: var(--replit-text-muted);
+  }
+  
+  .gradient-border {
+    background: linear-gradient(45deg, var(--replit-blue), var(--replit-blue-secondary), var(--replit-success));
+    padding: 1px;
+    border-radius: 8px;
+  }
+  
+  .gradient-text {
+    background: linear-gradient(45deg, var(--replit-blue), var(--replit-blue-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .resizer {
+    cursor: col-resize;
+    background: transparent;
+    border: none;
+    width: 4px;
+    position: relative;
+    transition: background-color 0.2s;
+  }
+  
+  .resizer:hover {
+    background: var(--replit-blue);
+  }
+  
+  .panel-tab {
+    @apply px-3 py-2 text-sm cursor-pointer transition-colors;
+    color: var(--replit-text-secondary);
+  }
+  
+  .panel-tab:hover {
+    color: var(--replit-text);
+  }
+  
+  .panel-tab.active {
+    @apply bg-[var(--replit-elevated)] text-[var(--replit-text)];
+    border-bottom: 2px solid var(--replit-blue);
+  }
+  
+  .chat-message.user {
+    background: linear-gradient(135deg, var(--replit-blue), var(--replit-blue-secondary));
+  }
+  
+  .chat-message.ai {
+    @apply bg-[var(--replit-elevated)] border border-[var(--replit-border)];
+  }
+  
+  .status-indicator.running {
+    animation: pulse 2s infinite;
+  }
+  
+  .terminal-cursor {
+    animation: blink 1s infinite;
+  }
+  
+  .file-tree-item:hover {
+    @apply bg-[var(--replit-elevated)];
+  }
+  
+  .loading-skeleton {
+    background: linear-gradient(90deg, var(--replit-panel) 25%, var(--replit-elevated) 50%, var(--replit-panel) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+  }
+  
+  .monaco-editor {
+    background: var(--replit-dark) !important;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+@keyframes loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Monaco Editor customizations */
+.monaco-editor .margin {
+  background-color: var(--replit-dark) !important;
+}
+
+.monaco-editor .monaco-editor-background {
+  background-color: var(--replit-dark) !important;
+}
+
+.monaco-editor .current-line {
+  background-color: var(--replit-elevated) !important;
+}
+
+.monaco-editor .line-numbers {
+  color: var(--replit-text-muted) !important;
+}
+
+/* Scrollbar customizations */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--replit-panel);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--replit-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--replit-text-muted);
+}
+
+/* Focus styles */
+.focus-visible {
+  outline: 2px solid var(--replit-blue);
+  outline-offset: 2px;
+}
+
+/* Custom input styles */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--replit-blue);
+  box-shadow: 0 0 0 2px rgba(9, 105, 218, 0.2);
+}
