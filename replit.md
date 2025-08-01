@@ -22,6 +22,8 @@ The system is built as a monorepo with a React TypeScript frontend using shadcn/
 - **Documentation Generation**: Automatic generation of comprehensive project documentation including setup instructions, architecture analysis, and deployment guides
 - **File System Integration**: AI can access and analyze project files directly, providing contextual responses based on actual code structure
 - **Windows Optimization**: Complete Windows setup with PowerShell scripts, Supabase integration, and comprehensive development tools
+- **Project Metadata System**: Implemented "insightsproject.ia" file system for persistent project context and metadata storage
+- **Save Project Functionality**: Added save button for updating project insights including name, path, type, commands, and AI analysis results
 
 # User Preferences
 
@@ -74,6 +76,8 @@ Deployment target: Local Windows development with option for Windows Server prod
 - **Project Import**: File upload and Git repository import with automatic project structure analysis
 - **Intelligent Execution**: AI-powered detection of how to run different types of projects (npm run dev, python main.py, etc.)
 - **Debug Assistant**: AI-powered debugging guidance and error resolution for various programming languages
+- **Project Metadata**: insightsproject.ia file system for storing project context, configuration, and AI analysis results
+- **Save Functionality**: Persistent project information storage with manual save capability for updating project insights
 
 ## UI and Development
 - **Radix UI**: Headless component library for accessible UI primitives

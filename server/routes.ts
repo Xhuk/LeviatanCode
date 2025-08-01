@@ -608,16 +608,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid import method or missing data" });
       }
 
-      // Create project in storage
-      const userId = "demo-user-1"; // In real app, get from session
-      const project = await storage.createProject({
-        name: importResult.name,
-        description: importResult.description,
-        userId,
-        files: importResult.files,
-        config: {},
-        documentation: importResult.documentation,
-      });
+      // Project creation is now handled inside the import service
+      // No need to duplicate project creation here
 
       res.json(project);
     } catch (error: any) {
@@ -751,7 +743,7 @@ Please provide a JSON response with this exact structure:
   app.post("/api/projects/import/files", upload.array('files'), async (req, res) => {
     try {
       const files = req.files as any[];
-      const { name, description } = req.body;
+      const { name, description, projectPath } = req.body;
       
       if (!files || files.length === 0) {
         return res.status(400).json({ error: "No files uploaded" });
@@ -761,12 +753,13 @@ Please provide a JSON response with this exact structure:
         return res.status(400).json({ error: "Project name is required" });
       }
       
-      const result = await projectImportService.importFromFiles(files, name, description);
+      const result = await projectImportService.importFromFiles(files, name, description, projectPath);
       
       res.json({
         projectId: result.projectId,
         message: "Project imported and analyzed successfully",
-        analysis: result.analysis
+        analysis: result.analysis,
+        insights: result.insights
       });
     } catch (error) {
       console.error("File import error:", error);
@@ -776,7 +769,7 @@ Please provide a JSON response with this exact structure:
 
   app.post("/api/projects/import/git", async (req, res) => {
     try {
-      const { gitUrl, name, description } = req.body;
+      const { gitUrl, name, description, projectPath } = req.body;
       
       if (!gitUrl || typeof gitUrl !== 'string') {
         return res.status(400).json({ error: "Git URL is required" });
@@ -786,16 +779,59 @@ Please provide a JSON response with this exact structure:
         return res.status(400).json({ error: "Project name is required" });
       }
       
-      const result = await projectImportService.importFromGit(gitUrl, name, description);
+      const result = await projectImportService.importFromGit(gitUrl, name, description, projectPath);
       
       res.json({
         projectId: result.projectId,
         message: "Project imported and analyzed successfully",
-        analysis: result.analysis
+        analysis: result.analysis,
+        insights: result.insights
       });
     } catch (error) {
       console.error("Git import error:", error);
       res.status(500).json({ error: "Failed to import project from Git repository" });
+    }
+  });
+
+  // Project insights management
+  app.get("/api/projects/:id/insights", async (req, res) => {
+    try {
+      const { id: projectId } = req.params;
+      const project = await storage.getProject(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+      
+      // Try to load insights from project path if available
+      const projectPath = req.query.projectPath as string || process.cwd();
+      const insights = await projectImportService.loadProjectInsights(projectPath);
+      
+      res.json({ insights });
+    } catch (error) {
+      console.error("Load insights error:", error);
+      res.status(500).json({ error: "Failed to load project insights" });
+    }
+  });
+
+  app.post("/api/projects/:id/insights/save", async (req, res) => {
+    try {
+      const { id: projectId } = req.params;
+      const { projectPath, insights } = req.body;
+      
+      if (!projectPath) {
+        return res.status(400).json({ error: "Project path is required" });
+      }
+      
+      const savedInsights = await projectImportService.saveProjectInsights(projectId, projectPath, insights);
+      
+      res.json({
+        message: "Project insights saved successfully",
+        insights: savedInsights
+      });
+    } catch (error) {
+      console.error("Save insights error:", error);
+      res.status(500).json({ error: "Failed to save project insights" });
     }
   });
 

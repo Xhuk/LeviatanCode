@@ -15,6 +15,7 @@ import { Database, Play, Settings, UserCircle, Cog, Brain, FileText, MessageSqua
 import { ServiceStatusIndicator } from "@/components/service-status-indicator";
 import { ProjectImportDialog } from "@/components/project-import-dialog";
 import { SettingsDialog } from "@/components/settings-dialog";
+import { ProjectInsightsSaveButton } from "@/components/project-insights-save-button";
 
 export default function Dashboard() {
   const [currentProject, setCurrentProject] = useState<string>("demo-project-1");
@@ -68,6 +69,11 @@ export default function Dashboard() {
             </div>
           </div>
           <ProjectImportDialog onProjectImported={setCurrentProject} />
+          <ProjectInsightsSaveButton 
+            projectId={currentProject} 
+            projectName={project?.name || "Current Project"}
+            projectPath="."
+          />
           <Button className="bg-replit-blue hover:bg-replit-blue-secondary">
             <Play size={14} className="mr-1" />
             Run Project

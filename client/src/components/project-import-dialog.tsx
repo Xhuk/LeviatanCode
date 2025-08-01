@@ -24,12 +24,13 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
   const [gitUrl, setGitUrl] = useState("");
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
+  const [projectPath, setProjectPath] = useState("");
   const [analysisStep, setAnalysisStep] = useState(0);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const importMutation = useMutation({
-    mutationFn: async (data: FormData | { gitUrl: string; name: string; description: string }) => {
+    mutationFn: async (data: FormData | { gitUrl: string; name: string; description: string; projectPath: string }) => {
       if (data instanceof FormData) {
         return apiRequest("/api/projects/import/files", {
           method: "POST",
@@ -67,6 +68,7 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
     setGitUrl("");
     setProjectName("");
     setProjectDescription("");
+    setProjectPath("");
     setAnalysisStep(0);
   };
 
@@ -86,6 +88,7 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
     });
     formData.append("name", projectName);
     formData.append("description", projectDescription);
+    formData.append("projectPath", projectPath || ".");
 
     importMutation.mutate(formData);
   };
@@ -104,6 +107,7 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
       gitUrl: gitUrl.trim(),
       name: projectName,
       description: projectDescription,
+      projectPath: projectPath || ".",
     });
   };
 
@@ -190,6 +194,18 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
                   placeholder="Brief description of your project..."
                   rows={2}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="projectPath">Project Path (Optional)</Label>
+                <Input
+                  id="projectPath"
+                  value={projectPath}
+                  onChange={(e) => setProjectPath(e.target.value)}
+                  placeholder="./my-project or C:\Projects\MyApp"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Where to save the insightsproject.ia file. Defaults to current directory.
+                </p>
               </div>
             </div>
 
