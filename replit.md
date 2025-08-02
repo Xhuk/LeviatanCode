@@ -24,10 +24,20 @@ The system is built as a monorepo with a React TypeScript frontend using shadcn/
   - System Monitor with real-time CPU/memory usage and process monitoring
   - Database Console with SQL query execution and result display
   - Configuration panel with live settings management and environment controls
+- **Git Management System**: Complete Git workflow interface with workspace-specific configuration:
+  - Dedicated Git Management page with repository status, branch management, staging area
+  - Per-workspace Git configuration storage (username, email, remote URL)
+  - Connection testing and visual status feedback
+  - Commit interface with message composition and push/pull operations
+- **Workspace Management**: WORKING_DIRECTORY-based workspace system:
+  - Workspace dropdown lists actual folders from WORKING_DIRECTORY environment variable
+  - Project operations always work inside selected workspace folder, never on parent
+  - Per-workspace configuration persistence for Git and other settings
 - **Enhanced Panel System**: Complete overhaul of all panels with real functionality:
   - AI Chat panel with working API integration and message history
   - Git panel with branch management, commit staging, and repository operations
   - Console panel with WebSocket log streaming, filtering, and export capabilities
+- **Smart UI Behavior**: Agent tool pages automatically close when files are selected, switching to editor
 - **Production Interface**: Modern professional design with glass morphism effects, smooth animations, and Replit-inspired dark theme
 - **Full System Integration**: All components working together with stable WebSocket connections, proper API routing, and seamless user experience
 - **Server Optimization**: Fixed all TypeScript compilation errors, corrected port configuration to 5000, and resolved all critical system issues

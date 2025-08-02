@@ -1420,6 +1420,8 @@ export default function Dashboard() {
   const handleFileSelect = (filePath: string, fileName: string) => {
     setActiveFile(filePath);
     setActiveFileName(fileName);
+    // Close any open agent tool page and switch to editor
+    setActiveTab("editor");
   };
 
   const handleGitPush = async () => {
