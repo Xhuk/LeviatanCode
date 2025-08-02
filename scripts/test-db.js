@@ -1,5 +1,6 @@
-const { drizzle } = require('drizzle-orm/neon-http');
-const { neon } = require('@neondatabase/serverless');
+import { drizzle } from 'drizzle-orm/neon-http';
+import { neon } from '@neondatabase/serverless';
+import 'dotenv/config';
 
 async function testDatabase() {
     try {

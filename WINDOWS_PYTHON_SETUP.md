@@ -14,8 +14,8 @@ copy .env.example .env
 # 3. Run Python setup
 python scripts/setup-windows.py
 
-# 4. Validate setup
-python scripts/validate-setup.py
+# 4. Validate setup (use simple version for Windows)
+python scripts/windows-test-simple.py
 
 # 5. Start development
 npm run windev

@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 async function testAI() {
     try {
         if (process.env.OPENAI_API_KEY) {

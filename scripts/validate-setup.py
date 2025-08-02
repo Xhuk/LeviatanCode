@@ -34,15 +34,22 @@ def print_header(text: str) -> None:
 def run_command(cmd: List[str], timeout: int = 30) -> Tuple[bool, str]:
     """Run command and return success status and output"""
     try:
+        # Fix Windows encoding issues
         result = subprocess.run(
             cmd, 
             check=True, 
             capture_output=True, 
             text=True, 
             timeout=timeout,
-            shell=True
+            shell=True,
+            encoding='utf-8',
+            errors='replace'
         )
         return True, result.stdout
+    except subprocess.CalledProcessError as e:
+        # Return stderr if available, otherwise return generic error
+        error_msg = e.stderr if e.stderr else f"Command failed with exit code {e.returncode}"
+        return False, error_msg
     except Exception as e:
         return False, str(e)
 
