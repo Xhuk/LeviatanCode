@@ -106,157 +106,136 @@ const Logger = () => {
   );
 };
 
-// Git Log Panel component (former Configuration page)
+// Git Log Panel component - Recent commits display
 const GitLogPanel = () => {
-  const [gitConfig, setGitConfig] = useState({
-    username: "",
-    email: "",
-    remoteUrl: "",
-    branch: "main"
-  });
   const [commits, setCommits] = useState([
     {
       hash: "a1b2c3d",
-      message: "Initial commit",
+      message: "Initial commit - Setup basic project structure with React and TypeScript",
       author: "Developer",
       date: "2024-01-15 10:30:00",
       branch: "main"
     },
     {
       hash: "e4f5g6h",
-      message: "Add Monaco Editor integration",
+      message: "Add Monaco Editor integration for advanced code editing capabilities",
       author: "Developer", 
       date: "2024-01-15 14:20:00",
       branch: "main"
     },
     {
       hash: "i7j8k9l",
-      message: "Implement syntax highlighting",
+      message: "Implement syntax highlighting and language support for multiple file types",
       author: "Developer",
       date: "2024-01-15 16:45:00", 
       branch: "main"
+    },
+    {
+      hash: "m8n9o0p",
+      message: "Add comprehensive Settings page with workspace configuration options",
+      author: "Developer",
+      date: "2024-01-16 09:15:00", 
+      branch: "main"
+    },
+    {
+      hash: "q1r2s3t",
+      message: "Enhance Git functionality with proper push/pull validation and configuration checks",
+      author: "Developer",
+      date: "2024-01-16 11:30:00", 
+      branch: "main"
+    },
+    {
+      hash: "u4v5w6x",
+      message: "Implement Vault Explorer for secure credential management with Supabase integration",
+      author: "Developer",
+      date: "2024-01-16 13:45:00", 
+      branch: "main"
+    },
+    {
+      hash: "y7z8a9b",
+      message: "Add AI-powered document analysis and project insights generation",
+      author: "Developer",
+      date: "2024-01-16 15:20:00", 
+      branch: "main"
+    },
+    {
+      hash: "c2d3e4f",
+      message: "Integrate Flask analyzer service for comprehensive multi-language code analysis",
+      author: "Developer",
+      date: "2024-01-16 17:10:00", 
+      branch: "main"
     }
   ]);
+
+  const refreshCommits = () => {
+    // In a real implementation, this would fetch commits from git log
+    console.log("Refreshing commit history...");
+  };
 
   return (
     <div className="h-full bg-replit-bg p-6 overflow-y-auto">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-replit-text">Git Configuration & Log</h2>
+          <div>
+            <h2 className="text-xl font-semibold text-replit-text">Recent Commits</h2>
+            <p className="text-sm text-replit-text-secondary mt-1">Project commit history and recent changes</p>
+          </div>
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" className="modern-button">
-              <GitBranch className="w-4 h-4 mr-2" />
+            <Button variant="outline" size="sm" className="modern-button" onClick={refreshCommits}>
+              <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
             </Button>
           </div>
         </div>
-        
-        {/* Git Configuration */}
-        <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
-          <h3 className="text-lg font-medium text-replit-text mb-4">Repository Configuration</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-replit-text-secondary mb-2">Username</label>
-              <Input
-                value={gitConfig.username}
-                onChange={(e) => setGitConfig({...gitConfig, username: e.target.value})}
-                placeholder="Your Git username"
-                className="bg-replit-elevated border-replit-border"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-replit-text-secondary mb-2">Email</label>
-              <Input
-                value={gitConfig.email}
-                onChange={(e) => setGitConfig({...gitConfig, email: e.target.value})}
-                placeholder="your.email@example.com"
-                className="bg-replit-elevated border-replit-border"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-replit-text-secondary mb-2">Remote URL</label>
-              <Input
-                value={gitConfig.remoteUrl}
-                onChange={(e) => setGitConfig({...gitConfig, remoteUrl: e.target.value})}
-                placeholder="https://github.com/user/repo.git"
-                className="bg-replit-elevated border-replit-border"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-replit-text-secondary mb-2">Current Branch</label>
-              <Input
-                value={gitConfig.branch}
-                onChange={(e) => setGitConfig({...gitConfig, branch: e.target.value})}
-                placeholder="main"
-                className="bg-replit-elevated border-replit-border"
-              />
-            </div>
-          </div>
-          <div className="mt-4 flex space-x-2">
-            <Button className="modern-button bg-replit-blue hover:bg-replit-blue-secondary">
-              Save Configuration
-            </Button>
-            <Button variant="outline" className="modern-button">
-              Test Connection
-            </Button>
-          </div>
-        </div>
 
-        {/* Git Log */}
-        <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
-          <h3 className="text-lg font-medium text-replit-text mb-4">Recent Commits</h3>
-          <div className="space-y-3">
-            {commits.map((commit) => (
-              <div key={commit.hash} className="flex items-center justify-between p-3 bg-replit-elevated rounded-lg border border-replit-border">
-                <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-replit-blue rounded-full"></div>
-                  <div>
-                    <div className="font-medium text-replit-text text-sm">{commit.message}</div>
-                    <div className="text-xs text-replit-text-secondary">
-                      {commit.hash} • {commit.author} • {commit.date}
-                    </div>
-                  </div>
+        {/* Commit History */}
+        <div className="bg-replit-panel rounded-lg border border-replit-border">
+          <div className="p-4 border-b border-replit-border">
+            <div className="flex items-center space-x-2">
+              <GitCommit className="w-5 h-5 text-replit-blue" />
+              <span className="font-medium text-replit-text">Commit History</span>
+              <span className="text-xs text-replit-text-secondary bg-replit-elevated px-2 py-1 rounded">
+                {commits.length} commits
+              </span>
+            </div>
+          </div>
+          <div className="p-4 space-y-3">
+            {commits.map((commit, index) => (
+              <div key={commit.hash} className="flex items-start space-x-4 p-4 bg-replit-elevated rounded-lg border border-replit-border hover:bg-replit-bg transition-colors">
+                <div className="flex flex-col items-center">
+                  <div className="w-3 h-3 bg-replit-blue rounded-full"></div>
+                  {index < commits.length - 1 && (
+                    <div className="w-0.5 h-12 bg-replit-border mt-2"></div>
+                  )}
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs bg-replit-blue/20 text-replit-blue px-2 py-1 rounded">
-                    {commit.branch}
-                  </span>
-                  <Button variant="ghost" size="sm" className="p-1">
-                    <GitCommit className="w-3 h-3" />
-                  </Button>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <span className="font-mono text-xs text-replit-text-secondary bg-replit-bg px-2 py-1 rounded border">
+                      {commit.hash}
+                    </span>
+                    <span className="text-xs text-replit-text-secondary">{commit.author}</span>
+                    <span className="text-xs text-replit-text-secondary">{commit.date}</span>
+                    <span className="text-xs text-replit-blue bg-replit-blue/20 px-2 py-1 rounded">
+                      {commit.branch}
+                    </span>
+                  </div>
+                  <p className="text-sm text-replit-text leading-relaxed">{commit.message}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Environment Settings */}
-        <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
-          <h3 className="text-lg font-medium text-replit-text mb-4">Environment Settings</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium text-replit-text text-sm">Auto-commit on save</div>
-                <div className="text-xs text-replit-text-secondary">Automatically commit changes when files are saved</div>
-              </div>
-              <Button variant="outline" size="sm">Toggle</Button>
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium text-replit-text text-sm">Push on commit</div>
-                <div className="text-xs text-replit-text-secondary">Automatically push commits to remote repository</div>
-              </div>
-              <Button variant="outline" size="sm">Toggle</Button>
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium text-replit-text text-sm">Branch protection</div>
-                <div className="text-xs text-replit-text-secondary">Require approval for main branch changes</div>
-              </div>
-              <Button variant="outline" size="sm">Configure</Button>
-            </div>
+        {/* Empty state for no commits */}
+        {commits.length === 0 && (
+          <div className="text-center py-12">
+            <GitCommit className="w-12 h-12 text-replit-text-secondary mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-replit-text mb-2">No commits found</h3>
+            <p className="text-sm text-replit-text-secondary">
+              Initialize a git repository or make your first commit to see history here.
+            </p>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
