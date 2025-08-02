@@ -614,6 +614,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Workspace-specific settings endpoints
+  app.get("/api/workspace/:workspace/settings", async (req, res) => {
+    try {
+      const { workspace } = req.params;
+      // In a real implementation, these would be stored in database per workspace
+      // For now, return default settings
+      const defaultSettings = {
+        theme: 'dark',
+        language: 'en',
+        fontSize: '14',
+        tabSize: '2',
+        wordWrap: true,
+        minimap: true,
+        lineNumbers: true,
+        autoSave: true,
+        autoFormat: true,
+        debugMode: false,
+        flaskAnalyzerPort: '5001',
+        mainAppPort: '5000',
+        nodeVersion: '20',
+        pythonVersion: '3.11',
+        workingDirectory: '',
+        enableHttps: false,
+        corsEnabled: true,
+        rateLimiting: true,
+        sessionTimeout: '24'
+      };
+      res.json(defaultSettings);
+    } catch (error) {
+      console.error("Workspace settings fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch workspace settings" });
+    }
+  });
+
+  app.post("/api/workspace/:workspace/settings", async (req, res) => {
+    try {
+      const { workspace } = req.params;
+      const settings = req.body;
+      
+      // In a real implementation, these would be stored in database per workspace
+      // For now, just return success
+      console.log(`Saving settings for workspace: ${workspace}`, settings);
+      
+      res.json({ 
+        message: "Settings saved successfully",
+        workspace: workspace
+      });
+    } catch (error) {
+      console.error("Workspace settings save error:", error);
+      res.status(500).json({ message: "Failed to save workspace settings" });
+    }
+  });
+
+  // Git configuration endpoints
+  app.get("/api/workspace/:workspace/git/config", async (req, res) => {
+    try {
+      const { workspace } = req.params;
+      // In a real implementation, these would be read from git config or database
+      // For now, return default unconfigured state
+      const gitConfig = {
+        username: '',
+        email: '',
+        repository: '',
+        isConfigured: false
+      };
+      res.json(gitConfig);
+    } catch (error) {
+      console.error("Git config fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch Git configuration" });
+    }
+  });
+
+  app.post("/api/workspace/:workspace/git/config", async (req, res) => {
+    try {
+      const { workspace } = req.params;
+      const { username, email, repository } = req.body;
+      
+      // In a real implementation, these would be stored and applied to git config
+      console.log(`Saving Git config for workspace: ${workspace}`, { username, email, repository });
+      
+      const gitConfig = {
+        username,
+        email,
+        repository,
+        isConfigured: !!(username && email)
+      };
+      
+      res.json({ 
+        message: "Git configuration saved successfully",
+        config: gitConfig
+      });
+    } catch (error) {
+      console.error("Git config save error:", error);
+      res.status(500).json({ message: "Failed to save Git configuration" });
+    }
+  });
+
   // Settings endpoints
   app.get("/api/settings/environment", async (req, res) => {
     try {

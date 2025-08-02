@@ -49,6 +49,7 @@ import { SettingsDialog } from "@/components/settings-dialog";
 import { ProjectInsightsSaveButton } from "@/components/project-insights-save-button";
 import { AiDocumentAnalysisDialog } from "@/components/ai-document-analysis-dialog";
 import { VaultExplorer } from "@/components/vault-explorer";
+import { LeviatanSettings } from "@/components/leviatan-settings";
 
 // Logger component with WebSocket integration
 const Logger = () => {
@@ -1426,6 +1427,14 @@ export default function Dashboard() {
     disk: 23,
     processes: 127
   });
+  const [mainGitConfig, setMainGitConfig] = useState({
+    username: '',
+    email: '',
+    remoteUrl: '',
+    token: '',
+    isConnected: false,
+    isConfigured: false
+  });
 
   const handleFileSelect = (filePath: string, fileName: string) => {
     setActiveFile(filePath);
@@ -1435,6 +1444,11 @@ export default function Dashboard() {
   };
 
   const handleGitPush = async () => {
+    if (!mainGitConfig.isConfigured || !mainGitConfig.username || !mainGitConfig.email) {
+      setGitStatus('Git configuration required');
+      setTimeout(() => setGitStatus("Ready"), 3000);
+      return;
+    }
     setGitStatus("Pushing...");
     try {
       // Simulate git push
@@ -1448,6 +1462,11 @@ export default function Dashboard() {
   };
 
   const handleGitPull = async () => {
+    if (!mainGitConfig.isConfigured || !mainGitConfig.username || !mainGitConfig.email) {
+      setGitStatus('Git configuration required');
+      setTimeout(() => setGitStatus("Ready"), 3000);
+      return;
+    }
     setGitStatus("Pulling...");
     try {
       // Simulate git pull
@@ -1459,6 +1478,24 @@ export default function Dashboard() {
       setTimeout(() => setGitStatus("Ready"), 3000);
     }
   };
+
+  // Load Git configuration for current workspace
+  useEffect(() => {
+    const loadGitConfig = async () => {
+      if (!currentProject) return;
+      try {
+        const response = await fetch(`/api/workspace/${currentProject}/git/config`);
+        if (response.ok) {
+          const config = await response.json();
+          setMainGitConfig(config);
+        }
+      } catch (error) {
+        console.error('Failed to load Git configuration:', error);
+      }
+    };
+    
+    loadGitConfig();
+  }, [currentProject]);
 
   // Load workspace folders from working directory
   useEffect(() => {
@@ -1622,8 +1659,13 @@ export default function Dashboard() {
               variant="ghost"
               size="sm"
               onClick={handleGitPush}
-              className="h-8 px-2 modern-button"
-              disabled={gitStatus !== "Ready"}
+              className={`h-8 px-2 modern-button ${
+                !mainGitConfig.isConfigured || !mainGitConfig.username || !mainGitConfig.email 
+                  ? 'opacity-50 cursor-not-allowed' 
+                  : ''
+              }`}
+              disabled={!mainGitConfig.isConfigured || !mainGitConfig.username || !mainGitConfig.email || gitStatus !== "Ready"}
+              title={!mainGitConfig.username || !mainGitConfig.email ? 'Git configuration required (username and email)' : 'Push changes to repository'}
             >
               <Upload className="w-3 h-3 mr-1" />
               <span className="text-xs">Push</span>
@@ -1632,8 +1674,13 @@ export default function Dashboard() {
               variant="ghost"
               size="sm"
               onClick={handleGitPull}
-              className="h-8 px-2 modern-button"
-              disabled={gitStatus !== "Ready"}
+              className={`h-8 px-2 modern-button ${
+                !mainGitConfig.isConfigured || !mainGitConfig.username || !mainGitConfig.email 
+                  ? 'opacity-50 cursor-not-allowed' 
+                  : ''
+              }`}
+              disabled={!mainGitConfig.isConfigured || !mainGitConfig.username || !mainGitConfig.email || gitStatus !== "Ready"}
+              title={!mainGitConfig.username || !mainGitConfig.email ? 'Git configuration required (username and email)' : 'Pull changes from repository'}
             >
               <Download className="w-3 h-3 mr-1" />
               <span className="text-xs">Pull</span>
@@ -1727,10 +1774,21 @@ export default function Dashboard() {
                   className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
                   onClick={() => setActiveTab("git-management")}
                 >
+                  <GitBranch className="w-5 h-5" />
+                  <div className="text-left">
+                    <div className="font-medium text-sm">Git Management</div>
+                    <div className="text-xs text-replit-text-secondary">Version control and Git settings</div>
+                  </div>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                  onClick={() => setActiveTab("leviatan-settings")}
+                >
                   <Settings className="w-5 h-5" />
                   <div className="text-left">
-                    <div className="font-medium text-sm">Configuration</div>
-                    <div className="text-xs text-replit-text-secondary">Environment and Git settings</div>
+                    <div className="font-medium text-sm">Settings</div>
+                    <div className="text-xs text-replit-text-secondary">LeviatanCode configuration</div>
                   </div>
                 </Button>
                 <Button 
@@ -1822,6 +1880,12 @@ export default function Dashboard() {
             {activeTab === "vault-explorer" && (
               <TabsContent value="vault-explorer" className="flex-1 m-0">
                 <VaultExplorer workspace={workingDirectory || currentProject} />
+              </TabsContent>
+            )}
+            
+            {activeTab === "leviatan-settings" && (
+              <TabsContent value="leviatan-settings" className="flex-1 m-0">
+                <LeviatanSettings currentProject={currentProject} />
               </TabsContent>
             )}
           </Tabs>
