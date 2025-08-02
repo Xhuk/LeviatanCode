@@ -545,7 +545,7 @@ const SystemMonitor = () => {
 };
 
 // Git Management component
-const GitManagement = () => {
+const GitManagement = ({ currentProject }: { currentProject: string }) => {
   const [branches, setBranches] = useState([
     { name: "main", isActive: true, lastCommit: "2 hours ago", author: "Developer" },
     { name: "feature/user-auth", isActive: false, lastCommit: "1 day ago", author: "Developer" },
@@ -559,7 +559,69 @@ const GitManagement = () => {
   ]);
 
   const [commitMessage, setCommitMessage] = useState("");
-  const [remoteUrl, setRemoteUrl] = useState("https://github.com/user/leviatancode.git");
+  const [gitConfig, setGitConfig] = useState({
+    username: '',
+    email: '',
+    remoteUrl: '',
+    isConnected: false
+  });
+  const [connectionStatus, setConnectionStatus] = useState('');
+
+  // Load Git configuration for current workspace
+  useEffect(() => {
+    const loadGitConfig = async () => {
+      if (!currentProject) return;
+      try {
+        const response = await fetch(`/api/workspace/${currentProject}/git/config`);
+        if (response.ok) {
+          const config = await response.json();
+          setGitConfig(config);
+        }
+      } catch (error) {
+        console.error('Failed to load Git configuration:', error);
+      }
+    };
+    
+    loadGitConfig();
+  }, [currentProject]);
+
+  const handleSaveConfig = async () => {
+    try {
+      const response = await fetch(`/api/workspace/${currentProject}/git/config`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(gitConfig)
+      });
+      
+      if (response.ok) {
+        setConnectionStatus('Configuration saved successfully');
+        setTimeout(() => setConnectionStatus(''), 3000);
+      }
+    } catch (error) {
+      console.error('Failed to save Git configuration:', error);
+      setConnectionStatus('Failed to save configuration');
+    }
+  };
+
+  const handleTestConnection = async () => {
+    try {
+      setConnectionStatus('Testing connection...');
+      const response = await fetch(`/api/workspace/${currentProject}/git/test-connection`, {
+        method: 'POST'
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        setGitConfig(prev => ({ ...prev, isConnected: result.connected }));
+        setConnectionStatus(result.message);
+      }
+    } catch (error) {
+      console.error('Failed to test Git connection:', error);
+      setConnectionStatus('Connection test failed');
+    }
+  };
 
   return (
     <div className="h-full bg-replit-bg p-6 overflow-y-auto">
@@ -710,27 +772,60 @@ const GitManagement = () => {
           </div>
         </div>
 
-        {/* Remote Management */}
+        {/* Git Configuration & Remote Management */}
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
-            <h3 className="text-lg font-medium text-replit-text mb-4">Remote Repository</h3>
+            <h3 className="text-lg font-medium text-replit-text mb-4">Git Configuration</h3>
             <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-replit-text-secondary mb-2">Git Username</label>
+                <Input
+                  value={gitConfig.username}
+                  onChange={(e) => setGitConfig(prev => ({ ...prev, username: e.target.value }))}
+                  placeholder="Your Git username"
+                  className="bg-replit-elevated border-replit-border"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-replit-text-secondary mb-2">Git Email</label>
+                <Input
+                  value={gitConfig.email}
+                  onChange={(e) => setGitConfig(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="your.email@example.com"
+                  className="bg-replit-elevated border-replit-border"
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-replit-text-secondary mb-2">Remote URL</label>
                 <Input
-                  value={remoteUrl}
-                  onChange={(e) => setRemoteUrl(e.target.value)}
+                  value={gitConfig.remoteUrl}
+                  onChange={(e) => setGitConfig(prev => ({ ...prev, remoteUrl: e.target.value }))}
+                  placeholder="https://github.com/user/repo.git"
                   className="bg-replit-elevated border-replit-border font-mono text-sm"
                 />
               </div>
+              {connectionStatus && (
+                <div className={`text-xs p-2 rounded ${
+                  gitConfig.isConnected ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                }`}>
+                  {connectionStatus}
+                </div>
+              )}
               <div className="flex space-x-2">
-                <Button variant="outline" size="sm" className="modern-button flex-1">
-                  <Download className="w-3 h-3 mr-1" />
-                  Pull
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="modern-button flex-1"
+                  onClick={handleTestConnection}
+                >
+                  <Check className="w-3 h-3 mr-1" />
+                  Test Connection
                 </Button>
-                <Button variant="outline" size="sm" className="modern-button flex-1">
-                  <Upload className="w-3 h-3 mr-1" />
-                  Push
+                <Button 
+                  className="modern-button flex-1 bg-replit-blue hover:bg-replit-blue-secondary"
+                  onClick={handleSaveConfig}
+                >
+                  Save Config
                 </Button>
               </div>
             </div>
@@ -1308,7 +1403,7 @@ const FileExplorer = ({ isCollapsed, onToggle, onFileSelect }: {
 export default function Dashboard() {
   const [currentProject, setCurrentProject] = useState<string>("demo-project-1");
   const [workingDirectory, setWorkingDirectory] = useState<string>("");
-  const [workspaceFolders, setWorkspaceFolders] = useState<any[]>([]);
+  const [workspaceFolders, setWorkspaceFolders] = useState<string[]>([]);
   const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
   const [isAgentMenuCollapsed, setIsAgentMenuCollapsed] = useState(false);
   const [activeFile, setActiveFile] = useState<string | null>(null);
@@ -1352,6 +1447,23 @@ export default function Dashboard() {
       setTimeout(() => setGitStatus("Ready"), 3000);
     }
   };
+
+  // Load workspace folders from working directory
+  useEffect(() => {
+    const loadWorkspaceFolders = async () => {
+      try {
+        const response = await fetch('/api/workspace/folders');
+        if (response.ok) {
+          const folders = await response.json();
+          setWorkspaceFolders(folders);
+        }
+      } catch (error) {
+        console.error('Failed to load workspace folders:', error);
+      }
+    };
+    
+    loadWorkspaceFolders();
+  }, []);
 
   // Update system stats periodically
   useEffect(() => {
@@ -1412,17 +1524,17 @@ export default function Dashboard() {
             <span className="text-replit-text-secondary text-sm">Workspace:</span>
             <Select value={currentProject} onValueChange={setCurrentProject}>
               <SelectTrigger className="w-52 bg-replit-elevated border-replit-border rounded-lg modern-button">
-                <SelectValue />
+                <SelectValue placeholder="Select workspace" />
               </SelectTrigger>
               <SelectContent>
                 {workspaceFolders.length > 0 ? (
-                  workspaceFolders.map((folder: any) => (
-                    <SelectItem key={folder.path} value={folder.name}>
-                      {folder.name}
+                  workspaceFolders.map((folder: string) => (
+                    <SelectItem key={folder} value={folder}>
+                      {folder}
                     </SelectItem>
                   ))
                 ) : (
-                  <SelectItem value="no-workspace">No workspace folders</SelectItem>
+                  <SelectItem value="no-workspace" disabled>No workspace folders</SelectItem>
                 )}
               </SelectContent>
             </Select>
@@ -1679,7 +1791,7 @@ export default function Dashboard() {
             </TabsContent>
             
             <TabsContent value="git-management" className="flex-1 m-0">
-              <GitManagement />
+              <GitManagement currentProject={currentProject} />
             </TabsContent>
           </Tabs>
         </div>

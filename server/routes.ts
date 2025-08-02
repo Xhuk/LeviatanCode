@@ -2094,5 +2094,104 @@ Please provide a JSON response with this exact structure:
     }
   });
 
+  // In-memory storage for workspace-specific Git configurations
+  const gitConfigurations = new Map<string, {
+    username: string;
+    email: string;
+    remoteUrl: string;
+    isConnected: boolean;
+  }>();
+
+  // Workspace management endpoints
+  app.get("/api/workspace/folders", async (req, res) => {
+    try {
+      const workingDirectory = process.env.WORKING_DIRECTORY || './workspaces';
+      
+      // Check if working directory exists
+      try {
+        const stats = await fs.promises.stat(workingDirectory);
+        if (!stats.isDirectory()) {
+          return res.json([]);
+        }
+      } catch (error) {
+        // Directory doesn't exist, create it
+        await fs.promises.mkdir(workingDirectory, { recursive: true });
+        return res.json([]);
+      }
+
+      // Read folders from working directory
+      const items = await fs.promises.readdir(workingDirectory, { withFileTypes: true });
+      const folders = items
+        .filter(item => item.isDirectory())
+        .map(item => item.name);
+      
+      res.json(folders);
+    } catch (error) {
+      console.error("Failed to read workspace folders:", error);
+      res.status(500).json({ message: "Failed to read workspace folders" });
+    }
+  });
+
+  // Git configuration endpoints (per workspace)
+  app.get("/api/workspace/:workspace/git/config", async (req, res) => {
+    try {
+      const { workspace } = req.params;
+      const config = gitConfigurations.get(workspace) || {
+        username: '',
+        email: '',
+        remoteUrl: '',
+        isConnected: false
+      };
+      res.json(config);
+    } catch (error) {
+      console.error("Failed to get Git configuration:", error);
+      res.status(500).json({ message: "Failed to get Git configuration" });
+    }
+  });
+
+  app.post("/api/workspace/:workspace/git/config", async (req, res) => {
+    try {
+      const { workspace } = req.params;
+      const { username, email, remoteUrl } = req.body;
+      
+      const config = {
+        username: username || '',
+        email: email || '',
+        remoteUrl: remoteUrl || '',
+        isConnected: false
+      };
+      
+      gitConfigurations.set(workspace, config);
+      res.json(config);
+    } catch (error) {
+      console.error("Failed to save Git configuration:", error);
+      res.status(500).json({ message: "Failed to save Git configuration" });
+    }
+  });
+
+  app.post("/api/workspace/:workspace/git/test-connection", async (req, res) => {
+    try {
+      const { workspace } = req.params;
+      const config = gitConfigurations.get(workspace);
+      
+      if (!config || !config.remoteUrl) {
+        return res.status(400).json({ message: "Git configuration not found or incomplete" });
+      }
+
+      // Simulate connection test (in real implementation, you'd test the actual Git connection)
+      const isConnected = config.remoteUrl.includes('github.com') || 
+                         config.remoteUrl.includes('gitlab.com') || 
+                         config.remoteUrl.includes('bitbucket.org');
+      
+      config.isConnected = isConnected;
+      gitConfigurations.set(workspace, config);
+      
+      res.json({ connected: isConnected, message: isConnected ? 'Connection successful' : 'Connection failed' });
+    } catch (error) {
+      console.error("Failed to test Git connection:", error);
+      res.status(500).json({ message: "Failed to test Git connection" });
+    }
+  });
+
   return httpServer;
 }
