@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import settingsRoutes from "./routes/settings";
 import { aiService } from "./services/ai";
 import { projectImportService } from "./services/project-import";
+import { flaskAnalyzerService } from "./services/flask-analyzer";
 import { InsightsFileService } from "./services/insights-file";
 import multer from "multer";
 import { z } from "zod";
@@ -785,7 +786,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
             projectDir = process.cwd();
           }
           
-          // Check for existing insightsproject.ia file first
+          // First try Flask analyzer for comprehensive analysis
+          console.log(`🔍 Attempting Flask analysis on directory: ${projectDir}`);
+          let flaskAnalysis = await flaskAnalyzerService.analyzeProjectPath(projectDir);
+          
+          if (flaskAnalysis) {
+            console.log(`✅ Flask analysis completed successfully!`);
+            console.log(`📊 Quality Score: ${flaskAnalysis.analysis.quality_assessment.quality_score}/10`);
+            console.log(`🎯 Primary Language: ${flaskAnalysis.analysis.technologies.primary_language}`);
+            console.log(`🏗️ Frameworks: ${flaskAnalysis.analysis.frameworks.join(', ') || 'None detected'}`);
+            
+            // Send Flask analysis results via WebSocket
+            broadcastAnalysisUpdate(projectId, {
+              status: 'flask_analysis_complete',
+              message: `Flask analyzer completed comprehensive analysis`,
+              qualityScore: flaskAnalysis.analysis.quality_assessment.quality_score,
+              primaryLanguage: flaskAnalysis.analysis.technologies.primary_language,
+              frameworks: flaskAnalysis.analysis.frameworks,
+              executionMethods: flaskAnalysis.analysis.execution_methods
+            });
+            
+            // Convert Flask analysis to insights format and save
+            const enhancedInsights = flaskAnalyzerService.convertToInsights(flaskAnalysis);
+            await InsightsFileService.write(projectDir, enhancedInsights);
+            
+            return res.json({
+              projectId,
+              analysis: {
+                insights: enhancedInsights,
+                metrics: { 
+                  totalFiles: flaskAnalysis.analysis.basic_info.file_count,
+                  linesOfCode: flaskAnalysis.analysis.code_metrics.total_lines,
+                  qualityScore: flaskAnalysis.analysis.quality_assessment.quality_score
+                },
+                recommendations: flaskAnalysis.analysis.recommendations,
+                flaskAnalysis: flaskAnalysis.analysis
+              },
+              insights: enhancedInsights,
+              extractedPath: projectDir,
+              flaskAnalysisUsed: true
+            });
+          } else {
+            console.log(`⚠️ Flask analyzer not available, falling back to standard analysis`);
+          }
+          
+          // Check for existing insightsproject.ia file as fallback
           const existingInsights = await InsightsFileService.read(projectDir);
           
           if (existingInsights) {

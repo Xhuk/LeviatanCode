@@ -1,6 +1,7 @@
 import { nanoid } from "nanoid";
 import { storage } from "../storage";
 import { aiService } from "./ai";
+import { flaskAnalyzerService } from "./flask-analyzer";
 import type { Project } from "@shared/schema";
 import { ProjectInsights, ProjectInsightsSchema, createDefaultInsights } from "@shared/insights-schema";
 import * as fs from "fs";
@@ -252,10 +253,31 @@ class ProjectImportService {
       }
     }
     
-    // Analyze project structure with AI
-    const analysis = await this.analyzeProjectStructure(importedFiles);
+    // First run Flask analyzer if available (on extracted project folder)
+    let flaskAnalysis = null;
+    if (extractedPath && actualProjectPath) {
+      const fullPath = path.join(actualProjectPath, extractedPath);
+      console.log(`🔍 Running Flask analysis on: ${fullPath}`);
+      flaskAnalysis = await flaskAnalyzerService.analyzeProjectPath(fullPath);
+      
+      if (flaskAnalysis) {
+        console.log(`✅ Flask analysis completed with quality score: ${flaskAnalysis.analysis.quality_assessment.quality_score}/10`);
+      }
+    }
     
-    // Create or update project insights
+    // If Flask analysis failed, try analyzing the ZIP file directly
+    if (!flaskAnalysis && files.length > 0) {
+      const zipFile = files.find(f => f.originalname.toLowerCase().endsWith('.zip'));
+      if (zipFile) {
+        console.log(`🔍 Running Flask analysis on ZIP file: ${zipFile.originalname}`);
+        flaskAnalysis = await flaskAnalyzerService.analyzeZipFile(zipFile.buffer, zipFile.originalname);
+      }
+    }
+    
+    // Analyze project structure with AI (fallback or supplemental)
+    const analysis = await this.analyzeProjectStructure(importedFiles, flaskAnalysis);
+    
+    // Create or update project insights with Flask data
     const insights = await this.createOrUpdateInsights(
       projectId,
       projectName,
@@ -263,7 +285,9 @@ class ProjectImportService {
       description,
       analysis,
       existingInsights,
-      "files"
+      "files",
+      undefined,
+      flaskAnalysis
     );
     
     // Create project in storage
@@ -386,7 +410,7 @@ class ProjectImportService {
     return commonParts.join('/');
   }
   
-  private async analyzeProjectStructure(files: ImportedFile[]): Promise<AnalysisResult> {
+  private async analyzeProjectStructure(files: ImportedFile[], flaskAnalysis?: any): Promise<AnalysisResult> {
     // Analyze file structure to determine project type
     const fileNames = files.map(f => f.name.toLowerCase());
     const hasPackageJson = fileNames.some(name => name.includes('package.json'));
@@ -494,7 +518,37 @@ class ProjectImportService {
       runCommand = "go run main.go";
     }
     
-    // Use AI to enhance analysis if possible
+    // If Flask analysis is available, use it to override/enhance our basic analysis
+    if (flaskAnalysis) {
+      const flask = flaskAnalysis.analysis;
+      
+      // Override with Flask analysis results
+      language = flask.technologies.primary_language || language;
+      framework = flask.frameworks[0] || framework;
+      
+      // Use Flask execution methods if available
+      if (flask.execution_methods.length > 0) {
+        runCommand = flask.execution_methods[0].command;
+        setupInstructions = flaskAnalyzerService.generateSetupInstructions(flaskAnalysis);
+      }
+      
+      // Use Flask dependencies if available
+      if (Object.keys(flask.dependencies).length > 0) {
+        dependencies = flask.dependencies;
+      }
+      
+      return {
+        projectType: flask.structure.estimated_project_type,
+        framework,
+        language,
+        runCommand,
+        setupInstructions,
+        dependencies,
+        description: flaskAnalyzerService.generateProjectDescription(flaskAnalysis)
+      };
+    }
+    
+    // Use AI to enhance analysis if Flask is not available
     try {
       const fileList = files.map(f => `${f.name} (${f.size} bytes)`).join('\n');
       const prompt = `Analyze this project structure and provide insights:
@@ -616,13 +670,21 @@ Please provide a brief project description based on the file structure.`;
     analysis: AnalysisResult,
     existingInsights: Partial<ProjectInsights> | null,
     importedFrom: "files" | "git",
-    gitUrl?: string
+    gitUrl?: string,
+    flaskAnalysis?: any
   ): Promise<ProjectInsights> {
     const baseInsights = createDefaultInsights(projectId, projectName, projectPath, importedFrom);
+    
+    // If Flask analysis is available, enhance insights with comprehensive data
+    let enhancedInsights = {};
+    if (flaskAnalysis) {
+      enhancedInsights = flaskAnalyzerService.convertToInsights(flaskAnalysis, existingInsights);
+    }
     
     const insights: ProjectInsights = {
       ...baseInsights,
       ...existingInsights,
+      ...enhancedInsights,
       projectId,
       projectName,
       projectPath,
@@ -635,7 +697,9 @@ Please provide a brief project description based on the file structure.`;
       setupInstructions: analysis.setupInstructions,
       configFiles: this.extractConfigFiles(analysis),
       sourceDirectories: this.extractSourceDirectories(analysis),
-      architecture: `This is a ${analysis.framework} project using ${analysis.language}.`,
+      architecture: flaskAnalysis ? 
+        flaskAnalysis.analysis.insights.architecture_analysis || `This is a ${analysis.framework} project using ${analysis.language}.` :
+        `This is a ${analysis.framework} project using ${analysis.language}.`,
       updatedAt: new Date().toISOString(),
       lastAnalyzed: new Date().toISOString(),
       gitUrl: gitUrl || existingInsights?.gitUrl,
