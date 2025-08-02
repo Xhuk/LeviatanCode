@@ -118,7 +118,51 @@ app.use((req, res, next) => {
   const port = parseInt(process.env.PORT || '5005', 10);
   
   // Server configuration for Replit
-  server.listen(port, '0.0.0.0', () => {
+  server.listen(port, '0.0.0.0', async () => {
     log(`serving on port ${port}`);
+    
+    // Auto-start Flask Analyzer
+    console.log('[INFO] Auto-starting Flask Analyzer...');
+    try {
+      await middlewareMonitor.startMiddleware('Flask Analyzer');
+      console.log('[INFO] Flask Analyzer started successfully');
+    } catch (error) {
+      console.warn('[WARN] Failed to auto-start Flask Analyzer:', error);
+    }
+  });
+
+  // Graceful shutdown handling
+  const gracefulShutdown = async (signal: string) => {
+    console.log(`[INFO] Received ${signal}, shutting down gracefully...`);
+    
+    try {
+      // Stop Flask Analyzer
+      console.log('[INFO] Stopping Flask Analyzer...');
+      await middlewareMonitor.stopMiddleware('Flask Analyzer');
+      console.log('[INFO] Flask Analyzer stopped');
+    } catch (error) {
+      console.warn('[WARN] Error stopping Flask Analyzer:', error);
+    }
+    
+    // Close the server
+    server.close(() => {
+      console.log('[INFO] HTTP server closed');
+      process.exit(0);
+    });
+  };
+
+  // Listen for termination signals
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+  
+  // Handle uncaught exceptions
+  process.on('uncaughtException', (error) => {
+    console.error('[ERROR] Uncaught Exception:', error);
+    gracefulShutdown('uncaughtException');
+  });
+  
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('[ERROR] Unhandled Rejection at:', promise, 'reason:', reason);
+    gracefulShutdown('unhandledRejection');
   });
 })();

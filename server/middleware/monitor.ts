@@ -20,6 +20,7 @@ interface MiddlewareMetrics {
 class MiddlewareMonitor {
   private metrics: Map<string, MiddlewareMetrics> = new Map();
   private isGloballyEnabled: boolean = true;
+  private flaskProcess: any = null; // Store Flask process reference
 
   constructor() {
     // Initialize Flask Analyzer service monitoring
@@ -214,7 +215,7 @@ class MiddlewareMonitor {
       console.log(`🚀 Starting Flask server with command: ${startCommand}`);
       
       // Start the process in the background
-      const child = exec(startCommand, (error, stdout, stderr) => {
+      this.flaskProcess = exec(startCommand, (error, stdout, stderr) => {
         if (error) {
           console.error('Flask Analyzer start error:', error);
           const metric = this.metrics.get('Flask Analyzer');
@@ -226,17 +227,27 @@ class MiddlewareMonitor {
       });
 
       // Log output for debugging
-      if (child.stdout) {
-        child.stdout.on('data', (data) => {
+      if (this.flaskProcess.stdout) {
+        this.flaskProcess.stdout.on('data', (data) => {
           console.log('Flask stdout:', data.toString());
         });
       }
       
-      if (child.stderr) {
-        child.stderr.on('data', (data) => {
+      if (this.flaskProcess.stderr) {
+        this.flaskProcess.stderr.on('data', (data) => {
           console.log('Flask stderr:', data.toString());
         });
       }
+
+      // Handle process exit
+      this.flaskProcess.on('exit', (code: number) => {
+        console.log(`Flask Analyzer process exited with code ${code}`);
+        const metric = this.metrics.get('Flask Analyzer');
+        if (metric) {
+          metric.status = 'stopped';
+        }
+        this.flaskProcess = null;
+      });
 
       // Wait and check if it's running
       setTimeout(async () => {
@@ -284,20 +295,46 @@ class MiddlewareMonitor {
 
   private async stopFlaskAnalyzer(): Promise<boolean> {
     try {
-      // Kill Flask analyzer process (Windows and Unix compatible)
+      // First try to gracefully stop the tracked process
+      if (this.flaskProcess && !this.flaskProcess.killed) {
+        console.log('Stopping Flask Analyzer process gracefully...');
+        
+        if (process.platform === 'win32') {
+          // On Windows, use taskkill with process tree
+          try {
+            await execAsync(`taskkill /F /T /PID ${this.flaskProcess.pid}`);
+          } catch (error) {
+            console.log('Failed to kill by PID, trying fallback...');
+          }
+        } else {
+          // On Unix, send SIGTERM first, then SIGKILL if needed
+          this.flaskProcess.kill('SIGTERM');
+          
+          // Wait a bit for graceful shutdown
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          if (!this.flaskProcess.killed) {
+            this.flaskProcess.kill('SIGKILL');
+          }
+        }
+        
+        this.flaskProcess = null;
+      }
+      
+      // Fallback: Kill any remaining Flask analyzer processes
       let killCommands: string[] = [];
       
       if (process.platform === 'win32') {
         // Windows commands
         killCommands = [
-          'taskkill /F /FI "COMMANDLINE=*run_server.py*" /T || echo "No Flask process found"',
-          'taskkill /F /FI "COMMANDLINE=*flask_analyzer*" /T || echo "No Flask analyzer process found"'
+          'taskkill /F /FI "COMMANDLINE=*run_server.py*" /T 2>nul || echo "No Flask process found"',
+          'taskkill /F /FI "COMMANDLINE=*flask_analyzer*" /T 2>nul || echo "No Flask analyzer process found"'
         ];
       } else {
         // Unix/Linux commands
         killCommands = [
-          'pkill -f ".*run_server.py" || echo "No Flask process found"',
-          'pkill -f ".*flask_analyzer.*python" || echo "No Flask analyzer process found"'
+          'pkill -f ".*run_server.py" 2>/dev/null || echo "No Flask process found"',
+          'pkill -f ".*flask_analyzer.*python" 2>/dev/null || echo "No Flask analyzer process found"'
         ];
       }
       
@@ -306,11 +343,11 @@ class MiddlewareMonitor {
         try {
           await execAsync(cmd);
         } catch (error) {
-          console.log(`Kill command failed (expected): ${cmd}`);
+          // Expected to fail if no processes found
         }
       }
       
-      console.log('🛑 Flask Analyzer service stopped');
+      console.log('Flask Analyzer service stopped');
       
       const metric = this.metrics.get('Flask Analyzer');
       if (metric) {
