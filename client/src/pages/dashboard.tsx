@@ -253,6 +253,36 @@ const DatabaseConsole = () => {
   const [supabaseStatus, setSupabaseStatus] = useState("Not connected");
   const [isSupabaseInstalled, setIsSupabaseInstalled] = useState(false);
   const [results, setResults] = useState<any[]>([]);
+  const [isTestingConnection, setIsTestingConnection] = useState(false);
+
+  const testDatabaseConnection = async () => {
+    setIsTestingConnection(true);
+    setSupabaseStatus("Testing database connection...");
+    
+    try {
+      const response = await fetch('/api/database/test-connection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
+        setSupabaseStatus(`✅ Connected to ${result.database || 'Supabase'}`);
+        setIsSupabaseInstalled(true);
+      } else {
+        setSupabaseStatus(`❌ Connection failed: ${result.message || 'Unknown error'}`);
+        setIsSupabaseInstalled(false);
+      }
+    } catch (error) {
+      setSupabaseStatus("❌ Connection failed: Network error");
+      setIsSupabaseInstalled(false);
+    } finally {
+      setIsTestingConnection(false);
+    }
+  };
 
   const checkSupabaseInstallation = async () => {
     setSupabaseStatus("Checking installation...");
@@ -269,15 +299,40 @@ const DatabaseConsole = () => {
     setTimeout(() => setSupabaseStatus("Connected to Supabase"), 3000);
   };
 
+  const clearQuery = () => {
+    setQuery("");
+  };
+
   const executeQuery = async () => {
+    if (!query.trim()) {
+      setSupabaseStatus("❌ Please enter a query");
+      return;
+    }
+
     setSupabaseStatus("Executing query...");
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setResults([
-      { id: 1, name: "John Doe", email: "john@example.com", created_at: "2024-01-15" },
-      { id: 2, name: "Jane Smith", email: "jane@example.com", created_at: "2024-01-14" },
-      { id: 3, name: "Bob Johnson", email: "bob@example.com", created_at: "2024-01-13" }
-    ]);
-    setSupabaseStatus("Query executed successfully");
+    
+    try {
+      const response = await fetch('/api/database/execute', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: query.trim() }),
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
+        setResults(result.data || []);
+        setSupabaseStatus(`✅ Query executed successfully (${result.rowCount || 0} rows)`);
+      } else {
+        setResults([]);
+        setSupabaseStatus(`❌ Query failed: ${result.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      setResults([]);
+      setSupabaseStatus("❌ Query failed: Network error");
+    }
   };
 
   return (
@@ -288,6 +343,20 @@ const DatabaseConsole = () => {
           <div className="flex items-center space-x-2">
             <span className="text-xs text-replit-text-secondary">Status:</span>
             <span className="text-xs text-replit-text">{supabaseStatus}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={testDatabaseConnection}
+              disabled={isTestingConnection}
+              className="modern-button"
+            >
+              {isTestingConnection ? (
+                <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+              ) : (
+                <Database className="w-3 h-3 mr-1" />
+              )}
+              Test Connection
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -319,13 +388,16 @@ const DatabaseConsole = () => {
           />
           <div className="flex space-x-2">
             <Button onClick={executeQuery} className="modern-button bg-replit-blue hover:bg-replit-blue-secondary">
+              <Play className="w-3 h-3 mr-1" />
               Execute Query
             </Button>
-            <Button variant="outline" className="modern-button">
-              Clear Results
+            <Button variant="outline" onClick={clearQuery} className="modern-button">
+              <Trash2 className="w-3 h-3 mr-1" />
+              Clear Query
             </Button>
-            <Button variant="outline" className="modern-button">
-              Save Query
+            <Button variant="outline" onClick={() => setResults([])} className="modern-button">
+              <RefreshCw className="w-3 h-3 mr-1" />
+              Clear Results
             </Button>
           </div>
         </div>

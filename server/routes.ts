@@ -3020,5 +3020,72 @@ Please provide a JSON response with this exact structure:
     }
   });
 
+  // Database API endpoints
+  app.post("/api/database/test-connection", async (req, res) => {
+    try {
+      const { testDatabaseConnection } = await import("./db");
+      const isConnected = await testDatabaseConnection();
+      
+      if (isConnected) {
+        res.json({ 
+          success: true, 
+          message: "Database connection successful",
+          database: process.env.DATABASE_URL ? "Supabase PostgreSQL" : "Local Database"
+        });
+      } else {
+        res.json({ 
+          success: false, 
+          message: "Database connection failed - check your DATABASE_URL" 
+        });
+      }
+    } catch (error) {
+      console.error('Database connection test error:', error);
+      res.json({ 
+        success: false, 
+        message: (error as Error).message || "Connection test failed" 
+      });
+    }
+  });
+
+  app.post("/api/database/execute", async (req, res) => {
+    try {
+      const { query } = req.body;
+      
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Query is required and must be a string" 
+        });
+      }
+
+      // Basic SQL injection protection - only allow SELECT statements for now
+      const trimmedQuery = query.trim().toLowerCase();
+      if (!trimmedQuery.startsWith('select')) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Only SELECT queries are allowed for security reasons" 
+        });
+      }
+
+      const { db } = await import("./db");
+      const { sql } = await import("drizzle-orm");
+      
+      const result = await db.execute(sql.raw(query));
+      
+      res.json({ 
+        success: true, 
+        data: result.rows || [],
+        rowCount: result.rowCount || 0,
+        message: "Query executed successfully"
+      });
+    } catch (error) {
+      console.error('Database query execution error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: (error as Error).message || "Query execution failed" 
+      });
+    }
+  });
+
   return httpServer;
 }
