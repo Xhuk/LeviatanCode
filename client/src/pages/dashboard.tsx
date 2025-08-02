@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import Editor from "@monaco-editor/react";
 import { 
   Database, 
   Settings, 
@@ -172,34 +173,104 @@ const PowerShellTerminal = () => {
   );
 };
 
-// File Editor component
+// File Editor component with Monaco Editor
 const FileEditor = ({ activeFile, fileName }: { activeFile: string | null; fileName: string | null }) => {
   const [content, setContent] = useState("// Select a file to edit\n// Or create a new file");
+  const [language, setLanguage] = useState("javascript");
 
-  // Update content when file changes
+  // Get language based on file extension
+  const getLanguageFromExtension = (filename: string): string => {
+    const extension = filename.split('.').pop()?.toLowerCase();
+    const languageMap: { [key: string]: string } = {
+      'js': 'javascript',
+      'jsx': 'javascript',
+      'ts': 'typescript',
+      'tsx': 'typescript',
+      'json': 'json',
+      'html': 'html',
+      'htm': 'html',
+      'css': 'css',
+      'scss': 'scss',
+      'sass': 'sass',
+      'less': 'less',
+      'py': 'python',
+      'java': 'java',
+      'cs': 'csharp',
+      'cpp': 'cpp',
+      'c': 'c',
+      'h': 'c',
+      'hpp': 'cpp',
+      'go': 'go',
+      'rs': 'rust',
+      'php': 'php',
+      'rb': 'ruby',
+      'swift': 'swift',
+      'kt': 'kotlin',
+      'dart': 'dart',
+      'xml': 'xml',
+      'md': 'markdown',
+      'sql': 'sql',
+      'sh': 'shell',
+      'bash': 'shell',
+      'zsh': 'shell',
+      'ps1': 'powershell',
+      'bat': 'bat',
+      'cmd': 'bat',
+      'yml': 'yaml',
+      'yaml': 'yaml',
+      'toml': 'toml',
+      'ini': 'ini',
+      'dockerfile': 'dockerfile',
+      'r': 'r',
+      'scala': 'scala',
+      'clj': 'clojure',
+      'ex': 'elixir',
+      'exs': 'elixir',
+      'pl': 'perl',
+      'lua': 'lua',
+      'vim': 'vim'
+    };
+    return languageMap[extension || ''] || 'plaintext';
+  };
+
+  // Update content and language when file changes
   useEffect(() => {
     if (activeFile && fileName) {
-      // Simulate loading file content based on file type
+      const detectedLanguage = getLanguageFromExtension(fileName);
+      setLanguage(detectedLanguage);
+      
+      // Generate sample content based on file type
       const extension = fileName.split('.').pop()?.toLowerCase();
       switch (extension) {
         case 'tsx':
         case 'ts':
-          setContent(`// ${fileName}\nimport React from 'react';\n\nconst Component = () => {\n  return (\n    <div>\n      <h1>Hello from ${fileName}</h1>\n    </div>\n  );\n};\n\nexport default Component;`);
+          setContent(`// ${fileName}\nimport React from 'react';\n\ninterface Props {\n  title: string;\n}\n\nconst Component: React.FC<Props> = ({ title }) => {\n  return (\n    <div className="container">\n      <h1>{title}</h1>\n      <p>Hello from {fileName}</p>\n    </div>\n  );\n};\n\nexport default Component;`);
           break;
         case 'js':
-          setContent(`// ${fileName}\nconst ${fileName.replace('.js', '')} = () => {\n  console.log('Hello from ${fileName}');\n};\n\nmodule.exports = ${fileName.replace('.js', '')};`);
+        case 'jsx':
+          setContent(`// ${fileName}\nconst ${fileName.replace(/\.(js|jsx)$/, '')} = () => {\n  console.log('Hello from ${fileName}');\n  \n  // Add your logic here\n  return {\n    message: 'Component loaded successfully'\n  };\n};\n\nmodule.exports = ${fileName.replace(/\.(js|jsx)$/, '')};`);
           break;
         case 'json':
-          setContent(`{\n  "name": "${fileName}",\n  "version": "1.0.0",\n  "description": "Project configuration",\n  "main": "index.js"\n}`);
+          setContent(`{\n  "name": "${fileName.replace('.json', '')}",\n  "version": "1.0.0",\n  "description": "Project configuration",\n  "main": "index.js",\n  "scripts": {\n    "start": "node index.js",\n    "dev": "nodemon index.js"\n  },\n  "dependencies": {},\n  "devDependencies": {}\n}`);
           break;
         case 'md':
-          setContent(`# ${fileName}\n\nThis is a markdown file.\n\n## Features\n\n- Feature 1\n- Feature 2\n- Feature 3\n\n## Usage\n\nAdd your content here.`);
+          setContent(`# ${fileName.replace('.md', '')}\n\nThis is a markdown file for ${fileName}.\n\n## Features\n\n- **Feature 1**: Description here\n- **Feature 2**: Description here\n- **Feature 3**: Description here\n\n## Code Example\n\n\`\`\`javascript\nconst example = () => {\n  console.log('Hello World!');\n};\n\`\`\`\n\n## Usage\n\nAdd your content and documentation here.\n\n### Installation\n\n\`\`\`bash\nnpm install\n\`\`\`\n\n### Running\n\n\`\`\`bash\nnpm start\n\`\`\``);
+          break;
+        case 'py':
+          setContent(`# ${fileName}\n\ndef main():\n    \"\"\"\n    Main function for ${fileName}\n    \"\"\"\n    print(f"Hello from {fileName}")\n    \n    # Add your Python logic here\n    result = process_data()\n    return result\n\ndef process_data():\n    \"\"\"\n    Process data function\n    \"\"\"\n    data = [1, 2, 3, 4, 5]\n    processed = [x * 2 for x in data]\n    return processed\n\nif __name__ == "__main__":\n    main()`);
+          break;
+        case 'css':
+          setContent(`/* ${fileName} */\n\n:root {\n  --primary-color: #007acc;\n  --secondary-color: #f0f0f0;\n  --text-color: #333;\n  --border-radius: 4px;\n}\n\n* {\n  margin: 0;\n  padding: 0;\n  box-sizing: border-box;\n}\n\nbody {\n  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;\n  color: var(--text-color);\n  line-height: 1.6;\n}\n\n.container {\n  max-width: 1200px;\n  margin: 0 auto;\n  padding: 20px;\n}\n\n.btn {\n  background: var(--primary-color);\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: var(--border-radius);\n  cursor: pointer;\n  transition: background 0.3s ease;\n}\n\n.btn:hover {\n  background: darken(var(--primary-color), 10%);\n}`);
+          break;
+        case 'html':
+          setContent(`<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <meta name="viewport" content="width=device-width, initial-scale=1.0">\n    <title>${fileName.replace('.html', '')}</title>\n    <link rel="stylesheet" href="style.css">\n</head>\n<body>\n    <div class="container">\n        <header>\n            <h1>Welcome to ${fileName}</h1>\n        </header>\n        \n        <main>\n            <section class="content">\n                <p>This is the main content area.</p>\n                <button id="actionBtn" class="btn">Click Me</button>\n            </section>\n        </main>\n        \n        <footer>\n            <p>&copy; 2025 Your Project Name</p>\n        </footer>\n    </div>\n    \n    <script src="script.js"></script>\n</body>\n</html>`);
           break;
         default:
-          setContent(`// ${fileName}\n// Content of ${fileName}\n// Edit this file...`);
+          setContent(`// ${fileName}\n// Content of ${fileName}\n// Edit this file...\n\n// File type: ${extension}\n// Language: ${detectedLanguage}`);
       }
     } else {
       setContent("// Select a file to edit\n// Or create a new file");
+      setLanguage("javascript");
     }
   }, [activeFile, fileName]);
 
@@ -214,12 +285,61 @@ const FileEditor = ({ activeFile, fileName }: { activeFile: string | null; fileN
           <span>TypeScript</span>
         </div>
       </div>
-      <div className="flex-1 p-4 bg-replit-bg">
-        <textarea
+      <div className="flex-1 bg-replit-bg">
+        <Editor
           value={content}
-          onChange={(e) => setContent(e.target.value)}
-          className="w-full h-full bg-transparent text-replit-text font-mono text-sm resize-none outline-none"
-          placeholder="Start typing..."
+          language={language}
+          onChange={(value) => setContent(value || "")}
+          theme="vs-dark"
+          options={{
+            minimap: { enabled: true },
+            fontSize: 14,
+            fontFamily: '"Fira Code", "JetBrains Mono", "Consolas", "Monaco", monospace',
+            lineNumbers: "on",
+            scrollBeyondLastLine: false,
+            automaticLayout: true,
+            tabSize: 2,
+            insertSpaces: true,
+            wordWrap: "on",
+            bracketPairColorization: { enabled: true },
+            guides: {
+              bracketPairs: true,
+              indentation: true
+            },
+            suggest: {
+              enabled: true
+            },
+            quickSuggestions: {
+              other: true,
+              comments: true,
+              strings: true
+            },
+            parameterHints: {
+              enabled: true
+            },
+            hover: {
+              enabled: true
+            },
+            contextmenu: true,
+            mouseWheelZoom: true,
+            cursorBlinking: "blink",
+            cursorStyle: "line",
+            renderWhitespace: "selection",
+            smoothScrolling: true,
+            folding: true,
+            foldingHighlight: true,
+            showFoldingControls: "always",
+            matchBrackets: "always",
+            autoIndent: "full",
+            formatOnPaste: true,
+            formatOnType: true,
+            colorDecorators: true,
+            codeLens: true,
+            lightbulb: {
+              enabled: true
+            }
+          }}
+          loading={<div className="flex items-center justify-center h-full text-replit-text">Loading editor...</div>}
         />
       </div>
     </div>
