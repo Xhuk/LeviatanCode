@@ -79,7 +79,7 @@ GEMINI_API_KEY=AIzaSyxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 # Application
 NODE_ENV=development
-PORT=5000
+PORT=5005
 SESSION_SECRET=your-super-secret-session-key-change-this-in-production
 ```
 
@@ -99,10 +99,10 @@ This script will:
 ## Step 5: Start the Application
 
 ```powershell
-npm run dev
+npm run windev
 ```
 
-The application will be available at: http://localhost:5000
+The application will be available at: http://localhost:5005
 
 ## Step 6: Verify Installation
 
@@ -137,7 +137,7 @@ npm run test:ai
 ```
 
 ### Port Conflicts
-If port 5000 is in use, change it in `.env`:
+If port 5005 is in use, change it in `.env`:
 ```env
 PORT=3000
 ```

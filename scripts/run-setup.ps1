@@ -9,4 +9,4 @@ Write-Host "🚀 LeviatanCode Setup Starting..." -ForegroundColor Green
 # Run the main setup
 .\scripts\setup-windows.ps1
 
-Write-Host "✨ Setup completed! Run 'npm run dev' to start." -ForegroundColor Green
+Write-Host "✨ Setup completed! Run 'npm run windev' to start." -ForegroundColor Green

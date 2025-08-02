@@ -44,10 +44,10 @@ SESSION_SECRET=your-super-secret-session-key-change-this-in-production
 ## Start Development
 
 ```powershell
-npm run dev
+npm run windev
 ```
 
-Open: http://localhost:5000
+Open: http://localhost:5005
 
 ## Default Login
 - Username: `demo`

@@ -301,6 +301,9 @@ if (-not $packageJson.scripts.'test:ai') {
 if (-not $packageJson.scripts.'seed:db') {
     $packageJson.scripts | Add-Member -MemberType NoteProperty -Name 'seed:db' -Value 'node scripts/seed-db.js'
 }
+if (-not $packageJson.scripts.'windev') {
+    $packageJson.scripts | Add-Member -MemberType NoteProperty -Name 'windev' -Value 'cross-env NODE_ENV=development tsx server/index.ts'
+}
 
 # Save updated package.json
 $packageJson | ConvertTo-Json -Depth 10 | Out-File -FilePath "package.json" -Encoding UTF8
@@ -313,7 +316,7 @@ Write-Host "🎉 Setup Complete!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
 
 Write-Host "`nTo start the application:" -ForegroundColor Cyan
-Write-Host "npm run dev" -ForegroundColor White
+Write-Host "npm run windev" -ForegroundColor White
 
 Write-Host "`nUseful commands:" -ForegroundColor Cyan
 Write-Host "npm run test:db    # Test database connection" -ForegroundColor White
@@ -321,7 +324,7 @@ Write-Host "npm run test:ai    # Test AI services" -ForegroundColor White
 Write-Host "npm run seed:db    # Re-seed database" -ForegroundColor White
 
 Write-Host "`nApplication will be available at:" -ForegroundColor Cyan
-Write-Host "http://localhost:5000" -ForegroundColor White
+Write-Host "http://localhost:5005" -ForegroundColor White
 
 Write-Host "`nDemo login credentials:" -ForegroundColor Cyan
 Write-Host "Username: demo" -ForegroundColor White
