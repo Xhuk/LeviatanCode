@@ -72,7 +72,7 @@ Theme implementation: Comprehensive light/dark mode for entire application (comp
 - **OpenAI GPT-4o**: Primary AI model for chat completions and code analysis.
 - **Google Gemini**: Alternative AI model for diversified responses.
 - **AI Features**: Chat interface, code suggestions, documentation generation, data analysis.
-- **Flask Analyzer**: Fully operational Python Flask web application (port 5001) serving RESTful `/analyze` endpoint for AI-powered project analysis, supporting 15+ programming languages and 20+ frameworks. Integrated with Middleware Monitor for complete service management, health monitoring, and Windows compatibility.
+- **Flask Analyzer**: Fully operational Python Flask web application (port 5001) serving RESTful `/analyze` endpoint for AI-powered project analysis, supporting 15+ programming languages and 20+ frameworks. Features automatic startup with main application, health check coordination, graceful shutdown integration, and complete Middleware Monitor management with Windows compatibility.
 
 ## Database and Infrastructure
 - **Neon Database**: Serverless PostgreSQL hosting.
