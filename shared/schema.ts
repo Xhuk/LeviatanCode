@@ -76,6 +76,17 @@ export const promptTemplates = pgTable("prompt_templates", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+export const vaultSecrets = pgTable("vault_secrets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  workspace: text("workspace").notNull(), // workspace/project name
+  name: text("name").notNull(),
+  encryptedValue: text("encrypted_value").notNull(), // encrypted secret value
+  description: text("description"),
+  category: text("category").default("general"), // 'git', 'database', 'api', 'general'
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // Project Documentation Interface
 export interface ProjectDocumentation {
   overview: string;
@@ -94,7 +105,7 @@ export interface ProjectDocumentation {
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
-  password: true,
+  passwordHash: true,
 });
 
 export const insertProjectSchema = createInsertSchema(projects).pick({
@@ -115,8 +126,7 @@ export const insertProjectExecutionSchema = createInsertSchema(projectExecutions
 
 export const insertAiChatSchema = createInsertSchema(aiChats).pick({
   projectId: true,
-  messages: true,
-  model: true,
+  title: true,
 });
 
 export const insertDocumentationSchema = createInsertSchema(documentation).pick({
@@ -137,6 +147,14 @@ export const insertPromptTemplateSchema = createInsertSchema(promptTemplates).pi
   isDefault: true,
 });
 
+export const insertVaultSecretSchema = createInsertSchema(vaultSecrets).pick({
+  workspace: true,
+  name: true,
+  encryptedValue: true,
+  description: true,
+  category: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -155,6 +173,9 @@ export type Documentation = typeof documentation.$inferSelect;
 
 export type InsertPromptTemplate = z.infer<typeof insertPromptTemplateSchema>;
 export type PromptTemplate = typeof promptTemplates.$inferSelect;
+
+export type InsertVaultSecret = z.infer<typeof insertVaultSecretSchema>;
+export type VaultSecret = typeof vaultSecrets.$inferSelect;
 
 // Message types for AI chat
 export interface ChatMessage {

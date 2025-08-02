@@ -11,6 +11,8 @@ import {
   type InsertDocumentation,
   type PromptTemplate,
   type InsertPromptTemplate,
+  type VaultSecret,
+  type InsertVaultSecret,
   type ChatMessage,
   type FileSystemItem
 } from "@shared/schema";
@@ -53,6 +55,13 @@ export interface IStorage {
   updatePromptTemplate(id: string, updates: Partial<PromptTemplate>): Promise<PromptTemplate>;
   deletePromptTemplate(id: string): Promise<void>;
   incrementPromptUsage(id: string): Promise<void>;
+  
+  // Vault Secrets
+  getVaultSecrets(workspace: string): Promise<VaultSecret[]>;
+  getVaultSecret(workspace: string, id: string): Promise<VaultSecret | undefined>;
+  createVaultSecret(secret: InsertVaultSecret): Promise<VaultSecret>;
+  updateVaultSecret(workspace: string, id: string, updates: Partial<VaultSecret>): Promise<VaultSecret | undefined>;
+  deleteVaultSecret(workspace: string, id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -62,6 +71,7 @@ export class MemStorage implements IStorage {
   private aiChats: Map<string, AiChat> = new Map();
   private documentation: Map<string, Documentation> = new Map();
   private promptTemplates: Map<string, PromptTemplate> = new Map();
+  private vaultSecrets: Map<string, VaultSecret> = new Map();
 
   constructor() {
     // Initialize with demo data
@@ -376,6 +386,52 @@ export class MemStorage implements IStorage {
     template.usageCount = (template.usageCount || 0) + 1;
     template.updatedAt = new Date();
     this.promptTemplates.set(id, template);
+  }
+
+  // Vault Secrets
+  async getVaultSecrets(workspace: string): Promise<VaultSecret[]> {
+    return Array.from(this.vaultSecrets.values()).filter(secret => secret.workspace === workspace);
+  }
+
+  async getVaultSecret(workspace: string, id: string): Promise<VaultSecret | undefined> {
+    const secret = this.vaultSecrets.get(id);
+    return secret && secret.workspace === workspace ? secret : undefined;
+  }
+
+  async createVaultSecret(insertSecret: InsertVaultSecret): Promise<VaultSecret> {
+    const id = randomUUID();
+    const secret: VaultSecret = {
+      ...insertSecret,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.vaultSecrets.set(id, secret);
+    return secret;
+  }
+
+  async updateVaultSecret(workspace: string, id: string, updates: Partial<VaultSecret>): Promise<VaultSecret | undefined> {
+    const secret = this.vaultSecrets.get(id);
+    if (!secret || secret.workspace !== workspace) {
+      return undefined;
+    }
+    
+    const updatedSecret = { 
+      ...secret, 
+      ...updates, 
+      updatedAt: new Date()
+    };
+    this.vaultSecrets.set(id, updatedSecret);
+    return updatedSecret;
+  }
+
+  async deleteVaultSecret(workspace: string, id: string): Promise<boolean> {
+    const secret = this.vaultSecrets.get(id);
+    if (!secret || secret.workspace !== workspace) {
+      return false;
+    }
+    
+    return this.vaultSecrets.delete(id);
   }
 }
 

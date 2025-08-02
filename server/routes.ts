@@ -19,12 +19,15 @@ import {
   insertProjectExecutionSchema,
   insertAiChatSchema,
   insertPromptTemplateSchema,
+  insertVaultSecretSchema,
   type ChatMessage,
   type Project,
   type ProjectExecution,
   type AiChat,
   type PromptTemplate,
-  type ProjectDocumentation
+  type ProjectDocumentation,
+  type VaultSecret,
+  type InsertVaultSecret
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -2203,6 +2206,120 @@ Please provide a JSON response with this exact structure:
     } catch (error) {
       console.error("Failed to test Git connection:", error);
       res.status(500).json({ message: "Failed to test Git connection" });
+    }
+  });
+
+  // Vault management endpoints
+  // Simple encryption helper (in production, use proper encryption)
+  const simpleEncrypt = (text: string): string => {
+    return Buffer.from(text).toString('base64');
+  };
+  
+  const simpleDecrypt = (encrypted: string): string => {
+    return Buffer.from(encrypted, 'base64').toString('utf8');
+  };
+
+  // Get all secrets for a workspace
+  app.get("/api/vault/:workspace/secrets", async (req, res) => {
+    try {
+      const { workspace } = req.params;
+      const secrets = await storage.getVaultSecrets(workspace);
+      
+      // Return secrets without decrypted values for security
+      const safeSSecrets = secrets.map(secret => ({
+        ...secret,
+        value: '••••••••••••••••••••••••••••••••••••••••••••••••••••••••'
+      }));
+      
+      res.json(safeSSecrets);
+    } catch (error) {
+      console.error("Failed to get vault secrets:", error);
+      res.status(500).json({ message: "Failed to get vault secrets" });
+    }
+  });
+
+  // Get decrypted value of a specific secret
+  app.get("/api/vault/:workspace/secrets/:secretId/decrypt", async (req, res) => {
+    try {
+      const { workspace, secretId } = req.params;
+      const secret = await storage.getVaultSecret(workspace, secretId);
+      
+      if (!secret) {
+        return res.status(404).json({ message: "Secret not found" });
+      }
+      
+      const decryptedValue = simpleDecrypt(secret.encryptedValue);
+      res.json({ value: decryptedValue });
+    } catch (error) {
+      console.error("Failed to decrypt secret:", error);
+      res.status(500).json({ message: "Failed to decrypt secret" });
+    }
+  });
+
+  // Add a new secret
+  app.post("/api/vault/:workspace/secrets", async (req, res) => {
+    try {
+      const { workspace } = req.params;
+      const validatedData = insertVaultSecretSchema.parse({
+        ...req.body,
+        workspace,
+        encryptedValue: simpleEncrypt(req.body.value)
+      });
+      
+      const secret = await storage.createVaultSecret(validatedData);
+      
+      // Return without decrypted value
+      res.json({
+        ...secret,
+        value: '••••••••••••••••••••••••••••••••••••••••••••••••••••••••'
+      });
+    } catch (error) {
+      console.error("Failed to create vault secret:", error);
+      res.status(500).json({ message: "Failed to create vault secret" });
+    }
+  });
+
+  // Update a secret
+  app.put("/api/vault/:workspace/secrets/:secretId", async (req, res) => {
+    try {
+      const { workspace, secretId } = req.params;
+      const updateData = {
+        ...req.body,
+        workspace,
+        ...(req.body.value && { encryptedValue: simpleEncrypt(req.body.value) })
+      };
+      
+      const secret = await storage.updateVaultSecret(workspace, secretId, updateData);
+      
+      if (!secret) {
+        return res.status(404).json({ message: "Secret not found" });
+      }
+      
+      // Return without decrypted value
+      res.json({
+        ...secret,
+        value: '••••••••••••••••••••••••••••••••••••••••••••••••••••••••'
+      });
+    } catch (error) {
+      console.error("Failed to update vault secret:", error);
+      res.status(500).json({ message: "Failed to update vault secret" });
+    }
+  });
+
+  // Delete a secret
+  app.delete("/api/vault/:workspace/secrets/:secretId", async (req, res) => {
+    try {
+      const { workspace, secretId } = req.params;
+      const success = await storage.deleteVaultSecret(workspace, secretId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Secret not found" });
+      }
+      
+      res.json({ message: "Secret deleted successfully" });
+    } catch (error) {
+      console.error("Failed to delete vault secret:", error);
+      res.status(500).json({ message: "Failed to delete vault secret" });
     }
   });
 
