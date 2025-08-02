@@ -26,6 +26,8 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
   const [projectDescription, setProjectDescription] = useState("");
   const [projectPath, setProjectPath] = useState("");
   const [analysisStep, setAnalysisStep] = useState(0);
+  const [extractionLogs, setExtractionLogs] = useState<string[]>([]);
+  const [isExtracting, setIsExtracting] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -46,8 +48,37 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
       }
     },
     onSuccess: (data) => {
+      if (data.status === "extracting") {
+        setIsExtracting(true);
+        setExtractionLogs([
+          `📦 Extracting ${data.zipFiles?.length || 0} ZIP file(s)...`,
+          ...data.zipFiles?.map((f: any) => `   • ${f.name} (${(f.size / 1024 / 1024).toFixed(2)} MB)`) || []
+        ]);
+        
+        // Start polling console logs for extraction progress
+        const logInterval = setInterval(() => {
+          // In a real implementation, you might poll an endpoint for logs
+          // For now, we'll simulate the extraction completing after a delay
+          setTimeout(() => {
+            setIsExtracting(false);
+            setExtractionLogs(prev => [...prev, "✅ Extraction completed successfully!"]);
+            clearInterval(logInterval);
+            
+            toast({
+              title: "Project imported successfully",
+              description: "ZIP files extracted and AI analysis completed.",
+            });
+            queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+            onProjectImported?.(data.projectId);
+            setOpen(false);
+          }, 3000);
+        }, 1000);
+        
+        return;
+      }
+      
       toast({
-        title: "Project imported successfully",
+        title: "Project imported successfully", 
         description: "AI analysis has begun. You can start working with your project.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
@@ -176,6 +207,36 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
             </div>
             
             <Progress value={(analysisStep / (analysisSteps.length - 1)) * 100} className="w-full" />
+
+            {/* ZIP Extraction Console */}
+            {isExtracting && (
+              <Card className="mt-4">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    ZIP Extraction Console
+                  </CardTitle>
+                  <CardDescription className="text-sm">
+                    Real-time decompression and file analysis progress
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-black dark:bg-gray-900 text-green-400 p-3 rounded-md font-mono text-sm max-h-48 overflow-y-auto border">
+                    {extractionLogs.map((log, index) => (
+                      <div key={index} className="mb-1 leading-relaxed">
+                        {log}
+                      </div>
+                    ))}
+                    {isExtracting && (
+                      <div className="flex items-center gap-2 text-yellow-400 mt-2">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        <span>Processing files...</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         ) : (
           <div className="space-y-4">

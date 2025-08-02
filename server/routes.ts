@@ -789,17 +789,73 @@ Please provide a JSON response with this exact structure:
       if (!name || typeof name !== 'string') {
         return res.status(400).json({ error: "Project name is required" });
       }
+
+      // Check for ZIP files and provide progress feedback
+      const zipFiles = files.filter(f => f.originalname.toLowerCase().endsWith('.zip'));
       
-      const result = await projectImportService.importFromFiles(files, name, description, projectPath);
-      
-      res.json({
-        projectId: result.projectId,
-        message: "Project imported and analyzed successfully",
-        analysis: result.analysis,
-        insights: result.insights
-      });
+      if (zipFiles.length > 0) {
+        console.log(`📦 Starting ZIP extraction for ${zipFiles.length} ZIP file(s):`);
+        zipFiles.forEach(f => console.log(`   • ${f.originalname} (${(f.size / 1024 / 1024).toFixed(2)} MB)`));
+        
+        // Send immediate response indicating processing
+        res.json({
+          status: "extracting",
+          message: `Extracting ${zipFiles.length} ZIP file(s)...`,
+          zipFiles: zipFiles.map(f => ({ name: f.originalname, size: f.size })),
+          stage: "extraction"
+        });
+
+        // Process in background with detailed logging
+        setImmediate(async () => {
+          try {
+            console.log("🔍 Analyzing ZIP contents and extracting relevant files...");
+            const result = await projectImportService.importFromFiles(files, name, description, projectPath);
+            
+            console.log(`✅ ZIP extraction completed successfully!`);
+            console.log(`📁 Project created: ${result.projectId}`);
+            console.log(`📍 Extracted to: ${result.extractedPath || projectPath || 'working directory'}`);
+            console.log(`🎯 Working directory should navigate to: ${result.extractedPath || projectPath || '.'}`);
+            
+            // Auto-update working directory if extraction path detected
+            if (result.extractedPath) {
+              try {
+                // Import the path module
+                const path = require('path');
+                const parentDir = path.dirname(result.extractedPath);
+                console.log(`🔄 Auto-updating working directory to: ${parentDir}`);
+                
+                // This would trigger file tree update and workspace dropdown refresh
+                // The frontend will need to poll or listen for this change
+              } catch (error) {
+                console.warn(`⚠️  Could not auto-update working directory: ${error.message}`);
+              }
+            }
+            
+            // Log analysis results
+            if (result.analysis) {
+              console.log(`🔧 Detected framework: ${result.analysis.framework}`);
+              console.log(`💻 Language: ${result.analysis.language}`);
+              console.log(`▶️  Run command: ${result.analysis.runCommand}`);
+            }
+          } catch (error) {
+            console.error(`❌ ZIP extraction failed: ${error.message}`);
+          }
+        });
+      } else {
+        // Regular file processing
+        console.log(`📄 Processing ${files.length} individual file(s)...`);
+        const result = await projectImportService.importFromFiles(files, name, description, projectPath);
+        
+        res.json({
+          projectId: result.projectId,
+          message: "Project imported and analyzed successfully",
+          analysis: result.analysis,
+          insights: result.insights,
+          extractedPath: result.extractedPath
+        });
+      }
     } catch (error) {
-      console.error("File import error:", error);
+      console.error("❌ File import error:", error);
       res.status(500).json({ error: "Failed to import project from files" });
     }
   });

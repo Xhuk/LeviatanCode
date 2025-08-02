@@ -145,22 +145,50 @@ class ProjectImportService {
     });
   }
 
-  async importFromFiles(files: any[], projectName: string, description?: string, projectPath?: string): Promise<{ projectId: string; analysis: AnalysisResult; insights: ProjectInsights }> {
+  async importFromFiles(files: any[], projectName: string, description?: string, projectPath?: string): Promise<{ projectId: string; analysis: AnalysisResult; insights: ProjectInsights; extractedPath?: string; }> {
     const projectId = nanoid();
     const actualProjectPath = projectPath || process.cwd();
     
     // Process uploaded files - handle ZIP files specially
     let importedFiles: ImportedFile[] = [];
     
+    let extractedPath: string | undefined;
+    
     for (const file of files) {
       if (file.originalname.toLowerCase().endsWith('.zip')) {
-        console.log(`Extracting ZIP file: ${file.originalname}`);
+        console.log(`📦 Processing ZIP: ${file.originalname} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+        console.log(`🔄 Starting extraction process...`);
+        
         try {
           const extractedFiles = await this.extractZipFile(file.buffer);
           importedFiles.push(...extractedFiles);
-          console.log(`Extracted ${extractedFiles.length} files from ${file.originalname}`);
+          
+          console.log(`📂 Successfully extracted ${extractedFiles.length} files from ${file.originalname}`);
+          console.log(`📋 File types found:`);
+          
+          // Log extracted file types for visibility
+          const fileTypes = extractedFiles.reduce((acc, f) => {
+            const ext = f.name.split('.').pop()?.toLowerCase() || 'no-ext';
+            acc[ext] = (acc[ext] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>);
+          
+          Object.entries(fileTypes).forEach(([ext, count]) => {
+            console.log(`   • .${ext}: ${count} file(s)`);
+          });
+          
+          // Determine extracted path from common root
+          if (extractedFiles.length > 0) {
+            const paths = extractedFiles.map(f => f.path.split('/').slice(0, -1).join('/'));
+            const commonPath = this.findCommonPath(paths);
+            if (commonPath && commonPath !== '.') {
+              extractedPath = commonPath;
+              console.log(`🎯 Detected project root: ${commonPath}`);
+            }
+          }
+          
         } catch (error) {
-          console.error(`Failed to extract ZIP file ${file.originalname}:`, error);
+          console.error(`❌ Failed to extract ZIP file ${file.originalname}:`, error);
           // Continue with other files
         }
       } else {
@@ -220,10 +248,15 @@ class ProjectImportService {
         dependencies: analysis.dependencies
       },
       documentation: {
+        overview: `This is a ${analysis.framework} project using ${analysis.language}.`,
+        techStack: analysis.dependencies ? Object.keys(analysis.dependencies) : [],
         setupInstructions: analysis.setupInstructions.join('\n'),
-        architecture: `This is a ${analysis.framework} project using ${analysis.language}.`,
-        apiDocs: null,
-        deployment: "Run using: " + analysis.runCommand
+        deployment: "Run using: " + analysis.runCommand,
+        architecture: "Standard project structure",
+        apiDocs: "",
+        examples: "",
+        troubleshooting: "",
+        notes: ""
       }
     };
     
@@ -232,10 +265,10 @@ class ProjectImportService {
     // Save insights file to project root
     await this.saveInsightsFile(actualProjectPath, insights);
     
-    return { projectId, analysis, insights };
+    return { projectId, analysis, insights, extractedPath };
   }
   
-  async importFromGit(gitUrl: string, projectName: string, description?: string, projectPath?: string): Promise<{ projectId: string; analysis: AnalysisResult; insights: ProjectInsights }> {
+  async importFromGit(gitUrl: string, projectName: string, description?: string, projectPath?: string): Promise<{ projectId: string; analysis: AnalysisResult; insights: ProjectInsights; extractedPath?: string; }> {
     // For demo purposes, simulate git clone and analysis
     // In a real implementation, you would use git commands or APIs
     
@@ -272,14 +305,19 @@ class ProjectImportService {
         gitUrl: gitUrl
       },
       documentation: {
+        overview: `This is a ${analysis.framework} project cloned from ${gitUrl}.`,
+        techStack: analysis.dependencies ? Object.keys(analysis.dependencies) : [],
         setupInstructions: [
           `git clone ${gitUrl}`,
           "cd " + projectName.toLowerCase().replace(/\s+/g, '-'),
           ...analysis.setupInstructions
         ].join('\n'),
-        architecture: `This is a ${analysis.framework} project cloned from ${gitUrl}.`,
-        apiDocs: null,
-        deployment: "Run using: " + analysis.runCommand
+        deployment: "Run using: " + analysis.runCommand,
+        architecture: "Standard project structure",
+        apiDocs: "",
+        examples: "",
+        troubleshooting: "",
+        notes: ""
       }
     };
     
@@ -289,6 +327,25 @@ class ProjectImportService {
     await this.saveInsightsFile(actualProjectPath, insights);
     
     return { projectId, analysis, insights };
+  }
+
+  private findCommonPath(paths: string[]): string {
+    if (paths.length === 0) return '';
+    if (paths.length === 1) return paths[0];
+    
+    const firstPath = paths[0].split('/');
+    let commonParts: string[] = [];
+    
+    for (let i = 0; i < firstPath.length; i++) {
+      const part = firstPath[i];
+      if (paths.every(path => path.split('/')[i] === part)) {
+        commonParts.push(part);
+      } else {
+        break;
+      }
+    }
+    
+    return commonParts.join('/');
   }
   
   private async analyzeProjectStructure(files: ImportedFile[]): Promise<AnalysisResult> {
@@ -414,7 +471,7 @@ Current detection:
 
 Please provide a brief project description based on the file structure.`;
 
-      const aiAnalysis = await aiService.generateCompletion(prompt);
+      const aiAnalysis = await aiService.generateChatCompletion([{ role: "user", content: prompt }]);
       
       return {
         projectType: framework,
