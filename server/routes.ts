@@ -2064,11 +2064,137 @@ Analysis target: ${scriptDir}
     }
   });
 
+  // Add missing project endpoints for path-based projects
+  app.get("/api/projects/:projectId(*)", async (req, res) => {
+    try {
+      const projectId = req.params.projectId || req.params[0];
+      
+      // For path-based projects, create a dynamic project
+      if (projectId.includes('/') || projectId.includes('\\')) {
+        const normalizedPath = projectId.replace(/\\/g, '/');
+        const projectName = path.basename(normalizedPath);
+        
+        res.json({
+          id: projectId,
+          name: projectName,
+          description: `Project from ${normalizedPath}`,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+        return;
+      }
+      
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      res.json(project);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get project" });
+    }
+  });
+
+  app.get("/api/projects/:projectId(*)/insights", async (req, res) => {
+    try {
+      const projectId = req.params.projectId || req.params[0];
+      
+      // For path-based projects, try to find insights from working directory
+      if (projectId.includes('/') || projectId.includes('\\')) {
+        const projectDir = projectId;
+        const insights = await InsightsFileService.read(projectDir);
+        res.json({ insights });
+        return;
+      }
+      
+      const insights = await storage.getProjectInsights(projectId);
+      res.json({ insights });
+    } catch (error) {
+      res.json({ insights: null });
+    }
+  });
+
+  app.get("/api/projects/:projectId(*)/ai-chats", async (req, res) => {
+    try {
+      const projectId = req.params.projectId || req.params[0];
+      
+      // For path-based projects, return empty array for now
+      if (projectId.includes('/') || projectId.includes('\\')) {
+        res.json([]);
+        return;
+      }
+      
+      const chats = await storage.getAIChats(projectId);
+      res.json(chats);
+    } catch (error) {
+      res.json([]);
+    }
+  });
+
+  // Additional git config endpoint for path-based projects
+  app.get("/api/workspace/:projectId(*)/git/config", async (req, res) => {
+    try {
+      const projectId = req.params.projectId || req.params[0];
+      
+      // For any project (path-based or regular), return basic git config
+      res.json({
+        username: "",
+        email: "",
+        remoteUrl: "",
+        isConnected: false
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to get git config" });
+    }
+  });
+
+  app.post("/api/projects/:projectId(*)/analyze-documents", async (req, res) => {
+    try {
+      const projectId = req.params.projectId || req.params[0];
+      const { workingDirectory, generateScript, analysisType } = req.body;
+      
+      // Use the provided working directory or derive from projectId
+      let analysisDir = workingDirectory;
+      if (!analysisDir && (projectId.includes('/') || projectId.includes('\\'))) {
+        analysisDir = projectId;
+      }
+      
+      console.log(`🔍 Starting document analysis for project: ${projectId}`);
+      console.log(`📁 Analysis directory: ${analysisDir}`);
+
+      // Call Flask Analyzer for document analysis
+      const flaskResponse = await fetch('http://localhost:5001/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          projectPath: analysisDir || ".",
+          analysisType: analysisType || "comprehensive",
+          generateScript: generateScript || false
+        })
+      });
+      
+      if (flaskResponse.ok) {
+        const analysisResult = await flaskResponse.json();
+        console.log(`✅ Flask document analysis completed for ${projectId}`);
+        res.json(analysisResult);
+      } else {
+        console.warn('Flask Analyzer unavailable for document analysis');
+        res.status(503).json({ 
+          error: "Flask Analyzer service unavailable",
+          message: "Document analysis requires the Flask Analyzer service to be running"
+        });
+      }
+    } catch (error) {
+      console.error(`❌ Document analysis failed: ${error.message}`);
+      res.status(500).json({ error: "Document analysis failed: " + error.message });
+    }
+  });
+
   // Project file analysis route using Flask Analyzer
-  app.post("/api/projects/:id/analyze-files", async (req, res) => {
+  app.post("/api/projects/:id(*)/analyze-files", async (req, res) => {
     try {
       const { projectPath = "." } = req.body;
-      const projectId = req.params.id;
+      const projectId = req.params.id || req.params[0];
       
       console.log(`🔍 Starting file analysis for project: ${projectId}`);
       
