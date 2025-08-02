@@ -1,22 +1,8 @@
 import { useState, useEffect } from "react";
-import { Workspace } from "@/components/layout/workspace";
-import { FileExplorer } from "@/components/panels/file-explorer";
-import { EditorPanel } from "@/components/panels/editor-panel";
-import { TerminalPanel } from "@/components/panels/terminal-panel";
-import { AiChatPanel } from "@/components/panels/ai-chat-panel";
-import { DocumentationPanel } from "@/components/panels/documentation-panel";
-import { ExtractionPanel } from "@/components/panels/extraction-panel";
-import { PromptTemplatesPanel } from "@/components/panels/prompt-templates-panel";
-import { GitPanel } from "@/components/panels/git-panel";
-import { ConsolePanel } from "@/components/panels/console-panel";
-import { PreviewPanel } from "@/components/panels/preview-panel";
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable-panels";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Database, Play, Settings, UserCircle, Cog, Brain, FileText, MessageSquare, AlertTriangle, Upload, FolderOpen, Sparkles, Camera, GitBranch, Terminal, Globe, ExternalLink, Monitor } from "lucide-react";
-import { ServiceStatusIndicator } from "@/components/service-status-indicator";
+import { Database, Play, Settings, UserCircle, AlertTriangle, Camera, Terminal, Globe, GitBranch, Monitor } from "lucide-react";
 import { ProjectImportDialog } from "@/components/project-import-dialog";
 import { SettingsDialog } from "@/components/settings-dialog";
 import { ProjectInsightsSaveButton } from "@/components/project-insights-save-button";
@@ -25,11 +11,8 @@ import { AgentWindows } from "@/components/agent-windows";
 
 export default function Dashboard() {
   const [currentProject, setCurrentProject] = useState<string>("demo-project-1");
-  const [activeFile, setActiveFile] = useState<string>("");
   const [workingDirectory, setWorkingDirectory] = useState<string>("");
   const [workspaceFolders, setWorkspaceFolders] = useState<any[]>([]);
-  const [showPreview, setShowPreview] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState("http://localhost:3000");
 
   const { data: projects } = useQuery({
     queryKey: ["/api/projects"],
@@ -176,28 +159,10 @@ export default function Dashboard() {
               <Camera size={16} />
             </Button>
             
-            {/* Preview Button */}
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                const url = prompt("Enter preview URL:", previewUrl);
-                if (url) {
-                  setPreviewUrl(url);
-                  window.open(url, '_blank');
-                }
-              }}
-              className="modern-button border-replit-border hover:bg-replit-elevated text-replit-text-secondary hover:text-replit-text"
-            >
-              <Globe size={16} />
-            </Button>
+
             
-            {/* Agent Windows */}
-            <AgentWindows 
-              projectId={currentProject}
-              workingDirectory={workingDirectory}
-              previewUrl={previewUrl}
-            />
+            {/* Agent Windows - Main Interface */}
+            <AgentWindows />
             
             <Button className="modern-button bg-replit-blue hover:bg-replit-blue-secondary text-white px-4 py-2 shadow-lg hover:shadow-xl">
               <Play size={16} className="mr-2" />
@@ -213,104 +178,31 @@ export default function Dashboard() {
         </div>
       </nav>
 
-      {/* Main Workspace */}
-      <div className="flex-1 overflow-hidden">
-        <ResizablePanelGroup direction="horizontal" className="h-full">
-          {/* File Explorer */}
-          <ResizablePanel defaultSize={15} minSize={10} maxSize={25}>
-            <FileExplorer 
-              workingDirectory={workingDirectory}
-              selectedProject={currentProject}
-              activeFile={activeFile}
-              onFileSelect={setActiveFile}
-            />
-          </ResizablePanel>
-          
-          <ResizableHandle className="resizer" />
-          
-          {/* Editor Panel */}
-          <ResizablePanel defaultSize={35} minSize={25}>
-            <EditorPanel
-              workingDirectory={workingDirectory}
-              selectedProject={currentProject}
-              activeFile={activeFile}
-              onFileChange={setActiveFile}
-            />
-          </ResizablePanel>
-          
-          <ResizableHandle className="resizer" />
-          
-          {/* Terminal Panel */}
-          <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
-            <TerminalPanel projectId={currentProject} />
-          </ResizablePanel>
-          
-          <ResizableHandle className="resizer" />
-          
-          {/* AI & Documentation Panel with Tabs */}
-          <ResizablePanel defaultSize={30} minSize={25} maxSize={40}>
-            <Tabs defaultValue="ai-chat" className="h-full flex flex-col">
-              <TabsList className="bg-replit-panel/90 backdrop-blur-lg border-b border-replit-border rounded-none h-12 w-full justify-start shadow-sm">
-                <TabsTrigger value="ai-chat" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
-                  <MessageSquare className="w-4 h-4" />
-                  AI Chat
-                </TabsTrigger>
-                <TabsTrigger value="git" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
-                  <GitBranch className="w-4 h-4" />
-                  Git
-                </TabsTrigger>
-                <TabsTrigger value="console" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
-                  <Terminal className="w-4 h-4" />
-                  Console
-                </TabsTrigger>
-                <TabsTrigger value="preview" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
-                  <Monitor className="w-4 h-4" />
-                  Preview
-                </TabsTrigger>
-                <TabsTrigger value="prompts" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
-                  <Brain className="w-4 h-4" />
-                  Prompts
-                </TabsTrigger>
-                <TabsTrigger value="docs" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
-                  <FileText className="w-4 h-4" />
-                  Docs
-                </TabsTrigger>
-                <TabsTrigger value="extraction" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
-                  <Upload className="w-4 h-4" />
-                  Extraction
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="ai-chat" className="flex-1 m-0">
-                <AiChatPanel projectId={currentProject} />
-              </TabsContent>
-              
-              <TabsContent value="git" className="flex-1 m-0">
-                <GitPanel projectId={currentProject} workingDirectory={workingDirectory} />
-              </TabsContent>
-              
-              <TabsContent value="console" className="flex-1 m-0">
-                <ConsolePanel projectId={currentProject} />
-              </TabsContent>
-              
-              <TabsContent value="preview" className="flex-1 m-0">
-                <PreviewPanel previewUrl={previewUrl} />
-              </TabsContent>
-              
-              <TabsContent value="prompts" className="flex-1 m-0">
-                <PromptTemplatesPanel projectId={currentProject} />
-              </TabsContent>
-              
-              <TabsContent value="docs" className="flex-1 m-0">
-                <DocumentationPanel projectId={currentProject} />
-              </TabsContent>
-              
-              <TabsContent value="extraction" className="flex-1 m-0">
-                <ExtractionPanel />
-              </TabsContent>
-            </Tabs>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+      {/* Main Workspace - Clean Interface */}
+      <div className="flex-1 overflow-hidden bg-gradient-to-br from-replit-bg via-replit-bg to-replit-elevated">
+        <div className="h-full flex items-center justify-center">
+          <div className="text-center text-replit-text-secondary">
+            <div className="mb-4">
+              <Terminal className="w-16 h-16 mx-auto text-replit-text-muted" />
+            </div>
+            <h2 className="text-xl font-semibold mb-2">LeviatanCode Development Environment</h2>
+            <p className="text-sm text-replit-text-muted mb-6">Use the agent tools above to access terminal, file analysis, web preview, and more</p>
+            <div className="flex items-center justify-center space-x-4 text-xs">
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                <span>Server Running</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                <span>WebSocket Connected</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                <span>AI Ready</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Modern Status Bar */}
