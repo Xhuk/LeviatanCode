@@ -1,0 +1,170 @@
+Failed to load project insights: ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [
+      "framework"
+    ],
+    "message": "Required"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [
+      "language"
+    ],
+    "message": "Required"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [
+      "runCommand"
+    ],
+    "message": "Required"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "array",
+    "received": "undefined",
+    "path": [
+      "sourceDirectories"
+    ],
+    "message": "Required"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [
+      "updatedAt"
+    ],
+    "message": "Required"
+  },
+  {
+    "expected": "'files' | 'git'",
+    "received": "undefined",
+    "code": "invalid_type",
+    "path": [
+      "importedFrom"
+    ],
+    "message": "Required"
+  }
+]
+    at get error (file:///C:/ReactProjects/LeviatanCode/node_modules/zod/lib/index.mjs:587:31)
+    at ZodObject.parse (file:///C:/ReactProjects/LeviatanCode/node_modules/zod/lib/index.mjs:663:22)
+    at ProjectImportService.loadProjectInsights (C:\ReactProjects\LeviatanCode\server\services\project-import.ts:778:36)
+    at <anonymous> (C:\ReactProjects\LeviatanCode\server\routes.ts:2112:51)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  issues: [
+    {
+      code: 'invalid_type',
+      expected: 'string',
+      received: 'undefined',
+      path: [Array],
+      message: 'Required'
+    },
+    {
+      code: 'invalid_type',
+      expected: 'string',
+      received: 'undefined',
+      path: [Array],
+      message: 'Required'
+    },
+    {
+      code: 'invalid_type',
+      expected: 'string',
+      received: 'undefined',
+      path: [Array],
+      message: 'Required'
+    },
+    {
+      code: 'invalid_type',
+      expected: 'array',
+      received: 'undefined',
+      path: [Array],
+      message: 'Required'
+    },
+    {
+      code: 'invalid_type',
+      expected: 'string',
+      received: 'undefined',
+      path: [Array],
+      message: 'Required'
+    },
+    {
+      expected: "'files' | 'git'",
+      received: 'undefined',
+      code: 'invalid_type',
+      path: [Array],
+      message: 'Required'
+    }
+  ],
+  addIssue: [Function (anonymous)],
+  addIssues: [Function (anonymous)],
+  errors: [
+    {
+      code: 'invalid_type',
+      expected: 'string',
+      received: 'undefined',
+      path: [Array],
+      message: 'Required'
+    },
+    {
+      code: 'invalid_type',
+      expected: 'string',
+      received: 'undefined',
+      path: [Array],
+      message: 'Required'
+    },
+    {
+      code: 'invalid_type',
+      expected: 'string',
+      received: 'undefined',
+      path: [Array],
+      message: 'Required'
+    },
+    {
+      code: 'invalid_type',
+      expected: 'array',
+      received: 'undefined',
+      path: [Array],
+      message: 'Required'
+    },
+    {
+      code: 'invalid_type',
+      expected: 'string',
+      received: 'undefined',
+      path: [Array],
+      message: 'Required'
+    },
+    {
+      expected: "'files' | 'git'",
+      received: 'undefined',
+      code: 'invalid_type',
+      path: [Array],
+      message: 'Required'
+    }
+  ]
+}
+12:51:14 PM [express] GET /api/projects/demo-project-1/insights 304 in 17ms :: {"insights":null}
+GET /api/projects/demo-project-1/insights?projectPath=. 304 16.341 ms - -
+12:51:14 PM [express] GET /api/workspace/demo-project-1/git/config 200 in 1ms :: {"username":"","emai…
+GET /api/workspace/demo-project-1/git/config 200 0.545 ms - 63
+12:51:14 PM [express] GET /api/projects 200 in 1ms :: [{"id":"demo-project-1","name":"ProductData_Ana…
+GET /api/projects 200 0.503 ms - 1280
+12:51:14 PM [express] GET /api/projects/demo-project-1 200 in 2ms :: {"id":"demo-project-1","name":"P…
+GET /api/projects/demo-project-1 200 0.710 ms - 1278
+12:51:14 PM [express] GET /api/settings/working-directory 304 in 2ms :: {"workingDirectory":"C:\\Reac…
+GET /api/settings/working-directory 304 0.646 ms - -
+12:51:14 PM [express] GET /api/workspace/folders 200 in 14ms :: ["cadence","cadence crm","LeviatanCod…
+GET /api/workspace/folders 200 12.389 ms - 59
+12:51:14 PM [express] GET /api/settings/workspace-folders 304 in 2ms :: {"folders":[{"name":"cadence"…
+GET /api/settings/workspace-folders 304 1.219 ms - -
+📡 WebSocket connection established
+Logger client connected
+📡 Subscribed to analysis updates for project: demo-project-1
+GET /favicon.ico 200 6.587 ms - -

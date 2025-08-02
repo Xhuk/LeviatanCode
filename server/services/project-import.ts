@@ -774,8 +774,29 @@ Please provide a brief project description based on the file structure.`;
       const content = fs.readFileSync(insightsFilePath, 'utf8');
       const insights = JSON.parse(content);
       
-      // Validate schema
-      return ProjectInsightsSchema.parse(insights);
+      // Create default insights to ensure all required fields are present
+      const defaultInsights = createDefaultInsights(
+        insights.projectId || 'unknown',
+        insights.projectName || 'Unknown Project',
+        projectPath,
+        insights.importedFrom || 'files'
+      );
+      
+      // Merge existing insights with defaults to fill missing required fields
+      const mergedInsights = {
+        ...defaultInsights,
+        ...insights,
+        // Ensure these critical fields are never empty
+        framework: insights.framework || 'unknown',
+        language: insights.language || 'unknown', 
+        runCommand: insights.runCommand || 'npm start',
+        sourceDirectories: insights.sourceDirectories || [],
+        updatedAt: insights.updatedAt || new Date().toISOString(),
+        importedFrom: insights.importedFrom || 'files'
+      };
+      
+      // Validate schema with merged data
+      return ProjectInsightsSchema.parse(mergedInsights);
     } catch (error) {
       console.error("Failed to load project insights:", error);
       return null;
