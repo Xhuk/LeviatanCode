@@ -123,6 +123,13 @@
   background-clip: text;
 }
 
+.light .gradient-text {
+  background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .modern-button {
   transition: all 0.2s ease;
   border-radius: 8px;

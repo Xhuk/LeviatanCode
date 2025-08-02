@@ -1595,10 +1595,10 @@ export default function Dashboard() {
       <nav className="bg-replit-panel/90 backdrop-blur-lg border-b border-replit-border px-6 py-3 flex items-center justify-between shadow-lg">
         <div className="flex items-center space-x-6">
           <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 bg-gradient-to-br from-replit-blue to-replit-blue-secondary rounded-xl flex items-center justify-center shadow-lg">
-              <Database className="text-white" size={18} />
+            <div className="w-9 h-9 bg-gradient-to-br from-replit-blue to-replit-blue-secondary rounded-xl flex items-center justify-center shadow-lg border dark:border-transparent border-gray-300">
+              <Database className="text-white dark:text-white" size={18} />
             </div>
-            <h1 className="font-bold text-xl gradient-text">LeviatanCode</h1>
+            <h1 className="font-bold text-xl gradient-text text-replit-text">LeviatanCode</h1>
           </div>
           
           <div className="flex items-center space-x-2">

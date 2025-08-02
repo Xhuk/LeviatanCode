@@ -188,9 +188,9 @@ export function ServiceStatusIndicator({ service, model }: ServiceStatusIndicato
       </div>
 
       {status !== "available" && (
-        <Alert className={`${statusInfo.color} text-xs py-2`}>
-          <AlertTriangle className="h-3 w-3" />
-          <AlertDescription className="text-xs">
+        <Alert className={`${statusInfo.color} text-xs py-2 border border-orange-300 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/30`}>
+          <AlertTriangle className="h-3 w-3 text-orange-600 dark:text-orange-400" />
+          <AlertDescription className="text-xs text-orange-800 dark:text-orange-200">
             {status === "limited" ? (
               <>
                 <strong>Free tier warning:</strong> You've used {limits?.dailyUsage} of {limits?.requestsPerDay} daily requests. 

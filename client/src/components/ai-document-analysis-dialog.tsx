@@ -134,7 +134,7 @@ export function AiDocumentAnalysisDialog({
                 <div className="space-y-3">
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3">
-                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center border border-green-400 dark:border-green-600">
                         <span className="text-white text-xs">✓</span>
                       </div>
                       <div>
@@ -145,7 +145,7 @@ export function AiDocumentAnalysisDialog({
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center border border-green-400 dark:border-green-600">
                         <span className="text-white text-xs">✓</span>
                       </div>
                       <div>
@@ -156,7 +156,7 @@ export function AiDocumentAnalysisDialog({
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center border border-green-400 dark:border-green-600">
                         <span className="text-white text-xs">✓</span>
                       </div>
                       <div>
@@ -194,9 +194,9 @@ export function AiDocumentAnalysisDialog({
                 <CardContent>
                   <div className="space-y-3">
                     {currentStatus && (
-                      <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                      <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
                         <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-                        <span className="text-sm font-medium">{currentStatus}</span>
+                        <span className="text-sm font-medium text-blue-800 dark:text-blue-200">{currentStatus}</span>
                       </div>
                     )}
                     
