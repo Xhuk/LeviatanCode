@@ -27,7 +27,17 @@ import {
   GitBranch,
   GitCommit,
   Upload,
-  Download
+  Download,
+  Cpu,
+  HardDrive,
+  Activity,
+  BarChart3,
+  Check,
+  X,
+  RefreshCw,
+  Search,
+  FolderTree,
+  Code
 } from "lucide-react";
 import { ProjectImportDialog } from "@/components/project-import-dialog";
 import { SettingsDialog } from "@/components/settings-dialog";
@@ -237,6 +247,463 @@ const GitLogPanel = () => {
                 <div className="text-xs text-replit-text-secondary">Require approval for main branch changes</div>
               </div>
               <Button variant="outline" size="sm">Configure</Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Database Console component with Supabase CLI support
+const DatabaseConsole = () => {
+  const [query, setQuery] = useState("SELECT * FROM users LIMIT 10;");
+  const [supabaseStatus, setSupabaseStatus] = useState("Not connected");
+  const [isSupabaseInstalled, setIsSupabaseInstalled] = useState(false);
+  const [results, setResults] = useState<any[]>([]);
+
+  const checkSupabaseInstallation = async () => {
+    setSupabaseStatus("Checking installation...");
+    // Simulate checking Supabase CLI
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsSupabaseInstalled(true);
+    setSupabaseStatus("Connected to Supabase");
+  };
+
+  const handleSupabasePush = async () => {
+    setSupabaseStatus("Pushing to Supabase...");
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setSupabaseStatus("Push completed successfully");
+    setTimeout(() => setSupabaseStatus("Connected to Supabase"), 3000);
+  };
+
+  const executeQuery = async () => {
+    setSupabaseStatus("Executing query...");
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setResults([
+      { id: 1, name: "John Doe", email: "john@example.com", created_at: "2024-01-15" },
+      { id: 2, name: "Jane Smith", email: "jane@example.com", created_at: "2024-01-14" },
+      { id: 3, name: "Bob Johnson", email: "bob@example.com", created_at: "2024-01-13" }
+    ]);
+    setSupabaseStatus("Query executed successfully");
+  };
+
+  return (
+    <div className="h-full bg-replit-bg flex flex-col">
+      <div className="p-4 border-b border-replit-border bg-replit-panel">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-replit-text">Database Console</h3>
+          <div className="flex items-center space-x-2">
+            <span className="text-xs text-replit-text-secondary">Status:</span>
+            <span className="text-xs text-replit-text">{supabaseStatus}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSupabasePush}
+              disabled={!isSupabaseInstalled}
+              className="modern-button"
+            >
+              <Upload className="w-3 h-3 mr-1" />
+              Push to Supabase
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={checkSupabaseInstallation}
+              className="modern-button"
+            >
+              <RefreshCw className="w-3 h-3 mr-1" />
+              {isSupabaseInstalled ? "Reconnect" : "Install CLI"}
+            </Button>
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <textarea
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full h-24 p-3 bg-replit-elevated border border-replit-border rounded-lg text-replit-text font-mono text-sm resize-none"
+            placeholder="Enter your SQL query here..."
+          />
+          <div className="flex space-x-2">
+            <Button onClick={executeQuery} className="modern-button bg-replit-blue hover:bg-replit-blue-secondary">
+              Execute Query
+            </Button>
+            <Button variant="outline" className="modern-button">
+              Clear Results
+            </Button>
+            <Button variant="outline" className="modern-button">
+              Save Query
+            </Button>
+          </div>
+        </div>
+      </div>
+      
+      <div className="flex-1 p-4 overflow-auto">
+        {results.length > 0 ? (
+          <div className="bg-replit-panel rounded-lg border border-replit-border">
+            <div className="p-3 border-b border-replit-border">
+              <span className="text-sm font-medium text-replit-text">Query Results ({results.length} rows)</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-replit-elevated">
+                  <tr>
+                    {Object.keys(results[0] || {}).map((key) => (
+                      <th key={key} className="px-4 py-2 text-left text-replit-text-secondary font-medium">
+                        {key}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {results.map((row, index) => (
+                    <tr key={index} className="border-t border-replit-border hover:bg-replit-elevated/50">
+                      {Object.values(row).map((value: any, cellIndex) => (
+                        <td key={cellIndex} className="px-4 py-2 text-replit-text">
+                          {String(value)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-12 text-replit-text-secondary">
+            <Database className="w-16 h-16 mx-auto mb-4 opacity-50" />
+            <p>No results to display</p>
+            <p className="text-sm">Execute a query to see results here</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// System Monitor component
+const SystemMonitor = () => {
+  const [processes, setProcesses] = useState([
+    { pid: 1234, name: "node", cpu: 15.3, memory: 128.5, status: "running" },
+    { pid: 5678, name: "vite", cpu: 8.7, memory: 64.2, status: "running" },
+    { pid: 9012, name: "chrome", cpu: 12.1, memory: 256.8, status: "running" },
+    { pid: 3456, name: "postgres", cpu: 3.4, memory: 89.1, status: "running" },
+    { pid: 7890, name: "supabase", cpu: 2.1, memory: 45.6, status: "running" }
+  ]);
+
+  const [systemInfo, setSystemInfo] = useState({
+    uptime: "2h 34m",
+    load: [0.45, 0.52, 0.48],
+    network: { rx: "1.2 MB/s", tx: "0.8 MB/s" }
+  });
+
+  return (
+    <div className="h-full bg-replit-bg p-6 overflow-y-auto">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-replit-text">System Monitor</h2>
+          <Button variant="outline" size="sm" className="modern-button">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
+        </div>
+        
+        {/* System Overview */}
+        <div className="grid grid-cols-4 gap-4">
+          <div className="bg-replit-panel rounded-lg p-4 border border-replit-border">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-replit-text">45%</div>
+                <div className="text-sm text-replit-text-secondary">CPU Usage</div>
+              </div>
+              <Cpu className="w-8 h-8 text-replit-blue" />
+            </div>
+            <div className="mt-2 w-full bg-replit-elevated rounded-full h-2">
+              <div className="bg-replit-blue h-2 rounded-full" style={{ width: "45%" }}></div>
+            </div>
+          </div>
+          
+          <div className="bg-replit-panel rounded-lg p-4 border border-replit-border">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-replit-text">68%</div>
+                <div className="text-sm text-replit-text-secondary">Memory</div>
+              </div>
+              <HardDrive className="w-8 h-8 text-green-500" />
+            </div>
+            <div className="mt-2 w-full bg-replit-elevated rounded-full h-2">
+              <div className="bg-green-500 h-2 rounded-full" style={{ width: "68%" }}></div>
+            </div>
+          </div>
+          
+          <div className="bg-replit-panel rounded-lg p-4 border border-replit-border">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-replit-text">23%</div>
+                <div className="text-sm text-replit-text-secondary">Disk Usage</div>
+              </div>
+              <HardDrive className="w-8 h-8 text-orange-500" />
+            </div>
+            <div className="mt-2 w-full bg-replit-elevated rounded-full h-2">
+              <div className="bg-orange-500 h-2 rounded-full" style={{ width: "23%" }}></div>
+            </div>
+          </div>
+          
+          <div className="bg-replit-panel rounded-lg p-4 border border-replit-border">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-replit-text">127</div>
+                <div className="text-sm text-replit-text-secondary">Processes</div>
+              </div>
+              <Activity className="w-8 h-8 text-purple-500" />
+            </div>
+            <div className="text-xs text-replit-text-secondary mt-2">
+              Uptime: {systemInfo.uptime}
+            </div>
+          </div>
+        </div>
+        
+        {/* Process List */}
+        <div className="bg-replit-panel rounded-lg border border-replit-border">
+          <div className="p-4 border-b border-replit-border">
+            <h3 className="text-lg font-medium text-replit-text">Running Processes</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-replit-elevated">
+                <tr>
+                  <th className="px-4 py-3 text-left text-replit-text-secondary font-medium">PID</th>
+                  <th className="px-4 py-3 text-left text-replit-text-secondary font-medium">Name</th>
+                  <th className="px-4 py-3 text-left text-replit-text-secondary font-medium">CPU %</th>
+                  <th className="px-4 py-3 text-left text-replit-text-secondary font-medium">Memory (MB)</th>
+                  <th className="px-4 py-3 text-left text-replit-text-secondary font-medium">Status</th>
+                  <th className="px-4 py-3 text-left text-replit-text-secondary font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {processes.map((process) => (
+                  <tr key={process.pid} className="border-t border-replit-border hover:bg-replit-elevated/50">
+                    <td className="px-4 py-3 text-replit-text font-mono">{process.pid}</td>
+                    <td className="px-4 py-3 text-replit-text">{process.name}</td>
+                    <td className="px-4 py-3 text-replit-text">{process.cpu.toFixed(1)}%</td>
+                    <td className="px-4 py-3 text-replit-text">{process.memory.toFixed(1)}</td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-500/20 text-green-400">
+                        {process.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300">
+                        <X className="w-3 h-3" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        {/* Network & System Info */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-replit-panel rounded-lg p-4 border border-replit-border">
+            <h3 className="text-lg font-medium text-replit-text mb-3">Network Activity</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-replit-text-secondary">Download:</span>
+                <span className="text-replit-text">{systemInfo.network.rx}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-replit-text-secondary">Upload:</span>
+                <span className="text-replit-text">{systemInfo.network.tx}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-replit-panel rounded-lg p-4 border border-replit-border">
+            <h3 className="text-lg font-medium text-replit-text mb-3">Load Average</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-replit-text-secondary">1 min:</span>
+                <span className="text-replit-text">{systemInfo.load[0]}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-replit-text-secondary">5 min:</span>
+                <span className="text-replit-text">{systemInfo.load[1]}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-replit-text-secondary">15 min:</span>
+                <span className="text-replit-text">{systemInfo.load[2]}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// File Analysis component
+const FileAnalysis = () => {
+  const [analysisResults, setAnalysisResults] = useState({
+    totalFiles: 1247,
+    totalSize: "45.2 MB",
+    languages: [
+      { name: "TypeScript", files: 423, percentage: 34, color: "bg-blue-500" },
+      { name: "JavaScript", files: 298, percentage: 24, color: "bg-yellow-500" },
+      { name: "CSS", files: 156, percentage: 12, color: "bg-purple-500" },
+      { name: "HTML", files: 89, percentage: 7, color: "bg-orange-500" },
+      { name: "JSON", files: 67, percentage: 5, color: "bg-green-500" },
+      { name: "Other", files: 214, percentage: 18, color: "bg-gray-500" }
+    ],
+    codeQuality: {
+      score: 8.7,
+      issues: 23,
+      warnings: 45,
+      suggestions: 78
+    }
+  });
+
+  const [searchTerm, setSearchTerm] = useState("");
+
+  return (
+    <div className="h-full bg-replit-bg p-6 overflow-y-auto">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-replit-text">File Analysis</h2>
+          <div className="flex items-center space-x-2">
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-replit-text-secondary" />
+              <Input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search files..."
+                className="pl-10 bg-replit-elevated border-replit-border"
+              />
+            </div>
+            <Button variant="outline" size="sm" className="modern-button">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Analyze
+            </Button>
+          </div>
+        </div>
+        
+        {/* Project Overview */}
+        <div className="grid grid-cols-4 gap-4">
+          <div className="bg-replit-panel rounded-lg p-4 border border-replit-border">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-replit-text">{analysisResults.totalFiles.toLocaleString()}</div>
+                <div className="text-sm text-replit-text-secondary">Total Files</div>
+              </div>
+              <FolderTree className="w-8 h-8 text-replit-blue" />
+            </div>
+          </div>
+          
+          <div className="bg-replit-panel rounded-lg p-4 border border-replit-border">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-replit-text">{analysisResults.totalSize}</div>
+                <div className="text-sm text-replit-text-secondary">Total Size</div>
+              </div>
+              <HardDrive className="w-8 h-8 text-green-500" />
+            </div>
+          </div>
+          
+          <div className="bg-replit-panel rounded-lg p-4 border border-replit-border">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-replit-text">{analysisResults.codeQuality.score}/10</div>
+                <div className="text-sm text-replit-text-secondary">Code Quality</div>
+              </div>
+              <BarChart3 className="w-8 h-8 text-purple-500" />
+            </div>
+          </div>
+          
+          <div className="bg-replit-panel rounded-lg p-4 border border-replit-border">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-replit-text">{analysisResults.languages.length}</div>
+                <div className="text-sm text-replit-text-secondary">Languages</div>
+              </div>
+              <Code className="w-8 h-8 text-orange-500" />
+            </div>
+          </div>
+        </div>
+        
+        {/* Language Distribution */}
+        <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
+          <h3 className="text-lg font-medium text-replit-text mb-4">Language Distribution</h3>
+          <div className="space-y-3">
+            {analysisResults.languages.map((lang) => (
+              <div key={lang.name} className="flex items-center space-x-4">
+                <div className="w-24 text-sm text-replit-text">{lang.name}</div>
+                <div className="flex-1 bg-replit-elevated rounded-full h-3 relative">
+                  <div 
+                    className={`${lang.color} h-3 rounded-full`}
+                    style={{ width: `${lang.percentage}%` }}
+                  ></div>
+                </div>
+                <div className="w-16 text-right text-sm text-replit-text-secondary">
+                  {lang.files} files
+                </div>
+                <div className="w-12 text-right text-sm text-replit-text">
+                  {lang.percentage}%
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Code Quality Analysis */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
+            <h3 className="text-lg font-medium text-replit-text mb-4">Code Quality Issues</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <X className="w-4 h-4 text-red-500" />
+                  <span className="text-sm text-replit-text">Errors</span>
+                </div>
+                <span className="text-sm font-semibold text-red-500">{analysisResults.codeQuality.issues}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                  <span className="text-sm text-replit-text">Warnings</span>
+                </div>
+                <span className="text-sm font-semibold text-yellow-500">{analysisResults.codeQuality.warnings}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Check className="w-4 h-4 text-blue-500" />
+                  <span className="text-sm text-replit-text">Suggestions</span>
+                </div>
+                <span className="text-sm font-semibold text-blue-500">{analysisResults.codeQuality.suggestions}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
+            <h3 className="text-lg font-medium text-replit-text mb-4">Recent Analysis</h3>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-replit-text-secondary">Last scan:</span>
+                <span className="text-replit-text">2 minutes ago</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-replit-text-secondary">Duration:</span>
+                <span className="text-replit-text">1.2 seconds</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-replit-text-secondary">Files scanned:</span>
+                <span className="text-replit-text">{analysisResults.totalFiles.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-replit-text-secondary">Changes detected:</span>
+                <span className="text-replit-text">12 files</span>
+              </div>
             </div>
           </div>
         </div>
@@ -629,6 +1096,12 @@ export default function Dashboard() {
   const [activeFileName, setActiveFileName] = useState<string | null>(null);
   const [gitStatus, setGitStatus] = useState<string>("Ready");
   const [activeTab, setActiveTab] = useState<string>("editor");
+  const [systemStats, setSystemStats] = useState({
+    cpu: 45,
+    memory: 68,
+    disk: 23,
+    processes: 127
+  });
 
   const handleFileSelect = (filePath: string, fileName: string) => {
     setActiveFile(filePath);
@@ -660,6 +1133,19 @@ export default function Dashboard() {
       setTimeout(() => setGitStatus("Ready"), 3000);
     }
   };
+
+  // Update system stats periodically
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSystemStats({
+        cpu: Math.floor(Math.random() * 100),
+        memory: Math.floor(Math.random() * 100),
+        disk: Math.floor(Math.random() * 100),
+        processes: Math.floor(Math.random() * 200) + 50
+      });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const { data: projects } = useQuery({
     queryKey: ["/api/projects"],
@@ -836,9 +1322,7 @@ export default function Dashboard() {
           <div className="flex-1 p-2">
             {isAgentMenuCollapsed ? (
               <div className="space-y-2">
-                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
-                  <Terminal className="w-4 h-4" />
-                </Button>
+
                 <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
                   <FileText className="w-4 h-4" />
                 </Button>
@@ -857,19 +1341,11 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="space-y-2">
+
                 <Button 
                   variant="ghost" 
                   className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
-                >
-                  <Terminal className="w-5 h-5" />
-                  <div className="text-left">
-                    <div className="font-medium text-sm">Interactive Terminal</div>
-                    <div className="text-xs text-replit-text-secondary">Execute commands and scripts</div>
-                  </div>
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                  onClick={() => setActiveTab("file-analysis")}
                 >
                   <FileText className="w-5 h-5" />
                   <div className="text-left">
@@ -890,6 +1366,7 @@ export default function Dashboard() {
                 <Button 
                   variant="ghost" 
                   className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                  onClick={() => setActiveTab("system-monitor")}
                 >
                   <Monitor className="w-5 h-5" />
                   <div className="text-left">
@@ -900,6 +1377,7 @@ export default function Dashboard() {
                 <Button 
                   variant="ghost" 
                   className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                  onClick={() => setActiveTab("database-console")}
                 >
                   <Database className="w-5 h-5" />
                   <div className="text-left">
@@ -967,10 +1445,54 @@ export default function Dashboard() {
             <TabsContent value="git-log" className="flex-1 m-0">
               <GitLogPanel />
             </TabsContent>
+            
+            <TabsContent value="database-console" className="flex-1 m-0">
+              <DatabaseConsole />
+            </TabsContent>
+            
+            <TabsContent value="system-monitor" className="flex-1 m-0">
+              <SystemMonitor />
+            </TabsContent>
+            
+            <TabsContent value="file-analysis" className="flex-1 m-0">
+              <FileAnalysis />
+            </TabsContent>
           </Tabs>
         </div>
-        
+      </div>
 
+      {/* System Resource Ribbon */}
+      <div className="bg-replit-panel/90 backdrop-blur-lg border-t border-replit-border px-6 py-2 flex items-center justify-between text-xs">
+        <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-2">
+            <Cpu className="w-3 h-3 text-replit-blue" />
+            <span className="text-replit-text-secondary">CPU:</span>
+            <span className="text-replit-text font-medium">{systemStats.cpu}%</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <HardDrive className="w-3 h-3 text-green-500" />
+            <span className="text-replit-text-secondary">Memory:</span>
+            <span className="text-replit-text font-medium">{systemStats.memory}%</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <HardDrive className="w-3 h-3 text-orange-500" />
+            <span className="text-replit-text-secondary">Disk:</span>
+            <span className="text-replit-text font-medium">{systemStats.disk}%</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Activity className="w-3 h-3 text-purple-500" />
+            <span className="text-replit-text-secondary">Processes:</span>
+            <span className="text-replit-text font-medium">{systemStats.processes}</span>
+          </div>
+        </div>
+        <div className="flex items-center space-x-4 text-replit-text-secondary">
+          <span>LeviatanCode v1.0</span>
+          <span>Port: 5000</span>
+          <span className="flex items-center space-x-1">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span>Connected</span>
+          </span>
+        </div>
       </div>
     </div>
   );
