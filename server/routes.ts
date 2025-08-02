@@ -671,10 +671,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`🧠 Starting AI document analysis for project: ${projectId}`);
       console.log(`📁 Working directory: ${workingDirectory || 'current'}`);
       console.log(`🐍 Generate Python script: ${generateScript ? 'Yes' : 'No'}`);
+      console.log(`🤖 AI Interaction Status: ACTIVE - Analyzing project structure and generating insights...`);
       
       // Get the actual project to analyze its structure
-      const project = await storage.getProject(projectId);
-      const projectFiles = project?.files || {};
+      let project;
+      let projectFiles = {};
+      
+      try {
+        project = await storage.getProject(projectId);
+        projectFiles = project?.files || {};
+      } catch (error) {
+        console.log(`📁 Project ${projectId} not found in storage, analyzing working directory files...`);
+        // If project doesn't exist, analyze files from working directory
+        const fs = require('fs');
+        const path = require('path');
+        
+        try {
+          const projectDir = workingDirectory || process.cwd();
+          console.log(`🔍 Scanning directory: ${projectDir}`);
+          
+          const scanDirectory = (dir: string, baseDir: string = dir): any => {
+            const files: any = {};
+            try {
+              const items = fs.readdirSync(dir);
+              for (const item of items) {
+                const fullPath = path.join(dir, item);
+                const relativePath = path.relative(baseDir, fullPath);
+                
+                // Skip node_modules and other build directories
+                if (item.includes('node_modules') || item.includes('.git') || item.includes('dist') || item.includes('build')) {
+                  continue;
+                }
+                
+                const stat = fs.statSync(fullPath);
+                if (stat.isFile() && stat.size < 1024 * 1024) { // Files under 1MB
+                  try {
+                    const content = fs.readFileSync(fullPath, 'utf8');
+                    files[relativePath] = { content, size: stat.size };
+                  } catch (readError) {
+                    // Skip binary files or files that can't be read as text
+                  }
+                } else if (stat.isDirectory()) {
+                  const subFiles = scanDirectory(fullPath, baseDir);
+                  Object.assign(files, subFiles);
+                }
+              }
+            } catch (scanError) {
+              console.log(`⚠️  Could not scan directory ${dir}: ${scanError.message}`);
+            }
+            return files;
+          };
+          
+          projectFiles = scanDirectory(projectDir);
+          console.log(`📊 Found ${Object.keys(projectFiles).length} files for analysis`);
+        } catch (fsError) {
+          console.log(`⚠️  File system analysis failed: ${fsError.message}`);
+        }
+      }
       
       // Analyze the actual project structure
       const fileExtensions = Object.keys(projectFiles).map(path => {
@@ -927,6 +980,8 @@ if __name__ == "__main__":
       }
 
       console.log(`✅ Document analysis completed for project: ${projectId}`);
+      console.log(`🎯 AI Analysis Results: Found ${detectedTechnologies.length} technologies, ${detectedInsights.length} insights, ${detectedRecommendations.length} recommendations`);
+      console.log(`🤖 AI Interaction Status: COMPLETED - Analysis successfully generated and delivered to user`);
       res.json(analysisResult);
 
     } catch (error) {

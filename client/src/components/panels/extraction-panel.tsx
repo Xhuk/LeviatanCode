@@ -42,6 +42,8 @@ export function ExtractionPanel({ className }: ExtractionPanelProps) {
   // Listen for extraction events from the import process
   useEffect(() => {
     const handleExtractionStart = () => {
+      // Clear previous logs when starting new extraction
+      setLogs([]);
       setIsActive(true);
       addLog('info', '📦 Starting ZIP extraction process...');
     };

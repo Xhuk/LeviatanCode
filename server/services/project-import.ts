@@ -27,8 +27,8 @@ interface AnalysisResult {
 
 class ProjectImportService {
   
-  // Extract ZIP files and return file contents
-  private async extractZipFile(zipBuffer: Buffer): Promise<ImportedFile[]> {
+  // Extract ZIP files and return file contents with real-time logging
+  private async extractZipFile(zipBuffer: Buffer, projectPath?: string): Promise<ImportedFile[]> {
     return new Promise((resolve, reject) => {
       const extractedFiles: ImportedFile[] = [];
       
@@ -125,6 +125,25 @@ class ProjectImportService {
                   size: entry.uncompressedSize
                 });
                 console.log(`✅ Extracted: ${entry.fileName}`);
+                
+                // Save file to actual filesystem if project path is provided
+                if (projectPath) {
+                  try {
+                    const filePath = path.join(projectPath, entry.fileName);
+                    const fileDir = path.dirname(filePath);
+                    
+                    // Create directory if it doesn't exist
+                    if (!fs.existsSync(fileDir)) {
+                      fs.mkdirSync(fileDir, { recursive: true });
+                    }
+                    
+                    // Write file to disk
+                    fs.writeFileSync(filePath, content, 'utf8');
+                    console.log(`💾 Saved to filesystem: ${filePath}`);
+                  } catch (writeError) {
+                    console.warn(`⚠️  Could not save ${entry.fileName} to filesystem: ${writeError.message}`);
+                  }
+                }
               } catch (error) {
                 console.warn(`❌ Failed to decode ${entry.fileName} as UTF-8:`, error);
               }
@@ -163,12 +182,20 @@ class ProjectImportService {
       if (file.originalname.toLowerCase().endsWith('.zip')) {
         console.log(`📦 Processing ZIP: ${file.originalname} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
         console.log(`🔄 Starting extraction process...`);
+        console.log(`📂 Target extraction path: ${actualProjectPath}`);
+        
+        // Create extraction folder if it doesn't exist
+        if (!fs.existsSync(actualProjectPath)) {
+          console.log(`📁 Creating directory: ${actualProjectPath}`);
+          fs.mkdirSync(actualProjectPath, { recursive: true });
+        }
         
         try {
-          const extractedFiles = await this.extractZipFile(file.buffer);
+          const extractedFiles = await this.extractZipFile(file.buffer, actualProjectPath);
           importedFiles.push(...extractedFiles);
           
           console.log(`📂 Successfully extracted ${extractedFiles.length} files from ${file.originalname}`);
+          console.log(`📂 Files saved to: ${actualProjectPath}`);
           console.log(`📋 File types found:`);
           
           // Log extracted file types for visibility
