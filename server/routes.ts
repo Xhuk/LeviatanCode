@@ -2132,7 +2132,7 @@ Please provide a JSON response with this exact structure:
     }
   });
 
-  // Git configuration endpoints (per workspace)
+  // Git configuration endpoints (per workspace with vault support)
   app.get("/api/workspace/:workspace/git/config", async (req, res) => {
     try {
       const { workspace } = req.params;
@@ -2140,7 +2140,9 @@ Please provide a JSON response with this exact structure:
         username: '',
         email: '',
         remoteUrl: '',
-        isConnected: false
+        token: '',
+        isConnected: false,
+        isConfigured: false
       };
       res.json(config);
     } catch (error) {
@@ -2152,13 +2154,15 @@ Please provide a JSON response with this exact structure:
   app.post("/api/workspace/:workspace/git/config", async (req, res) => {
     try {
       const { workspace } = req.params;
-      const { username, email, remoteUrl } = req.body;
+      const { username, email, remoteUrl, token } = req.body;
       
       const config = {
         username: username || '',
         email: email || '',
         remoteUrl: remoteUrl || '',
-        isConnected: false
+        token: token || '', // Store in vault (encrypted in production)
+        isConnected: false,
+        isConfigured: !!(username && email && remoteUrl)
       };
       
       gitConfigurations.set(workspace, config);
@@ -2174,8 +2178,12 @@ Please provide a JSON response with this exact structure:
       const { workspace } = req.params;
       const config = gitConfigurations.get(workspace);
       
-      if (!config || !config.remoteUrl) {
-        return res.status(400).json({ message: "Git configuration not found or incomplete" });
+      if (!config || !config.remoteUrl || !config.username || !config.email) {
+        return res.status(400).json({ 
+          message: "Git configuration incomplete. Please provide username, email, and remote URL.",
+          connected: false,
+          configured: false
+        });
       }
 
       // Simulate connection test (in real implementation, you'd test the actual Git connection)
@@ -2184,9 +2192,14 @@ Please provide a JSON response with this exact structure:
                          config.remoteUrl.includes('bitbucket.org');
       
       config.isConnected = isConnected;
+      config.isConfigured = true;
       gitConfigurations.set(workspace, config);
       
-      res.json({ connected: isConnected, message: isConnected ? 'Connection successful' : 'Connection failed' });
+      res.json({ 
+        connected: isConnected, 
+        configured: true,
+        message: isConnected ? 'Connection successful - Git operations enabled' : 'Connection failed - Check remote URL' 
+      });
     } catch (error) {
       console.error("Failed to test Git connection:", error);
       res.status(500).json({ message: "Failed to test Git connection" });

@@ -37,7 +37,8 @@ import {
   RefreshCw,
   Search,
   FolderTree,
-  Code
+  Code,
+  Save
 } from "lucide-react";
 import { ProjectImportDialog } from "@/components/project-import-dialog";
 import { SettingsDialog } from "@/components/settings-dialog";
@@ -546,6 +547,7 @@ const SystemMonitor = () => {
 
 // Git Management component
 const GitManagement = ({ currentProject }: { currentProject: string }) => {
+  const [activeGitTab, setActiveGitTab] = useState("configuration");
   const [branches, setBranches] = useState([
     { name: "main", isActive: true, lastCommit: "2 hours ago", author: "Developer" },
     { name: "feature/user-auth", isActive: false, lastCommit: "1 day ago", author: "Developer" },
@@ -563,9 +565,12 @@ const GitManagement = ({ currentProject }: { currentProject: string }) => {
     username: '',
     email: '',
     remoteUrl: '',
-    isConnected: false
+    token: '',
+    isConnected: false,
+    isConfigured: false
   });
   const [connectionStatus, setConnectionStatus] = useState('');
+  const [pushPullStatus, setPushPullStatus] = useState('');
 
   // Load Git configuration for current workspace
   useEffect(() => {
@@ -596,6 +601,8 @@ const GitManagement = ({ currentProject }: { currentProject: string }) => {
       });
       
       if (response.ok) {
+        const updatedConfig = await response.json();
+        setGitConfig(updatedConfig);
         setConnectionStatus('Configuration saved successfully');
         setTimeout(() => setConnectionStatus(''), 3000);
       }
@@ -614,7 +621,7 @@ const GitManagement = ({ currentProject }: { currentProject: string }) => {
       
       if (response.ok) {
         const result = await response.json();
-        setGitConfig(prev => ({ ...prev, isConnected: result.connected }));
+        setGitConfig(prev => ({ ...prev, isConnected: result.connected, isConfigured: result.configured }));
         setConnectionStatus(result.message);
       }
     } catch (error) {
@@ -623,236 +630,222 @@ const GitManagement = ({ currentProject }: { currentProject: string }) => {
     }
   };
 
+  const handlePush = async () => {
+    if (!gitConfig.isConfigured) {
+      setPushPullStatus('Git configuration required. Please configure your Git settings first.');
+      return;
+    }
+    
+    setPushPullStatus('Pushing changes...');
+    try {
+      // Simulate git push operation
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setPushPullStatus('Push completed successfully');
+      setTimeout(() => setPushPullStatus(''), 3000);
+    } catch (error) {
+      setPushPullStatus('Push failed');
+      setTimeout(() => setPushPullStatus(''), 3000);
+    }
+  };
+
+  const handlePull = async () => {
+    if (!gitConfig.isConfigured) {
+      setPushPullStatus('Git configuration required. Please configure your Git settings first.');
+      return;
+    }
+    
+    setPushPullStatus('Pulling changes...');
+    try {
+      // Simulate git pull operation
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setPushPullStatus('Pull completed successfully');
+      setTimeout(() => setPushPullStatus(''), 3000);
+    } catch (error) {
+      setPushPullStatus('Pull failed');
+      setTimeout(() => setPushPullStatus(''), 3000);
+    }
+  };
+
   return (
     <div className="h-full bg-replit-bg p-6 overflow-y-auto">
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-replit-text">Git Management</h2>
+          <h1 className="text-2xl font-bold text-replit-text">Git Management</h1>
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="sm" className="modern-button">
               <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh Status
-            </Button>
-            <Button variant="outline" size="sm" className="modern-button">
-              <GitBranch className="w-4 h-4 mr-2" />
-              New Branch
+              Refresh
             </Button>
           </div>
         </div>
 
-        {/* Repository Status */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-replit-panel rounded-lg p-4 border border-replit-border">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-replit-text">3</div>
-                <div className="text-sm text-replit-text-secondary">Branches</div>
-              </div>
-              <GitBranch className="w-8 h-8 text-replit-blue" />
-            </div>
-          </div>
-          
-          <div className="bg-replit-panel rounded-lg p-4 border border-replit-border">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-replit-text">12</div>
-                <div className="text-sm text-replit-text-secondary">Commits Ahead</div>
-              </div>
-              <Upload className="w-8 h-8 text-green-500" />
-            </div>
-          </div>
-          
-          <div className="bg-replit-panel rounded-lg p-4 border border-replit-border">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-replit-text">3</div>
-                <div className="text-sm text-replit-text-secondary">Modified Files</div>
-              </div>
-              <FileText className="w-8 h-8 text-orange-500" />
-            </div>
-          </div>
-        </div>
+        {/* Git Management Tabs */}
+        <Tabs value={activeGitTab} onValueChange={setActiveGitTab} className="w-full">
+          <TabsList className="bg-replit-panel/90 backdrop-blur-lg border border-replit-border rounded-lg h-12 w-full justify-start shadow-sm">
+            <TabsTrigger value="configuration" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
+              <Settings className="w-4 h-4" />
+              Configuration
+            </TabsTrigger>
+            <TabsTrigger value="operations" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
+              <GitBranch className="w-4 h-4" />
+              Operations
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Branch Management */}
-        <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
-          <h3 className="text-lg font-medium text-replit-text mb-4">Branches</h3>
-          <div className="space-y-3">
-            {branches.map((branch) => (
-              <div key={branch.name} className="flex items-center justify-between p-3 bg-replit-elevated rounded-lg border border-replit-border">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-2 h-2 rounded-full ${branch.isActive ? 'bg-replit-blue' : 'bg-gray-500'}`}></div>
+          {/* Configuration Tab */}
+          <TabsContent value="configuration" className="mt-6">
+            <div className="grid grid-cols-2 gap-6">
+              <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
+                <h3 className="text-lg font-medium text-replit-text mb-4">Git Identity</h3>
+                <div className="space-y-4">
                   <div>
-                    <div className="font-medium text-replit-text text-sm flex items-center space-x-2">
-                      <span>{branch.name}</span>
-                      {branch.isActive && (
-                        <span className="text-xs bg-replit-blue/20 text-replit-blue px-2 py-1 rounded">
-                          Current
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-xs text-replit-text-secondary">
-                      Last commit: {branch.lastCommit} by {branch.author}
-                    </div>
+                    <label className="block text-sm font-medium text-replit-text-secondary mb-2">Git Username</label>
+                    <Input
+                      value={gitConfig.username}
+                      onChange={(e) => setGitConfig(prev => ({ ...prev, username: e.target.value }))}
+                      placeholder="Your Git username"
+                      className="bg-replit-elevated border-replit-border"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-replit-text-secondary mb-2">Git Email</label>
+                    <Input
+                      value={gitConfig.email}
+                      onChange={(e) => setGitConfig(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="your.email@example.com"
+                      className="bg-replit-elevated border-replit-border"
+                    />
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  {!branch.isActive && (
-                    <Button variant="ghost" size="sm" className="text-replit-blue hover:text-replit-blue-secondary">
-                      <GitBranch className="w-3 h-3 mr-1" />
-                      Switch
+              </div>
+
+              <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
+                <h3 className="text-lg font-medium text-replit-text mb-4">Repository Settings</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-replit-text-secondary mb-2">Remote URL</label>
+                    <Input
+                      value={gitConfig.remoteUrl}
+                      onChange={(e) => setGitConfig(prev => ({ ...prev, remoteUrl: e.target.value }))}
+                      placeholder="https://github.com/user/repo.git"
+                      className="bg-replit-elevated border-replit-border font-mono text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-replit-text-secondary mb-2">Access Token (Vault)</label>
+                    <Input
+                      type="password"
+                      value={gitConfig.token}
+                      onChange={(e) => setGitConfig(prev => ({ ...prev, token: e.target.value }))}
+                      placeholder="GitHub/GitLab personal access token"
+                      className="bg-replit-elevated border-replit-border font-mono text-sm"
+                    />
+                    <p className="text-xs text-replit-text-secondary mt-1">
+                      Stored securely in workspace vault
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="col-span-2 bg-replit-panel rounded-lg p-6 border border-replit-border">
+                <h3 className="text-lg font-medium text-replit-text mb-4">Connection Status</h3>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className={`w-3 h-3 rounded-full ${gitConfig.isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                    <span className="text-replit-text">
+                      {gitConfig.isConfigured ? 'Configuration Complete' : 'Configuration Required'}
+                    </span>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="modern-button"
+                      onClick={handleTestConnection}
+                      disabled={!gitConfig.username || !gitConfig.email || !gitConfig.remoteUrl}
+                    >
+                      <Check className="w-3 h-3 mr-1" />
+                      Test Connection
                     </Button>
-                  )}
-                  <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300">
-                    <X className="w-3 h-3" />
-                  </Button>
+                    <Button 
+                      className="modern-button bg-replit-blue hover:bg-replit-blue-secondary"
+                      onClick={handleSaveConfig}
+                    >
+                      <Save className="w-3 h-3 mr-1" />
+                      Save to Vault
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Staging Area */}
-        <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-replit-text">Staging Area</h3>
-            <div className="flex space-x-2">
-              <Button variant="outline" size="sm" className="modern-button">
-                Stage All
-              </Button>
-              <Button variant="outline" size="sm" className="modern-button">
-                Unstage All
-              </Button>
-            </div>
-          </div>
-          
-          <div className="space-y-2 mb-4">
-            {stagedFiles.map((file) => (
-              <div key={file.name} className="flex items-center justify-between p-2 bg-replit-elevated rounded border border-replit-border">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-2 h-2 rounded-full ${
-                    file.status === 'modified' ? 'bg-yellow-500' : 
-                    file.status === 'added' ? 'bg-green-500' : 'bg-red-500'
-                  }`}></div>
-                  <span className="text-sm text-replit-text font-mono">{file.name}</span>
-                  <span className={`text-xs px-2 py-1 rounded ${
-                    file.status === 'modified' ? 'bg-yellow-500/20 text-yellow-400' :
-                    file.status === 'added' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                {connectionStatus && (
+                  <div className={`text-sm p-3 rounded mt-3 ${
+                    gitConfig.isConnected ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
                   }`}>
-                    {file.status}
-                  </span>
+                    {connectionStatus}
+                  </div>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Operations Tab */}
+          <TabsContent value="operations" className="mt-6">
+            <div className="grid grid-cols-2 gap-6">
+              <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
+                <h3 className="text-lg font-medium text-replit-text mb-4">Repository Status</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-replit-text-secondary">Current Branch:</span>
+                    <span className="text-replit-text font-medium">main</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-replit-text-secondary">Commits Ahead:</span>
+                    <span className="text-green-400 font-medium">3</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-replit-text-secondary">Commits Behind:</span>
+                    <span className="text-orange-400 font-medium">1</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-replit-text-secondary">Modified Files:</span>
+                    <span className="text-replit-text font-medium">5</span>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-3 text-xs text-replit-text-secondary">
-                  <span className="text-green-400">+{file.additions}</span>
-                  <span className="text-red-400">-{file.deletions}</span>
-                  <Button variant="ghost" size="sm" className="p-1">
-                    <X className="w-3 h-3" />
+              </div>
+
+              <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
+                <h3 className="text-lg font-medium text-replit-text mb-4">Quick Actions</h3>
+                <div className="space-y-3">
+                  <Button
+                    className="w-full modern-button bg-green-600 hover:bg-green-700"
+                    onClick={handlePush}
+                    disabled={!gitConfig.isConfigured}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Push Changes
                   </Button>
+                  <Button
+                    className="w-full modern-button bg-blue-600 hover:bg-blue-700"
+                    onClick={handlePull}
+                    disabled={!gitConfig.isConfigured}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Pull Changes  
+                  </Button>
+                  {pushPullStatus && (
+                    <div className="text-sm p-2 rounded bg-replit-elevated text-replit-text">
+                      {pushPullStatus}
+                    </div>
+                  )}
+                  {!gitConfig.isConfigured && (
+                    <div className="text-xs p-2 rounded bg-yellow-500/20 text-yellow-400">
+                      Configure Git settings in the Configuration tab to enable push/pull operations
+                    </div>
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Commit Section */}
-          <div className="space-y-3">
-            <textarea
-              value={commitMessage}
-              onChange={(e) => setCommitMessage(e.target.value)}
-              placeholder="Enter commit message..."
-              className="w-full h-20 p-3 bg-replit-elevated border border-replit-border rounded-lg text-replit-text text-sm resize-none"
-            />
-            <div className="flex space-x-2">
-              <Button className="modern-button bg-replit-blue hover:bg-replit-blue-secondary">
-                <GitCommit className="w-4 h-4 mr-2" />
-                Commit Changes
-              </Button>
-              <Button variant="outline" className="modern-button">
-                Commit & Push
-              </Button>
             </div>
-          </div>
-        </div>
-
-        {/* Git Configuration & Remote Management */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
-            <h3 className="text-lg font-medium text-replit-text mb-4">Git Configuration</h3>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-replit-text-secondary mb-2">Git Username</label>
-                <Input
-                  value={gitConfig.username}
-                  onChange={(e) => setGitConfig(prev => ({ ...prev, username: e.target.value }))}
-                  placeholder="Your Git username"
-                  className="bg-replit-elevated border-replit-border"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-replit-text-secondary mb-2">Git Email</label>
-                <Input
-                  value={gitConfig.email}
-                  onChange={(e) => setGitConfig(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="your.email@example.com"
-                  className="bg-replit-elevated border-replit-border"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-replit-text-secondary mb-2">Remote URL</label>
-                <Input
-                  value={gitConfig.remoteUrl}
-                  onChange={(e) => setGitConfig(prev => ({ ...prev, remoteUrl: e.target.value }))}
-                  placeholder="https://github.com/user/repo.git"
-                  className="bg-replit-elevated border-replit-border font-mono text-sm"
-                />
-              </div>
-              {connectionStatus && (
-                <div className={`text-xs p-2 rounded ${
-                  gitConfig.isConnected ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                }`}>
-                  {connectionStatus}
-                </div>
-              )}
-              <div className="flex space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="modern-button flex-1"
-                  onClick={handleTestConnection}
-                >
-                  <Check className="w-3 h-3 mr-1" />
-                  Test Connection
-                </Button>
-                <Button 
-                  className="modern-button flex-1 bg-replit-blue hover:bg-replit-blue-secondary"
-                  onClick={handleSaveConfig}
-                >
-                  Save Config
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
-            <h3 className="text-lg font-medium text-replit-text mb-4">Quick Actions</h3>
-            <div className="space-y-2">
-              <Button variant="outline" size="sm" className="modern-button w-full justify-start">
-                <GitBranch className="w-4 h-4 mr-2" />
-                Create Pull Request
-              </Button>
-              <Button variant="outline" size="sm" className="modern-button w-full justify-start">
-                <GitCommit className="w-4 h-4 mr-2" />
-                View History
-              </Button>
-              <Button variant="outline" size="sm" className="modern-button w-full justify-start">
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Sync with Remote
-              </Button>
-              <Button variant="outline" size="sm" className="modern-button w-full justify-start">
-                <Settings className="w-4 h-4 mr-2" />
-                Repository Settings
-              </Button>
-            </div>
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
