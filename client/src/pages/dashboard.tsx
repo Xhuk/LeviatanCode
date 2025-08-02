@@ -38,7 +38,11 @@ import {
   Search,
   FolderTree,
   Code,
-  Save
+  Save,
+  Key,
+  Eye,
+  EyeOff,
+  Copy
 } from "lucide-react";
 import { ProjectImportDialog } from "@/components/project-import-dialog";
 import { SettingsDialog } from "@/components/settings-dialog";
@@ -545,6 +549,199 @@ const SystemMonitor = () => {
   );
 };
 
+// Vault Explorer component
+const VaultExplorer = ({ currentProject }: { currentProject: string }) => {
+  const [secrets, setSecrets] = useState([
+    { id: 'git-token', name: 'Git Access Token', value: 'ghp_xxxxxxxxxxxxxxxxxxxx', workspace: currentProject, masked: true },
+    { id: 'database-url', name: 'Database URL', value: 'postgresql://user:pass@host:5432/db', workspace: currentProject, masked: true },
+    { id: 'api-key', name: 'API Key', value: 'sk-proj-xxxxxxxxxxxxxxxxx', workspace: currentProject, masked: true }
+  ]);
+  const [newSecret, setNewSecret] = useState({ name: '', value: '' });
+  const [showAddForm, setShowAddForm] = useState(false);
+
+  const toggleMask = (id: string) => {
+    setSecrets(prev => prev.map(secret => 
+      secret.id === id ? { ...secret, masked: !secret.masked } : secret
+    ));
+  };
+
+  const copyToClipboard = async (value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      // Could add toast notification here
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err);
+    }
+  };
+
+  const deleteSecret = (id: string) => {
+    setSecrets(prev => prev.filter(secret => secret.id !== id));
+  };
+
+  const addSecret = () => {
+    if (newSecret.name && newSecret.value) {
+      const id = newSecret.name.toLowerCase().replace(/\s+/g, '-');
+      setSecrets(prev => [...prev, {
+        id,
+        name: newSecret.name,
+        value: newSecret.value,
+        workspace: currentProject,
+        masked: true
+      }]);
+      setNewSecret({ name: '', value: '' });
+      setShowAddForm(false);
+    }
+  };
+
+  return (
+    <div className="h-full bg-replit-bg p-6 overflow-y-auto">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-replit-text">Vault Explorer</h1>
+          <div className="flex items-center space-x-2">
+            <Button 
+              className="modern-button bg-replit-blue hover:bg-replit-blue-secondary"
+              onClick={() => setShowAddForm(!showAddForm)}
+            >
+              <Key className="w-4 h-4 mr-2" />
+              Add Secret
+            </Button>
+          </div>
+        </div>
+
+        {/* Workspace Context */}
+        <div className="bg-replit-panel rounded-lg p-4 border border-replit-border">
+          <div className="flex items-center space-x-3">
+            <div className="w-3 h-3 bg-replit-blue rounded-full"></div>
+            <span className="text-replit-text font-medium">Workspace: {currentProject}</span>
+            <span className="text-xs text-replit-text-secondary">({secrets.length} secrets)</span>
+          </div>
+        </div>
+
+        {/* Add Secret Form */}
+        {showAddForm && (
+          <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
+            <h3 className="text-lg font-medium text-replit-text mb-4">Add New Secret</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-replit-text-secondary mb-2">Secret Name</label>
+                <Input
+                  value={newSecret.name}
+                  onChange={(e) => setNewSecret(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g., API Key, Database Password"
+                  className="bg-replit-elevated border-replit-border"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-replit-text-secondary mb-2">Secret Value</label>
+                <Input
+                  type="password"
+                  value={newSecret.value}
+                  onChange={(e) => setNewSecret(prev => ({ ...prev, value: e.target.value }))}
+                  placeholder="Enter secret value"
+                  className="bg-replit-elevated border-replit-border font-mono text-sm"
+                />
+              </div>
+            </div>
+            <div className="flex space-x-2 mt-4">
+              <Button 
+                className="modern-button bg-replit-blue hover:bg-replit-blue-secondary"
+                onClick={addSecret}
+                disabled={!newSecret.name || !newSecret.value}
+              >
+                <Save className="w-3 h-3 mr-1" />
+                Save Secret
+              </Button>
+              <Button 
+                variant="outline" 
+                className="modern-button"
+                onClick={() => setShowAddForm(false)}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Secrets List */}
+        <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
+          <h3 className="text-lg font-medium text-replit-text mb-4">Stored Secrets</h3>
+          <div className="space-y-3">
+            {secrets.map((secret) => (
+              <div key={secret.id} className="bg-replit-elevated rounded-lg p-4 border border-replit-border">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <Key className="w-4 h-4 text-replit-blue" />
+                      <span className="font-medium text-replit-text">{secret.name}</span>
+                      <span className="text-xs bg-replit-blue/20 text-replit-blue px-2 py-1 rounded">
+                        {secret.workspace}
+                      </span>
+                    </div>
+                    <div className="font-mono text-sm text-replit-text-secondary bg-replit-bg/50 p-2 rounded border">
+                      {secret.masked 
+                        ? '••••••••••••••••••••••••••••••••••••••••••••••••••••••••'
+                        : secret.value
+                      }
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2 ml-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-replit-text-secondary hover:text-replit-text"
+                      onClick={() => toggleMask(secret.id)}
+                    >
+                      {secret.masked ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-replit-text-secondary hover:text-replit-text"
+                      onClick={() => copyToClipboard(secret.value)}
+                    >
+                      <Copy className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-400 hover:text-red-300"
+                      onClick={() => deleteSecret(secret.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {secrets.length === 0 && (
+              <div className="text-center py-8 text-replit-text-secondary">
+                <Key className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>No secrets stored for this workspace</p>
+                <p className="text-sm">Click "Add Secret" to store your first credential</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Security Notice */}
+        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5" />
+            <div>
+              <h4 className="text-yellow-400 font-medium mb-1">Security Notice</h4>
+              <p className="text-sm text-replit-text-secondary">
+                Secrets are stored per workspace. In production, these would be encrypted at rest and in transit. 
+                Never commit secrets to version control.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Git Management component
 const GitManagement = ({ currentProject }: { currentProject: string }) => {
   const [activeGitTab, setActiveGitTab] = useState("configuration");
@@ -816,17 +1013,25 @@ const GitManagement = ({ currentProject }: { currentProject: string }) => {
                 <h3 className="text-lg font-medium text-replit-text mb-4">Quick Actions</h3>
                 <div className="space-y-3">
                   <Button
-                    className="w-full modern-button bg-green-600 hover:bg-green-700"
+                    className={`w-full modern-button ${
+                      gitConfig.isConfigured && gitConfig.username && gitConfig.email 
+                        ? 'bg-green-600 hover:bg-green-700' 
+                        : 'bg-gray-600 cursor-not-allowed'
+                    }`}
                     onClick={handlePush}
-                    disabled={!gitConfig.isConfigured}
+                    disabled={!gitConfig.isConfigured || !gitConfig.username || !gitConfig.email}
                   >
                     <Upload className="w-4 h-4 mr-2" />
                     Push Changes
                   </Button>
                   <Button
-                    className="w-full modern-button bg-blue-600 hover:bg-blue-700"
+                    className={`w-full modern-button ${
+                      gitConfig.isConfigured && gitConfig.username && gitConfig.email 
+                        ? 'bg-blue-600 hover:bg-blue-700' 
+                        : 'bg-gray-600 cursor-not-allowed'
+                    }`}
                     onClick={handlePull}
-                    disabled={!gitConfig.isConfigured}
+                    disabled={!gitConfig.isConfigured || !gitConfig.username || !gitConfig.email}
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Pull Changes  
@@ -836,9 +1041,12 @@ const GitManagement = ({ currentProject }: { currentProject: string }) => {
                       {pushPullStatus}
                     </div>
                   )}
-                  {!gitConfig.isConfigured && (
+                  {(!gitConfig.isConfigured || !gitConfig.username || !gitConfig.email) && (
                     <div className="text-xs p-2 rounded bg-yellow-500/20 text-yellow-400">
-                      Configure Git settings in the Configuration tab to enable push/pull operations
+                      {!gitConfig.username || !gitConfig.email 
+                        ? 'Git identity (username and email) required to enable push/pull operations'
+                        : 'Configure Git settings in the Configuration tab to enable push/pull operations'
+                      }
                     </div>
                   )}
                 </div>
@@ -1664,6 +1872,9 @@ export default function Dashboard() {
                 <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
                   <Settings className="w-4 h-4" />
                 </Button>
+                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
+                  <Key className="w-4 h-4" />
+                </Button>
               </div>
             ) : (
               <div className="space-y-2">
@@ -1711,6 +1922,17 @@ export default function Dashboard() {
                   <div className="text-left">
                     <div className="font-medium text-sm">Configuration</div>
                     <div className="text-xs text-replit-text-secondary">Environment and Git settings</div>
+                  </div>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                  onClick={() => setActiveTab("vault-explorer")}
+                >
+                  <Key className="w-5 h-5" />
+                  <div className="text-left">
+                    <div className="font-medium text-sm">Vault Explorer</div>
+                    <div className="text-xs text-replit-text-secondary">Manage secrets and credentials</div>
                   </div>
                 </Button>
               </div>
@@ -1785,6 +2007,12 @@ export default function Dashboard() {
             {activeTab === "git-management" && (
               <TabsContent value="git-management" className="flex-1 m-0">
                 <GitManagement currentProject={currentProject} />
+              </TabsContent>
+            )}
+            
+            {activeTab === "vault-explorer" && (
+              <TabsContent value="vault-explorer" className="flex-1 m-0">
+                <VaultExplorer currentProject={currentProject} />
               </TabsContent>
             )}
           </Tabs>
