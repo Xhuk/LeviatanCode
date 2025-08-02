@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 export interface AnalysisUpdate {
   type: 'analysis_update';
   projectId: string;
-  status: 'started' | 'scanning' | 'scanning_complete' | 'analyzing_files' | 'completed' | 'script_created' | 'error';
+  status: 'started' | 'loaded_existing' | 'scanning' | 'scanning_complete' | 'analyzing_files' | 'completed' | 'script_created' | 'insights_saved' | 'error';
   message: string;
   workingDirectory?: string;
   generateScript?: boolean;
@@ -13,6 +13,7 @@ export interface AnalysisUpdate {
   insights?: string[];
   recommendations?: string[];
   scriptPath?: string;
+  insightsPath?: string;
 }
 
 export function useAnalysisWebSocket(projectId: string) {

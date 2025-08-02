@@ -16,14 +16,16 @@ The system is built as a monorepo with a React TypeScript frontend using shadcn/
 ## Recent Updates (January 2025)
 
 - **Universal Development Environment**: Transformed from data scraping focus to general-purpose development environment supporting any programming language and framework
-- **Project Import System**: Added comprehensive project import from files or Git repositories with AI-powered analysis
-- **Intelligent Project Analysis**: AI automatically detects project type, dependencies, and execution methods for any imported codebase
+- **Project Import System**: Added comprehensive project import from files or Git repositories with AI-powered analysis and automatic insightsproject.ia generation
+- **Intelligent Project Analysis**: AI automatically detects project type, dependencies, and execution methods for any imported codebase with persistent storage of results
 - **Smart Debugging Assistant**: AI can identify how to run programs and provide debugging assistance for various programming languages and frameworks
 - **Documentation Generation**: Automatic generation of comprehensive project documentation including setup instructions, architecture analysis, and deployment guides
 - **File System Integration**: AI can access and analyze project files directly, providing contextual responses based on actual code structure
 - **Windows Optimization**: Complete Windows setup with PowerShell scripts, Supabase integration, and comprehensive development tools
-- **Project Metadata System**: Implemented "insightsproject.ia" file system for persistent project context and metadata storage
+- **Project Metadata System**: Implemented "insightsproject.ia" file system for persistent project context and metadata storage with comprehensive AI analysis results
 - **Save Project Functionality**: Added save button for updating project insights including name, path, type, commands, and AI analysis results
+- **InsightsFileService**: Complete service for reading, writing, and managing insightsproject.ia files with version control and change tracking
+- **AI Context Provision**: AI assistants can now access full project context from insightsproject.ia files including technologies, insights, recommendations, and project history
 - **Complete Windows Setup**: Created comprehensive PowerShell setup script that configures database, API keys, middleware, and all integrations automatically
 - **Production-Ready Security**: Implemented complete middleware stack with rate limiting, session management, CORS, and security headers  
 - **Real AI Integration**: Added actual OpenAI and Gemini integration with project analysis and chat capabilities (requires API keys)
@@ -36,6 +38,10 @@ The system is built as a monorepo with a React TypeScript frontend using shadcn/
 - **File Upload Fix**: Resolved HTTP method error in project import functionality - file uploads now working correctly
 - **ZIP File Support**: Added automatic ZIP decompression with intelligent file filtering - imports ZIP archives and extracts only relevant source code files
 - **Enhanced File Handling**: Improved large file management with 50MB limits, smart filtering of build directories, and automatic detection of code files vs binary assets
+- **insightsproject.ia Files**: Implemented persistent AI context system through insightsproject.ia files that store comprehensive project analysis results for AI consumption
+- **AI Context Integration**: AI chat system now reads insightsproject.ia files to provide contextual assistance with project history and analysis
+- **Analysis Caching**: Analysis results are cached for 24 hours in insightsproject.ia files to avoid redundant processing while maintaining fresh insights
+- **WebSocket Progress Tracking**: Real-time progress updates for analysis including when existing insights are loaded and when new insights are saved
 
 # User Preferences
 

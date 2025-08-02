@@ -190,3 +190,50 @@ export interface AnalysisResult {
   recommendations: string[];
   visualizations?: any[];
 }
+
+// insightsproject.ia file structure for persistent AI context
+export interface ProjectInsightsFile {
+  version: string;
+  projectId: string;
+  projectName: string;
+  projectPath: string;
+  createdAt: string;
+  lastAnalyzed: string;
+  lastModified: string;
+  
+  // Core project metadata
+  projectType: string;
+  primaryLanguages: string[];
+  frameworks: string[];
+  dependencies: Record<string, string>;
+  
+  // File structure and content analysis
+  totalFiles: number;
+  totalLinesOfCode: number;
+  fileTypes: Record<string, number>;
+  
+  // AI analysis results
+  aiSummary: string;
+  technologies: string[];
+  insights: string[];
+  recommendations: string[];
+  setupInstructions: string[];
+  runCommands: string[];
+  
+  // Context for AI conversations
+  projectContext: string;
+  previousAnalyses: {
+    timestamp: string;
+    summary: string;
+    changes: string[];
+  }[];
+  
+  // Development environment
+  workingDirectory: string;
+  mainEntryPoints: string[];
+  configFiles: string[];
+  
+  // User preferences and notes
+  userNotes: string;
+  customSettings: Record<string, any>;
+}
