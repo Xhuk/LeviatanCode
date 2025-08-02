@@ -1,5 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { performance } from 'perf_hooks';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 interface MiddlewareMetrics {
   name: string;
@@ -10,11 +14,64 @@ interface MiddlewareMetrics {
   lastExecuted: Date | null;
   errors: number;
   isEnabled: boolean;
+  isService?: boolean; // Indicates if this is an external service
 }
 
 class MiddlewareMonitor {
   private metrics: Map<string, MiddlewareMetrics> = new Map();
   private isGloballyEnabled: boolean = true;
+
+  constructor() {
+    // Initialize Flask Analyzer service monitoring
+    this.initializeFlaskAnalyzer();
+  }
+
+  private async initializeFlaskAnalyzer() {
+    const flaskAnalyzer: MiddlewareMetrics = {
+      name: 'Flask Analyzer',
+      status: 'stopped',
+      requests: 0,
+      totalTime: 0,
+      averageTime: 0,
+      lastExecuted: null,
+      errors: 0,
+      isEnabled: true,
+      isService: true
+    };
+
+    this.metrics.set('Flask Analyzer', flaskAnalyzer);
+    
+    // Check if Flask analyzer is running
+    this.checkFlaskAnalyzerStatus();
+    
+    // Set up periodic health checks
+    setInterval(() => {
+      this.checkFlaskAnalyzerStatus();
+    }, 30000); // Check every 30 seconds
+  }
+
+  private async checkFlaskAnalyzerStatus() {
+    const metric = this.metrics.get('Flask Analyzer');
+    if (!metric) return;
+
+    try {
+      const flaskUrl = process.env.FLASK_ANALYZER_URL || 'http://localhost:5001';
+      const response = await fetch(`${flaskUrl}/health`, {
+        method: 'GET',
+        signal: AbortSignal.timeout(5000)
+      });
+      
+      if (response.ok) {
+        metric.status = 'active';
+        metric.lastExecuted = new Date();
+      } else {
+        metric.status = 'error';
+        metric.errors++;
+      }
+    } catch (error) {
+      metric.status = 'stopped';
+    }
+  }
 
   createMonitoredMiddleware(name: string, middleware: (req: Request, res: Response, next: NextFunction) => void) {
     // Initialize metrics for this middleware
@@ -81,25 +138,87 @@ class MiddlewareMonitor {
   }
 
   // Start a specific middleware
-  startMiddleware(name: string): boolean {
+  async startMiddleware(name: string): Promise<boolean> {
     const metric = this.metrics.get(name);
-    if (metric) {
-      metric.isEnabled = true;
-      metric.status = 'active';
-      return true;
+    if (!metric) return false;
+
+    if (name === 'Flask Analyzer') {
+      return await this.startFlaskAnalyzer();
     }
-    return false;
+
+    metric.isEnabled = true;
+    metric.status = 'active';
+    return true;
+  }
+
+  private async startFlaskAnalyzer(): Promise<boolean> {
+    try {
+      // Try to start Flask analyzer using Python
+      const command = 'cd flask_analyzer && python app.py';
+      console.log('🔄 Starting Flask Analyzer service...');
+      
+      // Start the process in the background
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          console.error('Flask Analyzer start error:', error);
+          const metric = this.metrics.get('Flask Analyzer');
+          if (metric) {
+            metric.status = 'error';
+            metric.errors++;
+          }
+        } else {
+          console.log('✅ Flask Analyzer started successfully');
+        }
+      });
+
+      // Wait a moment and check if it's running
+      setTimeout(async () => {
+        await this.checkFlaskAnalyzerStatus();
+      }, 3000);
+
+      return true;
+    } catch (error) {
+      console.error('Error starting Flask Analyzer:', error);
+      const metric = this.metrics.get('Flask Analyzer');
+      if (metric) {
+        metric.status = 'error';
+        metric.errors++;
+      }
+      return false;
+    }
   }
 
   // Stop a specific middleware
-  stopMiddleware(name: string): boolean {
+  async stopMiddleware(name: string): Promise<boolean> {
     const metric = this.metrics.get(name);
-    if (metric) {
-      metric.isEnabled = false;
-      metric.status = 'stopped';
-      return true;
+    if (!metric) return false;
+
+    if (name === 'Flask Analyzer') {
+      return await this.stopFlaskAnalyzer();
     }
-    return false;
+
+    metric.isEnabled = false;
+    metric.status = 'stopped';
+    return true;
+  }
+
+  private async stopFlaskAnalyzer(): Promise<boolean> {
+    try {
+      // Kill Flask analyzer process
+      const { stdout } = await execAsync('pkill -f "python.*app.py" || true');
+      console.log('🛑 Flask Analyzer service stopped');
+      
+      const metric = this.metrics.get('Flask Analyzer');
+      if (metric) {
+        metric.status = 'stopped';
+        metric.isEnabled = false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error stopping Flask Analyzer:', error);
+      return false;
+    }
   }
 
   // Start all middleware monitoring
@@ -192,7 +311,7 @@ class MiddlewareMonitor {
 export const middlewareMonitor = new MiddlewareMonitor();
 
 // Express middleware to expose monitoring endpoints
-export const monitoringRoutes = (req: Request, res: Response, next: NextFunction) => {
+export const monitoringRoutes = async (req: Request, res: Response, next: NextFunction) => {
   const { method, path } = req;
 
   // Monitoring API endpoints
@@ -206,7 +325,7 @@ export const monitoringRoutes = (req: Request, res: Response, next: NextFunction
       middlewareMonitor.startAll();
       return res.json({ success: true, message: 'All middleware started' });
     } else if (name) {
-      const success = middlewareMonitor.startMiddleware(name);
+      const success = await middlewareMonitor.startMiddleware(name);
       return res.json({ 
         success, 
         message: success ? `Middleware ${name} started` : `Middleware ${name} not found` 
@@ -221,7 +340,7 @@ export const monitoringRoutes = (req: Request, res: Response, next: NextFunction
       middlewareMonitor.stopAll();
       return res.json({ success: true, message: 'All middleware stopped' });
     } else if (name) {
-      const success = middlewareMonitor.stopMiddleware(name);
+      const success = await middlewareMonitor.stopMiddleware(name);
       return res.json({ 
         success, 
         message: success ? `Middleware ${name} stopped` : `Middleware ${name} not found` 
@@ -236,6 +355,15 @@ export const monitoringRoutes = (req: Request, res: Response, next: NextFunction
       middlewareMonitor.resetAllMetrics();
       return res.json({ success: true, message: 'All metrics reset' });
     } else if (name) {
+      if (name === 'Flask Analyzer') {
+        // For Flask Analyzer, reset means restart
+        const stopSuccess = await middlewareMonitor.stopMiddleware(name);
+        const startSuccess = await middlewareMonitor.startMiddleware(name);
+        return res.json({ 
+          success: stopSuccess && startSuccess, 
+          message: stopSuccess && startSuccess ? `Flask Analyzer restarted` : `Failed to restart Flask Analyzer` 
+        });
+      }
       const success = middlewareMonitor.resetMetrics(name);
       return res.json({ 
         success, 
