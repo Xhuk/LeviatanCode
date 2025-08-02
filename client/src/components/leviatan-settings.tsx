@@ -20,13 +20,14 @@ import {
 } from "lucide-react";
 
 export const LeviatanSettings = ({ currentProject }: { currentProject: string }) => {
-  const { theme, fontSize, tabSize, applySettings } = useTheme();
+  const { theme, fontSize, tabSize, accentColor, applySettings } = useTheme();
   const [settings, setSettings] = useState({
     // User Preferences
-    theme: theme,
+    theme: theme as 'dark' | 'light' | 'auto',
     language: 'en',
     fontSize: fontSize,
     tabSize: tabSize,
+    accentColor: accentColor,
     wordWrap: true,
     minimap: true,
     lineNumbers: true,
@@ -231,7 +232,7 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
                     <Select value={settings.theme} onValueChange={(value) => {
                       const newSettings = {...settings, theme: value};
                       setSettings(newSettings);
-                      applySettings({ theme: value as any, fontSize: settings.fontSize, tabSize: settings.tabSize });
+                      applySettings({ theme: value as any, fontSize: settings.fontSize, tabSize: settings.tabSize, accentColor: settings.accentColor });
                     }}>
                       <SelectTrigger className="bg-replit-elevated border-replit-border">
                         <SelectValue />
@@ -248,7 +249,7 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
                     <Select value={settings.fontSize} onValueChange={(value) => {
                       const newSettings = {...settings, fontSize: value};
                       setSettings(newSettings);
-                      applySettings({ theme: settings.theme as any, fontSize: value, tabSize: settings.tabSize });
+                      applySettings({ theme: settings.theme as any, fontSize: value, tabSize: settings.tabSize, accentColor: settings.accentColor });
                     }}>
                       <SelectTrigger className="bg-replit-elevated border-replit-border">
                         <SelectValue />
@@ -267,7 +268,7 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
                     <Select value={settings.tabSize} onValueChange={(value) => {
                       const newSettings = {...settings, tabSize: value};
                       setSettings(newSettings);
-                      applySettings({ theme: settings.theme as any, fontSize: settings.fontSize, tabSize: value });
+                      applySettings({ theme: settings.theme as any, fontSize: settings.fontSize, tabSize: value, accentColor: settings.accentColor });
                     }}>
                       <SelectTrigger className="bg-replit-elevated border-replit-border">
                         <SelectValue />
@@ -278,6 +279,46 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
                         <SelectItem value="8">8 spaces</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-replit-text-secondary mb-2">Accent Color</label>
+                    <div className="flex items-center space-x-3">
+                      <Input
+                        type="color"
+                        value={settings.accentColor}
+                        onChange={(e) => {
+                          const newColor = e.target.value;
+                          const newSettings = {...settings, accentColor: newColor};
+                          setSettings(newSettings);
+                          applySettings({ 
+                            theme: settings.theme as any, 
+                            fontSize: settings.fontSize, 
+                            tabSize: settings.tabSize,
+                            accentColor: newColor
+                          });
+                        }}
+                        className="w-12 h-8 rounded border-0 cursor-pointer"
+                      />
+                      <span className="text-sm text-replit-text-secondary">{settings.accentColor}</span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const defaultColor = '#22c55e';
+                          const newSettings = {...settings, accentColor: defaultColor};
+                          setSettings(newSettings);
+                          applySettings({ 
+                            theme: settings.theme as any, 
+                            fontSize: settings.fontSize, 
+                            tabSize: settings.tabSize,
+                            accentColor: defaultColor
+                          });
+                        }}
+                        className="text-xs"
+                      >
+                        Reset
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>

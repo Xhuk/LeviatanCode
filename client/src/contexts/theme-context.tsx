@@ -6,10 +6,12 @@ interface ThemeContextType {
   theme: Theme;
   fontSize: string;
   tabSize: string;
+  accentColor: string;
   setTheme: (theme: Theme) => void;
   setFontSize: (fontSize: string) => void;
   setTabSize: (tabSize: string) => void;
-  applySettings: (settings: { theme: Theme; fontSize: string; tabSize: string }) => void;
+  setAccentColor: (color: string) => void;
+  applySettings: (settings: { theme: Theme; fontSize: string; tabSize: string; accentColor?: string }) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -18,6 +20,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>('dark');
   const [fontSize, setFontSize] = useState('14');
   const [tabSize, setTabSize] = useState('2');
+  const [accentColor, setAccentColor] = useState('#22c55e'); // Default Leviatan green
 
   const applyTheme = (newTheme: Theme) => {
     const root = document.documentElement;
@@ -65,6 +68,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const applyAccentColor = (newAccentColor: string) => {
+    const root = document.documentElement;
+    // Convert hex to RGB for alpha variations
+    const hex = newAccentColor.replace('#', '');
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    root.style.setProperty('--accent-color', newAccentColor);
+    root.style.setProperty('--accent-color-rgb', `${r}, ${g}, ${b}`);
+  };
+
   const handleSetTheme = (newTheme: Theme) => {
     setTheme(newTheme);
     applyTheme(newTheme);
@@ -83,19 +98,34 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('leviatan-tab-size', newTabSize);
   };
 
-  const applySettings = (settings: { theme: Theme; fontSize: string; tabSize: string }) => {
+  const handleSetAccentColor = (newAccentColor: string) => {
+    setAccentColor(newAccentColor);
+    applyAccentColor(newAccentColor);
+    localStorage.setItem('leviatan-accent-color', newAccentColor);
+  };
+
+  const applySettings = (settings: { theme: Theme; fontSize: string; tabSize: string; accentColor?: string }) => {
     setTheme(settings.theme);
     setFontSize(settings.fontSize);
     setTabSize(settings.tabSize);
+    if (settings.accentColor) {
+      setAccentColor(settings.accentColor);
+    }
     
     applyTheme(settings.theme);
     applyFontSize(settings.fontSize);
     applyTabSize(settings.tabSize);
+    if (settings.accentColor) {
+      applyAccentColor(settings.accentColor);
+    }
 
     // Save to localStorage
     localStorage.setItem('leviatan-theme', settings.theme);
     localStorage.setItem('leviatan-font-size', settings.fontSize);
     localStorage.setItem('leviatan-tab-size', settings.tabSize);
+    if (settings.accentColor) {
+      localStorage.setItem('leviatan-accent-color', settings.accentColor);
+    }
   };
 
   // Load settings from localStorage on mount
@@ -103,14 +133,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const savedTheme = localStorage.getItem('leviatan-theme') as Theme || 'dark';
     const savedFontSize = localStorage.getItem('leviatan-font-size') || '14';
     const savedTabSize = localStorage.getItem('leviatan-tab-size') || '2';
+    const savedAccentColor = localStorage.getItem('leviatan-accent-color') || '#22c55e';
 
     setTheme(savedTheme);
     setFontSize(savedFontSize);
     setTabSize(savedTabSize);
+    setAccentColor(savedAccentColor);
 
     applyTheme(savedTheme);
     applyFontSize(savedFontSize);
     applyTabSize(savedTabSize);
+    applyAccentColor(savedAccentColor);
   }, []);
 
   // Listen for system theme changes when theme is 'auto'
@@ -129,9 +162,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       theme,
       fontSize,
       tabSize,
+      accentColor,
       setTheme: handleSetTheme,
       setFontSize: handleSetFontSize,
       setTabSize: handleSetTabSize,
+      setAccentColor: handleSetAccentColor,
       applySettings
     }}>
       {children}
