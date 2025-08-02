@@ -113,7 +113,7 @@ export const ConfigurationChecker: React.FC<ConfigurationCheckerProps> = ({ curr
   }
 
   return (
-    <div className="fixed top-4 right-4 w-96 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+    <div className="fixed top-4 right-4 w-96 z-50 bg-white dark:bg-gray-800 border-2 border-gray-400 dark:border-gray-600 rounded-lg shadow-lg">
       <div className="p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -144,7 +144,7 @@ export const ConfigurationChecker: React.FC<ConfigurationCheckerProps> = ({ curr
 
         <div className="space-y-3">
           {issueConfigs.map((config: ConfigStatus, index: number) => (
-            <Alert key={index} className="p-3">
+            <Alert key={index} className="p-3 border-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-900">
               <div className="flex items-start gap-3">
                 <div className="flex items-center gap-2 mt-0.5">
                   {getCategoryIcon(config.category)}
@@ -155,7 +155,7 @@ export const ConfigurationChecker: React.FC<ConfigurationCheckerProps> = ({ curr
                     <span className="font-medium text-sm text-gray-900 dark:text-gray-100">
                       {config.name}
                     </span>
-                    <Badge variant="outline" className={getStatusColor(config.status)}>
+                    <Badge variant="outline" className={`${getStatusColor(config.status)} border-2 border-gray-400 dark:border-gray-500`}>
                       {config.status.toUpperCase()}
                     </Badge>
                   </div>
@@ -171,7 +171,7 @@ export const ConfigurationChecker: React.FC<ConfigurationCheckerProps> = ({ curr
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="h-6 px-2 text-xs"
+                        className="h-6 px-2 text-xs border-2 border-gray-400 dark:border-gray-500 hover:border-gray-600 dark:hover:border-gray-400"
                         onClick={() => {
                           // Navigate to settings page
                           const event = new CustomEvent('navigate-to-settings', {
