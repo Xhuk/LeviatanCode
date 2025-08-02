@@ -46,9 +46,9 @@ export async function testDatabaseConnection(): Promise<boolean> {
     console.log('✅ Database connection successful:', result.rows[0]);
     return true;
   } catch (error) {
-    console.error('❌ Database connection failed:', error.message);
-    if (error.code) {
-      console.error('Error code:', error.code);
+    console.error('❌ Database connection failed:', (error as Error).message);
+    if ((error as any).code) {
+      console.error('Error code:', (error as any).code);
     }
     return false;
   }
@@ -57,12 +57,16 @@ export async function testDatabaseConnection(): Promise<boolean> {
 // Graceful shutdown
 process.on('SIGINT', async () => {
   console.log('🔄 Closing database connections...');
-  await pool.end();
+  if (pool) {
+    await pool.end();
+  }
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
   console.log('🔄 Closing database connections...');
-  await pool.end();
+  if (pool) {
+    await pool.end();
+  }
   process.exit(0);
 });
