@@ -1398,7 +1398,7 @@ export default function Dashboard() {
   const [isAgentMenuCollapsed, setIsAgentMenuCollapsed] = useState(false);
   const [activeFile, setActiveFile] = useState<string | null>(null);
   const [activeFileName, setActiveFileName] = useState<string | null>(null);
-  const [gitStatus, setGitStatus] = useState<string>("Ready");
+  const [gitStatus, setGitStatus] = useState<string>("Not configured");
   const [activeTab, setActiveTab] = useState<string>("editor");
   const [systemStats, setSystemStats] = useState({
     cpu: 45,
@@ -1467,9 +1467,17 @@ export default function Dashboard() {
         if (response.ok) {
           const config = await response.json();
           setMainGitConfig(config);
+          
+          // Update Git status based on configuration
+          if (config.username && config.email) {
+            setGitStatus("Ready");
+          } else {
+            setGitStatus("Not configured");
+          }
         }
       } catch (error) {
         console.error('Failed to load Git configuration:', error);
+        setGitStatus("Error");
       }
     };
     

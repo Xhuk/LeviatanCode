@@ -14,6 +14,8 @@ import yauzl from "yauzl";
 import path from "path";
 import fs from "fs";
 import { promisify } from "util";
+import os from "os";
+import { execSync } from "child_process";
 import { 
   insertProjectSchema,
   insertProjectExecutionSchema,
@@ -714,8 +716,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // System information endpoint
   app.get("/api/system/info", async (req, res) => {
     try {
-      const os = require('os');
-      const { execSync } = require('child_process');
+      // System info is now imported at the top
       
       // Get Node.js version
       const nodeVersion = process.version;
