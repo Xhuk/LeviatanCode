@@ -3023,6 +3023,13 @@ Please provide a JSON response with this exact structure:
   // Database API endpoints
   app.post("/api/database/test-connection", async (req, res) => {
     try {
+      if (!process.env.DATABASE_URL) {
+        return res.json({ 
+          success: false, 
+          message: "DATABASE_URL environment variable is not configured" 
+        });
+      }
+
       const { testDatabaseConnection } = await import("./db");
       const isConnected = await testDatabaseConnection();
       
@@ -3030,12 +3037,12 @@ Please provide a JSON response with this exact structure:
         res.json({ 
           success: true, 
           message: "Database connection successful",
-          database: process.env.DATABASE_URL ? "Supabase PostgreSQL" : "Local Database"
+          database: "Supabase PostgreSQL"
         });
       } else {
         res.json({ 
           success: false, 
-          message: "Database connection failed - check your DATABASE_URL" 
+          message: "Database connection failed - check your Supabase configuration" 
         });
       }
     } catch (error) {
@@ -3049,6 +3056,13 @@ Please provide a JSON response with this exact structure:
 
   app.post("/api/database/execute", async (req, res) => {
     try {
+      if (!process.env.DATABASE_URL) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "DATABASE_URL is not configured" 
+        });
+      }
+
       const { query } = req.body;
       
       if (!query || typeof query !== 'string') {
@@ -3068,8 +3082,15 @@ Please provide a JSON response with this exact structure:
       }
 
       const { db } = await import("./db");
-      const { sql } = await import("drizzle-orm");
       
+      if (!db) {
+        return res.status(500).json({ 
+          success: false, 
+          message: "Database connection not available" 
+        });
+      }
+
+      const { sql } = await import("drizzle-orm");
       const result = await db.execute(sql.raw(query));
       
       res.json({ 
