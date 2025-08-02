@@ -158,7 +158,8 @@ export default function Dashboard() {
           {/* Editor Panel */}
           <ResizablePanel defaultSize={35} minSize={25}>
             <EditorPanel
-              project={project}
+              workingDirectory={workingDirectory}
+              selectedProject={currentProject}
               activeFile={activeFile}
               onFileChange={setActiveFile}
             />

@@ -75,22 +75,25 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
     }
   });
 
+  // Create new chat session
+  const createNewChat = () => {
+    createChatMutation.mutate({
+      model: selectedModel,
+      messages: []
+    });
+  };
+
+  // Auto-select first chat if available and none selected
+  useEffect(() => {
+    if (chats?.length > 0 && !currentChatId) {
+      setCurrentChatId(chats[0].id);
+    }
+  }, [chats, currentChatId]);
+
   useEffect(() => {
     // Auto-scroll to bottom when new messages arrive
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [currentChat?.messages]);
-
-  useEffect(() => {
-    // Create initial chat if none exists
-    if (chats && chats.length === 0 && !currentChatId) {
-      createChatMutation.mutate({
-        model: selectedModel,
-        messages: []
-      });
-    } else if (chats && chats.length > 0 && !currentChatId) {
-      setCurrentChatId(chats[0].id);
-    }
-  }, [chats, currentChatId, selectedModel]);
 
   const handleUseTemplate = () => {
     const prompt = generatePrompt();
@@ -131,12 +134,7 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
     }
   };
 
-  const handleNewChat = () => {
-    createChatMutation.mutate({
-      model: selectedModel,
-      messages: []
-    });
-  };
+
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -208,7 +206,7 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
             </div>
           </div>
           <div className="flex space-x-1">
-            <Button variant="ghost" size="sm" onClick={handleNewChat} title="New Chat">
+            <Button variant="ghost" size="sm" onClick={createNewChat} title="New Chat" disabled={createChatMutation.isPending}>
               <Plus size={12} className="text-replit-text-secondary" />
             </Button>
           </div>
