@@ -140,7 +140,7 @@ class ProjectImportService {
                     // Write file to disk
                     fs.writeFileSync(filePath, content, 'utf8');
                     console.log(`💾 Saved to filesystem: ${filePath}`);
-                  } catch (writeError) {
+                  } catch (writeError: any) {
                     console.warn(`⚠️  Could not save ${entry.fileName} to filesystem: ${writeError.message}`);
                   }
                 }

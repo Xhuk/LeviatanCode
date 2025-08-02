@@ -690,6 +690,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const projectDir = workingDirectory || process.cwd();
           console.log(`🔍 Scanning directory: ${projectDir}`);
           
+          // Also try scanning the specific project folder if it exists
+          const specificProjectDir = path.join(projectDir, projectId);
+          const targetDir = fs.existsSync(specificProjectDir) ? specificProjectDir : projectDir;
+          
           const scanDirectory = (dir: string, baseDir: string = dir): any => {
             const files: any = {};
             try {
@@ -699,7 +703,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 const relativePath = path.relative(baseDir, fullPath);
                 
                 // Skip node_modules and other build directories
-                if (item.includes('node_modules') || item.includes('.git') || item.includes('dist') || item.includes('build')) {
+                if (item.includes('node_modules') || item.includes('.git') || item.includes('dist') || item.includes('build') || item.includes('.next') || item.includes('__pycache__')) {
                   continue;
                 }
                 
@@ -722,18 +726,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return files;
           };
           
-          projectFiles = scanDirectory(projectDir);
-          console.log(`📊 Found ${Object.keys(projectFiles).length} files for analysis`);
+          projectFiles = scanDirectory(targetDir);
+          console.log(`📊 Found ${Object.keys(projectFiles).length} files for analysis in ${targetDir}`);
+          
+          // If no files found in project directory, scan current working directory more broadly
+          if (Object.keys(projectFiles).length === 0) {
+            console.log(`🔍 No files found in ${targetDir}, scanning broader directory...`);
+            const broadScan = scanDirectory(projectDir);
+            projectFiles = broadScan;
+            console.log(`📊 Broader scan found ${Object.keys(projectFiles).length} files`);
+          }
         } catch (fsError) {
           console.log(`⚠️  File system analysis failed: ${fsError.message}`);
         }
       }
       
       // Analyze the actual project structure
-      const fileExtensions = Object.keys(projectFiles).map(path => {
+      const filePaths = Object.keys(projectFiles);
+      console.log(`📁 Analyzing files: ${filePaths.slice(0, 10).join(', ')}${filePaths.length > 10 ? '...' : ''}`);
+      
+      const fileExtensions = filePaths.map(path => {
         const ext = path.split('.').pop()?.toLowerCase();
         return ext;
       }).filter(Boolean);
+      
+      console.log(`🔍 File extensions found: ${[...new Set(fileExtensions)].join(', ')}`);
       
       const detectedTechnologies = [];
       const detectedInsights = [];
@@ -772,7 +789,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check for specific frameworks and libraries
-      const fileContents = Object.values(projectFiles).map(f => f.content || '').join(' ');
+      const fileContents = Object.values(projectFiles).map((f: any) => f.content || '').join(' ');
+      console.log(`📄 Total content length: ${fileContents.length} characters`);
+      
       if (fileContents.includes('react') || fileContents.includes('React')) {
         detectedTechnologies.push('React');
       }
@@ -824,6 +843,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (detectedInsights.length === 0) {
         detectedInsights.push('Project structure analysis completed');
         detectedInsights.push('Consider organizing files into logical directories');
+        if (fileCount === 0) {
+          detectedInsights.push('No project files found - try importing a project or checking the working directory');
+        }
       }
       
       const analysisResult = {
