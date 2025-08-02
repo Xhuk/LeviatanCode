@@ -37,7 +37,28 @@ export function ExtractionPanel({ className }: ExtractionPanelProps) {
   const clearLogs = () => {
     setLogs([]);
     setIsActive(false);
+    localStorage.removeItem('leviatancode_extraction_logs');
   };
+
+  // Load persistent logs from localStorage
+  useEffect(() => {
+    const savedLogs = localStorage.getItem('leviatancode_extraction_logs');
+    if (savedLogs) {
+      try {
+        const parsedLogs = JSON.parse(savedLogs);
+        setLogs(parsedLogs);
+      } catch (e) {
+        console.warn('Failed to parse saved extraction logs');
+      }
+    }
+  }, []);
+
+  // Save logs to localStorage whenever they change
+  useEffect(() => {
+    if (logs.length > 0) {
+      localStorage.setItem('leviatancode_extraction_logs', JSON.stringify(logs));
+    }
+  }, [logs]);
 
   // Listen for extraction events from the import process
   useEffect(() => {
@@ -132,7 +153,7 @@ export function ExtractionPanel({ className }: ExtractionPanelProps) {
           </Button>
         </div>
         <CardDescription className="text-sm">
-          Real-time ZIP decompression and file analysis progress
+          Real-time ZIP decompression logs (persistent until next extraction)
         </CardDescription>
       </CardHeader>
       
