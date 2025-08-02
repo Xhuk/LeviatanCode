@@ -345,6 +345,7 @@ export default function Dashboard() {
   const [workingDirectory, setWorkingDirectory] = useState<string>("");
   const [workspaceFolders, setWorkspaceFolders] = useState<any[]>([]);
   const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
+  const [isAgentMenuCollapsed, setIsAgentMenuCollapsed] = useState(false);
   const [activeFile, setActiveFile] = useState<string | null>(null);
   const [activeFileName, setActiveFileName] = useState<string | null>(null);
 
@@ -485,6 +486,110 @@ export default function Dashboard() {
 
       {/* Main Layout */}
       <div className="flex-1 flex overflow-hidden">
+        {/* Agent Tools Menu */}
+        <div className={`${isAgentMenuCollapsed ? 'w-12' : 'w-64'} bg-replit-panel border-r border-replit-border transition-all duration-300 flex flex-col`}>
+          <div className="p-3 border-b border-replit-border flex items-center justify-between">
+            {!isAgentMenuCollapsed && (
+              <h3 className="font-semibold text-replit-text text-sm">Agent Tools</h3>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsAgentMenuCollapsed(!isAgentMenuCollapsed)}
+              className="p-1 h-8 w-8"
+            >
+              {isAgentMenuCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            </Button>
+          </div>
+          <div className="flex-1 p-2">
+            {isAgentMenuCollapsed ? (
+              <div className="space-y-2">
+                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
+                  <Terminal className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
+                  <FileText className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
+                  <Globe className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
+                  <Monitor className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
+                  <Database className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
+                  <Settings className="w-4 h-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                >
+                  <Terminal className="w-5 h-5" />
+                  <div className="text-left">
+                    <div className="font-medium text-sm">Interactive Terminal</div>
+                    <div className="text-xs text-replit-text-secondary">Execute commands and scripts</div>
+                  </div>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                >
+                  <FileText className="w-5 h-5" />
+                  <div className="text-left">
+                    <div className="font-medium text-sm">File Analysis</div>
+                    <div className="text-xs text-replit-text-secondary">Analyze project structure</div>
+                  </div>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                >
+                  <Globe className="w-5 h-5" />
+                  <div className="text-left">
+                    <div className="font-medium text-sm">Web Preview</div>
+                    <div className="text-xs text-replit-text-secondary">Live application preview</div>
+                  </div>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                >
+                  <Monitor className="w-5 h-5" />
+                  <div className="text-left">
+                    <div className="font-medium text-sm">System Monitor</div>
+                    <div className="text-xs text-replit-text-secondary">CPU, memory, and processes</div>
+                  </div>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                >
+                  <Database className="w-5 h-5" />
+                  <div className="text-left">
+                    <div className="font-medium text-sm">Database Console</div>
+                    <div className="text-xs text-replit-text-secondary">Query and manage database</div>
+                  </div>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                >
+                  <Settings className="w-5 h-5" />
+                  <div className="text-left">
+                    <div className="font-medium text-sm">Configuration</div>
+                    <div className="text-xs text-replit-text-secondary">Environment settings</div>
+                  </div>
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* File Explorer */}
         <FileExplorer 
           isCollapsed={isExplorerCollapsed}
@@ -524,64 +629,7 @@ export default function Dashboard() {
           </Tabs>
         </div>
         
-        {/* Agent Tools Panel */}
-        <div className="w-80 bg-replit-panel border-l border-replit-border flex flex-col">
-          <div className="p-3 border-b border-replit-border">
-            <h3 className="font-semibold text-replit-text">Agent Tools</h3>
-          </div>
-          <div className="flex-1 p-3">
-            <div className="grid grid-cols-2 gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-20 flex flex-col items-center justify-center gap-2 bg-replit-elevated hover:bg-replit-blue/20 border-replit-border"
-              >
-                <Terminal className="w-5 h-5" />
-                <span className="text-xs">Terminal</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-20 flex flex-col items-center justify-center gap-2 bg-replit-elevated hover:bg-replit-blue/20 border-replit-border"
-              >
-                <FileText className="w-5 h-5" />
-                <span className="text-xs">File Analysis</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-20 flex flex-col items-center justify-center gap-2 bg-replit-elevated hover:bg-replit-blue/20 border-replit-border"
-              >
-                <Globe className="w-5 h-5" />
-                <span className="text-xs">Web Preview</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-20 flex flex-col items-center justify-center gap-2 bg-replit-elevated hover:bg-replit-blue/20 border-replit-border"
-              >
-                <Monitor className="w-5 h-5" />
-                <span className="text-xs">System Monitor</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-20 flex flex-col items-center justify-center gap-2 bg-replit-elevated hover:bg-replit-blue/20 border-replit-border"
-              >
-                <Database className="w-5 h-5" />
-                <span className="text-xs">Database</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-20 flex flex-col items-center justify-center gap-2 bg-replit-elevated hover:bg-replit-blue/20 border-replit-border"
-              >
-                <Settings className="w-5 h-5" />
-                <span className="text-xs">Config</span>
-              </Button>
-            </div>
-          </div>
-        </div>
+
       </div>
     </div>
   );
