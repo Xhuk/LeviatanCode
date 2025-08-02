@@ -127,10 +127,10 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
           Import Project
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg w-full h-fit max-h-[70vh] top-[5vh] transform-none overflow-hidden">
+      <DialogContent className="max-w-lg w-full h-auto max-h-[80vh] top-[10vh] transform-none overflow-hidden">
         <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 rounded-lg opacity-75 blur-sm animate-pulse -z-10"></div>
         <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 rounded-lg animate-gradient-x -z-10"></div>
-        <div className="max-h-[60vh] overflow-y-auto">
+        <div className="overflow-visible">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
               <FolderOpen className="h-5 w-5" />
@@ -178,37 +178,36 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
         ) : (
           <div className="space-y-4">
             {/* Basic Info */}
-            <div className="space-y-4">
-              <div className="space-y-2">
+            <div className="space-y-3">
+              <div className="space-y-1">
                 <Label htmlFor="projectName">Project Name</Label>
                 <Input
                   id="projectName"
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
                   placeholder="My Awesome Project"
+                  className="h-8"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <Label htmlFor="projectDescription">Description (Optional)</Label>
-                <Textarea
+                <Input
                   id="projectDescription"
                   value={projectDescription}
                   onChange={(e) => setProjectDescription(e.target.value)}
-                  placeholder="Brief description of your project..."
-                  rows={2}
+                  placeholder="Brief description..."
+                  className="h-8"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <Label htmlFor="projectPath">Project Path (Optional)</Label>
                 <Input
                   id="projectPath"
                   value={projectPath}
                   onChange={(e) => setProjectPath(e.target.value)}
-                  placeholder="./my-project or C:\Projects\MyApp"
+                  placeholder="./my-project"
+                  className="h-8"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Where to save the insightsproject.ia file. Defaults to current directory.
-                </p>
               </div>
             </div>
 
@@ -226,17 +225,17 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="file" className="space-y-4">
+              <TabsContent value="file" className="space-y-3">
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Upload Project Files</CardTitle>
-                    <CardDescription>
-                      Select multiple files or a compressed archive (.zip, .tar.gz) containing your project.
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Upload Project Files</CardTitle>
+                    <CardDescription className="text-sm">
+                      Select files or archive (.zip, .tar.gz) containing your project.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                    <div className="space-y-3">
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors">
                         <Input
                           type="file"
                           multiple
@@ -283,34 +282,25 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
                 </Card>
               </TabsContent>
 
-              <TabsContent value="git" className="space-y-4">
+              <TabsContent value="git" className="space-y-3">
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Clone Git Repository</CardTitle>
-                    <CardDescription>
-                      Import a project directly from GitHub, GitLab, or any Git repository.
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Clone Git Repository</CardTitle>
+                    <CardDescription className="text-sm">
+                      Import from GitHub, GitLab, or any Git repository.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
+                    <div className="space-y-3">
+                      <div className="space-y-1">
                         <Label htmlFor="gitUrl">Repository URL</Label>
                         <Input
                           id="gitUrl"
                           value={gitUrl}
                           onChange={(e) => setGitUrl(e.target.value)}
                           placeholder="https://github.com/username/repository.git"
+                          className="h-8"
                         />
-                      </div>
-                      
-                      <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
-                        <div className="flex items-start space-x-2">
-                          <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5" />
-                          <div className="text-sm text-blue-700 dark:text-blue-300">
-                            <p className="font-medium mb-1">Supported repositories</p>
-                            <p>Public repositories from GitHub, GitLab, Bitbucket, and any Git hosting service.</p>
-                          </div>
-                        </div>
                       </div>
                       
                       <Button 
