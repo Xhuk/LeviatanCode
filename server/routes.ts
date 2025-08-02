@@ -693,6 +693,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Also try scanning the specific project folder if it exists
           const specificProjectDir = path.join(projectDir, projectId);
           const targetDir = fs.existsSync(specificProjectDir) ? specificProjectDir : projectDir;
+          console.log(`🎯 Target directory selected: ${targetDir}`);
           
           const scanDirectory = (dir: string, baseDir: string = dir): any => {
             const files: any = {};
@@ -712,12 +713,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   try {
                     const content = fs.readFileSync(fullPath, 'utf8');
                     files[relativePath] = { content, size: stat.size };
+                    console.log(`📄 Added file: ${relativePath} (${stat.size} bytes)`);
                   } catch (readError) {
-                    // Skip binary files or files that can't be read as text
+                    console.log(`⚠️  Could not read ${relativePath}: ${readError.message}`);
                   }
                 } else if (stat.isDirectory()) {
                   const subFiles = scanDirectory(fullPath, baseDir);
                   Object.assign(files, subFiles);
+                } else if (stat.isFile()) {
+                  console.log(`📋 Skipped large file: ${relativePath} (${stat.size} bytes)`);
                 }
               }
             } catch (scanError) {
@@ -732,7 +736,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // If no files found in project directory, scan current working directory more broadly
           if (Object.keys(projectFiles).length === 0) {
             console.log(`🔍 No files found in ${targetDir}, scanning broader directory...`);
-            const broadScan = scanDirectory(projectDir);
+            // Try scanning the actual current working directory of this application
+            const appDir = process.cwd();
+            console.log(`📂 Scanning application directory: ${appDir}`);
+            const broadScan = scanDirectory(appDir);
             projectFiles = broadScan;
             console.log(`📊 Broader scan found ${Object.keys(projectFiles).length} files`);
           }
@@ -1197,6 +1204,8 @@ if __name__ == "__main__":
 
       console.log(`✅ Document analysis completed for project: ${projectId}`);
       console.log(`🎯 AI Analysis Results: Found ${detectedTechnologies.length} technologies, ${detectedInsights.length} insights, ${detectedRecommendations.length} recommendations`);
+      console.log(`📊 File Analysis: ${Object.keys(projectFiles).length} files scanned, ${fileCount} total analyzed`);
+      console.log(`🐍 Python Script: ${generateScript ? 'Generated (' + (analysisResult.pythonScript?.length || 0) + ' chars)' : 'Not requested'}`);
       console.log(`🤖 AI Interaction Status: COMPLETED - Analysis successfully generated and delivered to user`);
       res.json(analysisResult);
 
