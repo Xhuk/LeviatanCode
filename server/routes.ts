@@ -128,6 +128,174 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Configuration verification endpoint
+  app.get('/api/configuration/verify/:projectId', async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      const configChecks = [];
+
+      // Check working directory
+      const workingDir = process.env.WORKING_DIRECTORY || '';
+      configChecks.push({
+        category: 'workspace',
+        name: 'Working Directory',
+        status: workingDir ? 'ok' : 'warning',
+        message: workingDir ? `Set to: ${workingDir}` : 'No working directory configured',
+        canUpdateFromFrontend: true,
+        frontendLocation: 'Settings > Development'
+      });
+
+      // Check database connection
+      try {
+        await storage.getProjects();
+        configChecks.push({
+          category: 'database',
+          name: 'Database Connection',
+          status: 'ok',
+          message: 'Database connection successful',
+          canUpdateFromFrontend: false
+        });
+      } catch (error) {
+        configChecks.push({
+          category: 'database',
+          name: 'Database Connection',
+          status: 'error',
+          message: 'Database connection failed',
+          canUpdateFromFrontend: false
+        });
+      }
+
+      // Check AI service configuration
+      const hasOpenAI = !!process.env.OPENAI_API_KEY;
+      const hasGemini = !!process.env.GEMINI_API_KEY;
+      
+      if (!hasOpenAI && !hasGemini) {
+        configChecks.push({
+          category: 'api',
+          name: 'AI Services',
+          status: 'error',
+          message: 'No AI service API keys configured',
+          canUpdateFromFrontend: false
+        });
+      } else {
+        configChecks.push({
+          category: 'api',
+          name: 'AI Services',
+          status: 'ok',
+          message: `Configured: ${hasOpenAI ? 'OpenAI' : ''} ${hasGemini ? 'Gemini' : ''}`.trim(),
+          canUpdateFromFrontend: false
+        });
+      }
+
+      // Check Flask analyzer availability
+      try {
+        const analyzerResponse = await fetch('http://localhost:5001/health');
+        if (analyzerResponse.ok) {
+          configChecks.push({
+            category: 'api',
+            name: 'Flask Analyzer',
+            status: 'ok',
+            message: 'Flask analyzer service is running',
+            canUpdateFromFrontend: false
+          });
+        } else {
+          configChecks.push({
+            category: 'api',
+            name: 'Flask Analyzer',
+            status: 'warning',
+            message: 'Flask analyzer service not responding',
+            canUpdateFromFrontend: false
+          });
+        }
+      } catch (error) {
+        configChecks.push({
+          category: 'api',
+          name: 'Flask Analyzer',
+          status: 'warning',
+          message: 'Flask analyzer service not available',
+          canUpdateFromFrontend: false
+        });
+      }
+
+      res.json(configChecks);
+    } catch (error) {
+      console.error('Configuration verification error:', error);
+      res.status(500).json({ error: 'Configuration verification failed' });
+    }
+  });
+
+  // File tree endpoint for workspace
+  app.get('/api/workspace/file-tree/:projectId', async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      const workingDir = process.env.WORKING_DIRECTORY || '';
+      
+      if (!workingDir) {
+        // Return demo file tree if no working directory
+        return res.json({
+          root: {
+            name: 'workspace',
+            type: 'folder',
+            children: {
+              'demo-files': { name: 'demo-files', type: 'folder', children: {
+                'example.js': { name: 'example.js', type: 'file' },
+                'readme.md': { name: 'readme.md', type: 'file' }
+              }},
+              'package.json': { name: 'package.json', type: 'file' }
+            }
+          }
+        });
+      }
+
+      // Check if working directory exists and is accessible
+      if (!fs.existsSync(workingDir)) {
+        return res.status(404).json({ 
+          error: 'Working directory not found',
+          message: `Directory ${workingDir} does not exist`
+        });
+      }
+
+      // Build file tree from actual directory
+      const buildFileTree = (dirPath: string, name: string): any => {
+        try {
+          const stats = fs.statSync(dirPath);
+          
+          if (stats.isFile()) {
+            return { name, type: 'file' };
+          }
+          
+          if (stats.isDirectory()) {
+            const children: any = {};
+            try {
+              const items = fs.readdirSync(dirPath);
+              for (const item of items) {
+                // Skip hidden files and common build directories
+                if (item.startsWith('.') || ['node_modules', 'dist', 'build', '__pycache__'].includes(item)) {
+                  continue;
+                }
+                const itemPath = path.join(dirPath, item);
+                children[item] = buildFileTree(itemPath, item);
+              }
+            } catch (readError) {
+              // Skip directories we can't read
+            }
+            return { name, type: 'folder', children };
+          }
+        } catch (error) {
+          // Skip items we can't access
+        }
+        
+        return null;
+      };
+
+      const fileTree = buildFileTree(workingDir, path.basename(workingDir) || 'workspace');
+      res.json({ root: fileTree });
+    } catch (error) {
+      console.error('File tree error:', error);
+      res.status(500).json({ error: 'Failed to load file tree' });
+    }
+  });
+
   // Projects
   app.get("/api/projects", async (req, res) => {
     try {

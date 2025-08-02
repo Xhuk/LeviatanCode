@@ -1,0 +1,72 @@
+C:\ReactProjects\LeviatanCode [main ≡ +11 ~4 -0 !]> scripts\start-windows.bat
+Starting LeviatanCode on Windows...
+[dotenv@17.2.1] injecting env (1) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+[INFO] Environment: development
+[INFO] CSP disabled for development mode
+[INFO] All middleware loaded successfully
+2:52:01 PM [express] serving on port 5005
+GET / 200 71.392 ms - -
+GET /@vite/client 200 141.043 ms - -
+GET /@fs/C:/ReactProjects/LeviatanCode/node_modules/vite/dist/client/env.mjs 304 0.648 ms - -
+GET /src/main.tsx?v=ynCLNL1FxJxGuoy3H_G_N 200 174.133 ms - -
+GET /@react-refresh 304 176.733 ms - -
+GET /src/App.tsx?v=ynCLNL1FxJxGuoy3H_G_N 200 39.706 ms - -
+Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+GET /src/lib/queryClient.ts 304 737.123 ms - -
+GET /src/contexts/theme-context.tsx 304 19.532 ms - -
+GET /src/components/ui/toaster.tsx 304 21.496 ms - -
+GET /src/pages/not-found.tsx 304 16.130 ms - -
+GET /src/components/ui/tooltip.tsx 304 760.937 ms - -
+GET /src/pages/dashboard.tsx 304 151.582 ms - -
+GET /src/components/ui/toast.tsx 304 249.321 ms - -
+GET /src/hooks/use-toast.ts 304 280.695 ms - -
+GET /src/components/ui/card.tsx 304 283.196 ms - -
+GET /src/components/ui/select.tsx 304 226.785 ms - -
+GET /src/components/ui/tabs.tsx 304 12.659 ms - -
+GET /src/lib/utils.ts 304 296.507 ms - -
+GET /src/components/ui/button.tsx 304 253.656 ms - -
+GET /src/components/ui/input.tsx 304 0.502 ms - -
+GET /src/components/ui/scroll-area.tsx 304 0.518 ms - -
+GET /src/components/project-insights-save-button.tsx 304 0.303 ms - -
+GET /src/components/ai-document-analysis-dialog.tsx 304 0.514 ms - -
+GET /src/components/vault-explorer.tsx 304 0.405 ms - -
+GET /src/components/project-import-dialog.tsx 304 17.804 ms - -
+GET /src/components/leviatan-settings.tsx 304 0.254 ms - -
+GET /src/components/ui/dialog.tsx 304 0.363 ms - -
+GET /src/components/ui/label.tsx 304 0.269 ms - -
+GET /src/components/ui/textarea.tsx 304 0.235 ms - -
+GET /src/hooks/use-project-insights.ts 304 0.212 ms - -
+GET /src/hooks/use-analysis-websocket.ts 304 0.196 ms - -
+GET /src/components/ui/badge.tsx 304 0.206 ms - -
+GET /src/components/ui/progress.tsx 304 0.287 ms - -
+2:52:13 PM [express] GET /api/projects/demo-project-1/insights 200 in 6ms :: {"insights":{"projectId…
+GET /api/projects/demo-project-1/insights?projectPath=. 200 5.279 ms - 676
+2:52:13 PM [express] GET /api/workspace/demo-project-1/git/config 304 in 1ms :: {"username":"","emai…
+GET /api/workspace/demo-project-1/git/config 304 0.656 ms - -
+2:52:13 PM [express] GET /api/projects 200 in 2ms :: [{"id":"demo-project-1","name":"ProductData_Ana…
+GET /api/projects 200 0.590 ms - 1280
+2:52:13 PM [express] GET /api/projects/demo-project-1 200 in 2ms :: {"id":"demo-project-1","name":"P…
+GET /api/projects/demo-project-1 200 0.537 ms - 1278
+2:52:13 PM [express] GET /api/settings/working-directory 304 in 1ms :: {"workingDirectory":"C:\\Reac…
+GET /api/settings/working-directory 304 0.659 ms - -
+2:52:13 PM [express] GET /api/workspace/folders 304 in 9ms :: ["cadence","cadence crm","LeviatanCode…
+GET /api/workspace/folders 304 8.085 ms - -
+2:52:13 PM [express] GET /api/settings/workspace-folders 304 in 3ms :: {"folders":[{"name":"cadence"…
+GET /api/settings/workspace-folders 304 1.975 ms - -
+📡 WebSocket connection established
+Logger client connected
+📡 Subscribed to analysis updates for project: demo-project-1
+GET /favicon.ico 200 7.197 ms - -
+Logger client disconnected
+📡 Unsubscribed from analysis updates for project: demo-project-1
+2:52:17 PM [express] GET /api/projects/C:/ReactProjects/cadence/insights 404 in 1ms :: {"message":"A…
+GET /api/projects/C:/ReactProjects/cadence/insights?projectPath=. 404 0.588 ms - 47
+2:52:17 PM [express] GET /api/workspace/C:/ReactProjects/cadence/git/config 404 in 1ms :: {"message"…
+GET /api/workspace/C:/ReactProjects/cadence/git/config 404 0.665 ms - 47
+2:52:17 PM [express] GET /api/projects/C:/ReactProjects/cadence 404 in 1ms :: {"message":"API endpoi…
+GET /api/projects/C:/ReactProjects/cadence 404 0.450 ms - 47
+📡 WebSocket connection established
+Logger client connected
+📡 Subscribed to analysis updates for project: C:\ReactProjects\cadence

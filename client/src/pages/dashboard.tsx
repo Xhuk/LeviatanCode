@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTheme } from "@/contexts/theme-context";
 import { Button } from "@/components/ui/button";
+import { ConfigurationChecker } from "@/components/configuration-checker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -1269,7 +1270,7 @@ const FileEditor = ({ activeFile, fileName }: { activeFile: string | null; fileN
             colorDecorators: true,
             codeLens: true,
             lightbulb: {
-              enabled: true
+              enabled: "on"
             }
           }}
           loading={<div className="flex items-center justify-center h-full text-replit-text">Loading editor...</div>}
@@ -1279,36 +1280,56 @@ const FileEditor = ({ activeFile, fileName }: { activeFile: string | null; fileN
   );
 };
 
-// Collapsible File Explorer
-const FileExplorer = ({ isCollapsed, onToggle, onFileSelect }: { 
+// Collapsible File Explorer  
+const FileExplorer = ({ isCollapsed, onToggle, onFileSelect, currentProject }: { 
   isCollapsed: boolean; 
   onToggle: () => void;
   onFileSelect: (filePath: string, fileName: string) => void;
+  currentProject: string;
 }) => {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['root']));
+  const [fileTree, setFileTree] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const fileTree = {
-    root: {
-      name: 'workspace',
-      type: 'folder',
-      children: {
-        'client': { name: 'client', type: 'folder', children: {
-          'src': { name: 'src', type: 'folder', children: {
-            'components': { name: 'components', type: 'folder', children: {} },
-            'pages': { name: 'pages', type: 'folder', children: {} },
-            'main.tsx': { name: 'main.tsx', type: 'file' }
-          }}
-        }},
-        'server': { name: 'server', type: 'folder', children: {
-          'index.ts': { name: 'index.ts', type: 'file' },
-          'routes.ts': { name: 'routes.ts', type: 'file' }
-        }},
-        'package.json': { name: 'package.json', type: 'file' },
-        'README.md': { name: 'README.md', type: 'file' }
-      }
+  // Fetch file tree for current workspace
+  const { data: workspaceFiles, isLoading } = useQuery({
+    queryKey: ['/api/workspace/file-tree', currentProject],
+    enabled: !!currentProject,
+    refetchOnWindowFocus: false,
+    staleTime: 30000, // Cache for 30 seconds
+  });
+
+  useEffect(() => {
+    if (workspaceFiles && !isLoading) {
+      setFileTree(workspaceFiles);
+      setLoading(false);
+    } else if (!workspaceFiles && !isLoading) {
+      // Fallback to demo file tree if no workspace files
+      setFileTree({
+        root: {
+          name: 'workspace',
+          type: 'folder',
+          children: {
+            'client': { name: 'client', type: 'folder', children: {
+              'src': { name: 'src', type: 'folder', children: {
+                'components': { name: 'components', type: 'folder', children: {} },
+                'pages': { name: 'pages', type: 'folder', children: {} },
+                'main.tsx': { name: 'main.tsx', type: 'file' }
+              }}
+            }},
+            'server': { name: 'server', type: 'folder', children: {
+              'index.ts': { name: 'index.ts', type: 'file' },
+              'routes.ts': { name: 'routes.ts', type: 'file' }
+            }},
+            'package.json': { name: 'package.json', type: 'file' },
+            'README.md': { name: 'README.md', type: 'file' }
+          }
+        }
+      });
+      setLoading(false);
     }
-  };
+  }, [workspaceFiles, isLoading]);
 
   const toggleFolder = (path: string) => {
     const newExpanded = new Set(expandedFolders);
@@ -1369,6 +1390,23 @@ const FileExplorer = ({ isCollapsed, onToggle, onFileSelect }: {
         >
           <ChevronRight className="w-4 h-4" />
         </Button>
+      </div>
+    );
+  }
+
+  if (loading || isLoading) {
+    return (
+      <div className="w-64 bg-replit-panel border-r border-replit-border">
+        <div className="flex items-center justify-between p-2 border-b border-replit-border">
+          <span className="text-sm font-semibold text-replit-text">Files</span>
+          <Button variant="ghost" size="sm" onClick={onToggle} className="p-1">
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+        </div>
+        <div className="p-4 text-center text-replit-text-secondary">
+          <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
+          Loading file tree...
+        </div>
       </div>
     );
   }
@@ -1549,6 +1587,9 @@ export default function Dashboard() {
 
   return (
     <div className="h-screen bg-replit-dark text-replit-text flex flex-col overflow-hidden">
+      {/* Configuration Checker - appears on startup */}
+      <ConfigurationChecker currentProject={currentProject} />
+      
       {/* Top Navigation Bar */}
       <nav className="bg-replit-panel/90 backdrop-blur-lg border-b border-replit-border px-6 py-3 flex items-center justify-between shadow-lg">
         <div className="flex items-center space-x-6">
@@ -1809,6 +1850,7 @@ export default function Dashboard() {
           isCollapsed={isExplorerCollapsed}
           onToggle={() => setIsExplorerCollapsed(!isExplorerCollapsed)}
           onFileSelect={handleFileSelect}
+          currentProject={currentProject}
         />
         
         {/* Main Editor Area */}
