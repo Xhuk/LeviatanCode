@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTheme } from "@/contexts/theme-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,12 +20,13 @@ import {
 } from "lucide-react";
 
 export const LeviatanSettings = ({ currentProject }: { currentProject: string }) => {
+  const { theme, fontSize, tabSize, applySettings } = useTheme();
   const [settings, setSettings] = useState({
     // User Preferences
-    theme: 'dark',
+    theme: theme,
     language: 'en',
-    fontSize: '14',
-    tabSize: '2',
+    fontSize: fontSize,
+    tabSize: tabSize,
     wordWrap: true,
     minimap: true,
     lineNumbers: true,
@@ -226,7 +228,11 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-replit-text-secondary mb-2">Theme</label>
-                    <Select value={settings.theme} onValueChange={(value) => setSettings({...settings, theme: value})}>
+                    <Select value={settings.theme} onValueChange={(value) => {
+                      const newSettings = {...settings, theme: value};
+                      setSettings(newSettings);
+                      applySettings({ theme: value as any, fontSize: settings.fontSize, tabSize: settings.tabSize });
+                    }}>
                       <SelectTrigger className="bg-replit-elevated border-replit-border">
                         <SelectValue />
                       </SelectTrigger>
@@ -239,7 +245,11 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-replit-text-secondary mb-2">Font Size</label>
-                    <Select value={settings.fontSize} onValueChange={(value) => setSettings({...settings, fontSize: value})}>
+                    <Select value={settings.fontSize} onValueChange={(value) => {
+                      const newSettings = {...settings, fontSize: value};
+                      setSettings(newSettings);
+                      applySettings({ theme: settings.theme as any, fontSize: value, tabSize: settings.tabSize });
+                    }}>
                       <SelectTrigger className="bg-replit-elevated border-replit-border">
                         <SelectValue />
                       </SelectTrigger>
@@ -254,7 +264,11 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-replit-text-secondary mb-2">Tab Size</label>
-                    <Select value={settings.tabSize} onValueChange={(value) => setSettings({...settings, tabSize: value})}>
+                    <Select value={settings.tabSize} onValueChange={(value) => {
+                      const newSettings = {...settings, tabSize: value};
+                      setSettings(newSettings);
+                      applySettings({ theme: settings.theme as any, fontSize: settings.fontSize, tabSize: value });
+                    }}>
                       <SelectTrigger className="bg-replit-elevated border-replit-border">
                         <SelectValue />
                       </SelectTrigger>

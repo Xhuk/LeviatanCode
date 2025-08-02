@@ -23,17 +23,39 @@
   --destructive-foreground: hsl(210, 40%, 98%);
   --ring: hsl(215, 20.2%, 65.1%);
   --radius: 0.5rem;
+}
 
-  /* Modern Replit-style colors */
-  --replit-dark: hsl(220, 13%, 13%);
-  --replit-panel: hsl(220, 13%, 18%);
-  --replit-elevated: hsl(220, 13%, 23%);
-  --replit-border: hsl(220, 13%, 28%);
+.light {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(222.2, 84%, 4.9%);
+  --muted: hsl(210, 40%, 96%);
+  --muted-foreground: hsl(215.4, 16.3%, 46.9%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(222.2, 84%, 4.9%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(222.2, 84%, 4.9%);
+  --border: hsl(214.3, 31.8%, 91.4%);
+  --input: hsl(214.3, 31.8%, 91.4%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(210, 40%, 98%);
+  --secondary: hsl(210, 40%, 96%);
+  --secondary-foreground: hsl(222.2, 84%, 4.9%);
+  --accent: hsl(210, 40%, 96%);
+  --accent-foreground: hsl(222.2, 84%, 4.9%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --ring: hsl(215, 20.2%, 65.1%);
+
+  /* Light mode Replit-style colors */
+  --replit-bg: hsl(0, 0%, 98%);
+  --replit-panel: hsl(210, 20%, 95%);
+  --replit-elevated: hsl(210, 20%, 92%);
+  --replit-border: hsl(214, 20%, 88%);
   --replit-blue: hsl(207, 90%, 54%);
   --replit-blue-secondary: hsl(215, 100%, 60%);
-  --replit-text: hsl(210, 40%, 98%);
-  --replit-text-secondary: hsl(215, 13%, 75%);
-  --replit-text-muted: hsl(215, 13%, 55%);
+  --replit-text: hsl(222.2, 84%, 4.9%);
+  --replit-text-secondary: hsl(215, 25%, 27%);
+  --replit-text-muted: hsl(215, 13%, 45%);
   --replit-success: hsl(142, 71%, 45%);
   --replit-error: hsl(0, 84%, 60%);
   --replit-warning: hsl(35, 91%, 55%);
@@ -59,6 +81,20 @@
   --destructive: hsl(0, 62.8%, 30.6%);
   --destructive-foreground: hsl(210, 40%, 98%);
   --ring: hsl(215, 20.2%, 65.1%);
+
+  /* Dark mode Replit-style colors */
+  --replit-bg: hsl(220, 13%, 13%);
+  --replit-panel: hsl(220, 13%, 18%);
+  --replit-elevated: hsl(220, 13%, 23%);
+  --replit-border: hsl(220, 13%, 28%);
+  --replit-blue: hsl(207, 90%, 54%);
+  --replit-blue-secondary: hsl(215, 100%, 60%);
+  --replit-text: hsl(210, 40%, 98%);
+  --replit-text-secondary: hsl(215, 13%, 75%);
+  --replit-text-muted: hsl(215, 13%, 55%);
+  --replit-success: hsl(142, 71%, 45%);
+  --replit-error: hsl(0, 84%, 60%);
+  --replit-warning: hsl(35, 91%, 55%);
 }
 
 @layer base {

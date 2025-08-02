@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useTheme } from "@/contexts/theme-context";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -50,7 +51,7 @@ import { ProjectInsightsSaveButton } from "@/components/project-insights-save-bu
 import { AiDocumentAnalysisDialog } from "@/components/ai-document-analysis-dialog";
 import { VaultExplorer } from "@/components/vault-explorer";
 import { LeviatanSettings } from "@/components/leviatan-settings";
-import { WindowsDebugAgent } from "@/components/windows-debug-agent";
+
 
 // Logger component with WebSocket integration
 const Logger = () => {
@@ -1107,6 +1108,7 @@ const PowerShellTerminal = () => {
 
 // File Editor component with Monaco Editor
 const FileEditor = ({ activeFile, fileName }: { activeFile: string | null; fileName: string | null }) => {
+  const { theme, fontSize, tabSize } = useTheme();
   const [content, setContent] = useState("// Select a file to edit\n// Or create a new file");
   const [language, setLanguage] = useState("javascript");
 
@@ -1222,15 +1224,15 @@ const FileEditor = ({ activeFile, fileName }: { activeFile: string | null; fileN
           value={content}
           language={language}
           onChange={(value) => setContent(value || "")}
-          theme="vs-dark"
+          theme={theme === 'light' ? 'vs' : 'vs-dark'}
           options={{
             minimap: { enabled: true },
-            fontSize: 14,
+            fontSize: parseInt(fontSize),
             fontFamily: '"Fira Code", "JetBrains Mono", "Consolas", "Monaco", monospace',
             lineNumbers: "on",
             scrollBeyondLastLine: false,
             automaticLayout: true,
-            tabSize: 2,
+            tabSize: parseInt(tabSize),
             insertSpaces: true,
             wordWrap: "on",
             bracketPairColorization: { enabled: true },
@@ -1724,9 +1726,7 @@ export default function Dashboard() {
                 <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
                   <Key className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center" onClick={() => setActiveTab("windows-debug")}>
-                  <Monitor className="w-4 h-4" />
-                </Button>
+
               </div>
             ) : (
               <div className="space-y-2">
@@ -1798,17 +1798,7 @@ export default function Dashboard() {
                     <div className="text-xs text-replit-text-secondary">Manage secrets and credentials</div>
                   </div>
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
-                  onClick={() => setActiveTab("windows-debug")}
-                >
-                  <Monitor className="w-5 h-5" />
-                  <div className="text-left">
-                    <div className="font-medium text-sm">Windows Debug</div>
-                    <div className="text-xs text-replit-text-secondary">System diagnostics and monitoring</div>
-                  </div>
-                </Button>
+
               </div>
             )}
           </div>
@@ -1896,11 +1886,7 @@ export default function Dashboard() {
               </TabsContent>
             )}
             
-            {activeTab === "windows-debug" && (
-              <TabsContent value="windows-debug" className="flex-1 m-0">
-                <WindowsDebugAgent />
-              </TabsContent>
-            )}
+
           </Tabs>
         </div>
       </div>
