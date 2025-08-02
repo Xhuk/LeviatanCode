@@ -1759,8 +1759,8 @@ export default function Dashboard() {
                 <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center" onClick={() => setActiveTab("system-monitor")}>
                   <Monitor className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center bg-yellow-500/20 border border-yellow-500/50" onClick={() => setActiveTab("middleware-monitor")}>
-                  <Activity className="w-4 h-4 text-yellow-400" />
+                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center" onClick={() => setActiveTab("middleware-monitor")}>
+                  <Activity className="w-4 h-4" />
                 </Button>
                 <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center" onClick={() => setActiveTab("database-console")}>
                   <Database className="w-4 h-4" />
@@ -1801,13 +1801,13 @@ export default function Dashboard() {
                 </Button>
                 <Button 
                   variant="ghost" 
-                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated bg-yellow-500/10 border border-yellow-500/30"
+                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
                   onClick={() => setActiveTab("middleware-monitor")}
                 >
-                  <Activity className="w-5 h-5 text-yellow-400" />
+                  <Activity className="w-5 h-5" />
                   <div className="text-left">
-                    <div className="font-medium text-sm text-yellow-300">🔧 Middleware Monitor</div>
-                    <div className="text-xs text-yellow-400">Start/stop middleware with performance tracking</div>
+                    <div className="font-medium text-sm">Middleware Configuration</div>
+                    <div className="text-xs text-replit-text-secondary">Control middleware settings</div>
                   </div>
                 </Button>
                 <Button 
