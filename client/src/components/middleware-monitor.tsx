@@ -120,7 +120,8 @@ export const MiddlewareMonitor: React.FC = () => {
   }
 
   return (
-    <div className="p-6 bg-replit-bg text-replit-text space-y-6">
+    <div className="h-full flex flex-col bg-replit-bg text-replit-text overflow-hidden">
+      <div className="p-6 space-y-6 overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -201,8 +202,9 @@ export const MiddlewareMonitor: React.FC = () => {
       </Card>
 
       {/* Middleware List */}
-      <div className="space-y-3">
+      <div className="space-y-3 flex-1 min-h-0">
         <h3 className="font-medium">Middleware Status</h3>
+        <div className="space-y-3 overflow-y-auto max-h-96">
         {healthData.middlewareList.map((middleware) => (
           <Card key={middleware.name} className="p-4 bg-replit-panel border-replit-border">
             <div className="flex items-center justify-between">
@@ -265,6 +267,7 @@ export const MiddlewareMonitor: React.FC = () => {
             </div>
           </Card>
         ))}
+        </div>
       </div>
 
       {healthData.middlewareList.length === 0 && (
@@ -275,6 +278,7 @@ export const MiddlewareMonitor: React.FC = () => {
           </AlertDescription>
         </Alert>
       )}
+      </div>
     </div>
   );
 };
