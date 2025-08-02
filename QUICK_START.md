@@ -10,7 +10,7 @@ git clone <your-repo-url> LeviatanCode
 cd LeviatanCode
 Copy-Item .env.example .env
 # Edit .env with your database URL and API keys (see below)
-.\scripts\setup-windows.ps1
+python scripts/setup-windows.py
 ```
 
 ## Required Configuration

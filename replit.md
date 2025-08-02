@@ -25,14 +25,19 @@ The system is built as a monorepo with a React TypeScript frontend using shadcn/
 - **Project Metadata System**: Implemented "insightsproject.ia" file system for persistent project context and metadata storage
 - **Save Project Functionality**: Added save button for updating project insights including name, path, type, commands, and AI analysis results
 - **Complete Windows Setup**: Created comprehensive PowerShell setup script that configures database, API keys, middleware, and all integrations automatically
-- **Production-Ready Security**: Implemented complete middleware stack with rate limiting, session management, CORS, and security headers
+- **Production-Ready Security**: Implemented complete middleware stack with rate limiting, session management, CORS, and security headers  
 - **Real AI Integration**: Added actual OpenAI and Gemini integration with project analysis and chat capabilities (requires API keys)
+- **Python-Based Setup**: Converted setup scripts to Python for better accuracy, error handling, and cross-platform compatibility
+- **Port 5005 Configuration**: Configured Windows development environment to use port 5005 with `npm run windev` command
+- **Comprehensive Validation**: Added setup validation scripts to verify all components are working correctly
 
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
-Target platform: Windows machines with PowerShell support
+Target platform: Windows machines with Python and PowerShell support
 Database preference: Supabase (serverless PostgreSQL)
+Development port: 5005 (configured for Windows with npm run windev)
+Setup preference: Python scripts for better accuracy and reliability
 Deployment target: Local Windows development with option for Windows Server production
 
 # System Architecture

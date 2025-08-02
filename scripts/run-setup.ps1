@@ -7,6 +7,6 @@ Write-Host "🚀 LeviatanCode Setup Starting..." -ForegroundColor Green
 .\scripts\create-scripts-folder.ps1
 
 # Run the main setup
-.\scripts\setup-windows.ps1
+python scripts/setup-windows.py
 
 Write-Host "✨ Setup completed! Run 'npm run windev' to start." -ForegroundColor Green

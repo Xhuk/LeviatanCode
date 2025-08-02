@@ -87,7 +87,7 @@ SESSION_SECRET=your-super-secret-session-key-change-this-in-production
 
 Run the setup script:
 ```powershell
-.\scripts\setup-windows.ps1
+python scripts/setup-windows.py
 ```
 
 This script will:
