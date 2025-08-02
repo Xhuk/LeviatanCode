@@ -1,42 +1,54 @@
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 
-// Security middleware for production and local development
-const securityMiddleware = (app) => {
-  // Basic security headers
-  app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-        imgSrc: ["'self'", "data:", "https:", "blob:"],
-        connectSrc: ["'self'", "https:", "wss:", "ws:"]
-      }
-    },
-    crossOriginEmbedderPolicy: false
-  }));
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Skip rate limiting for local development
+  skip: (req) => {
+    return process.env.NODE_ENV === 'development' && 
+           (req.ip === '127.0.0.1' || req.ip === '::1' || req.ip?.includes('localhost'));
+  }
+});
 
-  // Rate limiting
-  const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: process.env.NODE_ENV === 'production' ? 100 : 1000, // Limit each IP
-    message: 'Too many requests from this IP, please try again later.',
-    standardHeaders: true,
-    legacyHeaders: false,
-  });
+export default function setupSecurity(app) {
+  // For development - disable CSP to allow Vite HMR
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  if (isProduction) {
+    // Production CSP - restrictive security
+    app.use(helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          scriptSrc: ["'self'"],
+          imgSrc: ["'self'", "data:", "https:"],
+          connectSrc: ["'self'", "https:"],
+          fontSrc: ["'self'", "https:"],
+          objectSrc: ["'none'"],
+          mediaSrc: ["'self'"],
+          frameSrc: ["'none'"],
+        },
+      },
+      crossOriginEmbedderPolicy: false,
+    }));
+  } else {
+    // Development mode - disable CSP for Vite compatibility
+    app.use(helmet({
+      contentSecurityPolicy: false, // Disable CSP in development
+      crossOriginEmbedderPolicy: false,
+    }));
+    console.log('[INFO] CSP disabled for development mode');
+  }
 
+  // Apply rate limiting
   app.use('/api/', limiter);
-
-  // File upload rate limiting
-  const uploadLimiter = rateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    max: 10, // Limit file uploads
-    message: 'Too many file uploads, please try again later.',
-  });
-
-  app.use('/api/projects/import/', uploadLimiter);
-};
-
-export default securityMiddleware;
+  
+  // Trust proxy for rate limiting to work properly
+  app.set('trust proxy', 1);
+}

@@ -6,6 +6,11 @@ import { setupVite, serveStatic, log } from "./vite";
 // Load environment variables first
 dotenv.config();
 
+// Set NODE_ENV to development for proper middleware configuration
+if (!process.env.NODE_ENV) {
+  process.env.NODE_ENV = 'development';
+}
+
 // Override PORT for Windows development - force 5005 for local Windows development
 if (process.platform === 'win32' || process.env.NODE_ENV === 'development') {
   // Check if running locally (not in Replit) by checking for Windows platform or local dev indicators
@@ -18,7 +23,7 @@ if (process.platform === 'win32' || process.env.NODE_ENV === 'development') {
   }
 }
 
-// Import middleware (using dynamic imports for CommonJS modules)
+console.log(`[INFO] Environment: ${process.env.NODE_ENV}`);
 
 const app = express();
 
@@ -76,12 +81,22 @@ app.use((req, res, next) => {
 
     // Apply session middleware
     app.use(sessionModule.default);
+    
+    console.log("[INFO] All middleware loaded successfully");
   } catch (error) {
     console.warn("Some middleware failed to load:", error.message);
     console.log("Continuing with basic setup...");
   }
 
   const server = await registerRoutes(app);
+  
+  // Apply error handler after routes
+  try {
+    const errorModule = await import("../middleware/errorHandler.js");
+    errorModule.default(app);
+  } catch (error) {
+    console.warn("Error handler failed to load:", error);
+  }
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route

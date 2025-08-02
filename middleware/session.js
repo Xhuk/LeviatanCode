@@ -1,23 +1,20 @@
 import session from 'express-session';
-import MemoryStoreFactory from 'memorystore';
-const MemoryStore = MemoryStoreFactory(session);
+import MemoryStore from 'memorystore';
 
-// Session middleware configuration
-const sessionMiddleware = session({
-  store: new MemoryStore({
-    checkPeriod: 86400000 // Prune expired entries every 24h
-  }),
-  secret: process.env.SESSION_SECRET || 'dev-secret-key-change-in-production',
+const MemoryStoreSession = MemoryStore(session);
+
+const sessionConfig = {
+  secret: process.env.SESSION_SECRET || 'your-super-secret-session-key-change-this-in-production',
   resave: false,
   saveUninitialized: false,
-  name: 'leviatancode.sid',
+  store: new MemoryStoreSession({
+    checkPeriod: 86400000 // Prune expired entries every 24h
+  }),
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
-  },
-  rolling: true // Reset expiration on each request
-});
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+};
 
-export default sessionMiddleware;
+export default session(sessionConfig);

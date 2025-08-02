@@ -608,10 +608,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid import method or missing data" });
       }
 
-      // Project creation is now handled inside the import service
-      // No need to duplicate project creation here
-
-      res.json(project);
+      // Return the import result which should contain the created project
+      res.json(importResult);
     } catch (error: any) {
       console.error("Project import error:", error);
       res.status(500).json({ message: error.message || "Failed to import project" });

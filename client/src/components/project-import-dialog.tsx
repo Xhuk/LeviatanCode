@@ -32,10 +32,15 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
   const importMutation = useMutation({
     mutationFn: async (data: FormData | { gitUrl: string; name: string; description: string; projectPath: string }) => {
       if (data instanceof FormData) {
-        return apiRequest("/api/projects/import/files", {
+        const response = await fetch("/api/projects/import/files", {
           method: "POST",
           body: data,
         });
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Import failed");
+        }
+        return response.json();
       } else {
         return apiRequest("/api/projects/import/git", {
           method: "POST",
@@ -50,7 +55,7 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
         description: "AI analysis has begun. You can start working with your project.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
-      onProjectImported?.(data.projectId);
+      onProjectImported?.(data.id || data.projectId);
       setOpen(false);
       resetForm();
     },
@@ -88,6 +93,7 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
     });
     formData.append("name", projectName);
     formData.append("description", projectDescription);
+    formData.append("method", "files");
     formData.append("projectPath", projectPath || ".");
 
     importMutation.mutate(formData);
