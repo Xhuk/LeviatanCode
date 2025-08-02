@@ -52,8 +52,8 @@ def create_middleware_package():
         }
     }
     
-    with open(middleware_dir / "package.json", "w") as f:
-        json.dump(package_json, f, indent=2)
+    with open(middleware_dir / "package.json", "w", encoding='utf-8') as f:
+        json.dump(package_json, f, indent=2, ensure_ascii=False)
     
     # Create main middleware file
     middleware_code = '''
@@ -301,7 +301,7 @@ app.listen(PORT, () => {
 export default app;
 '''
     
-    with open(middleware_dir / "index.js", "w") as f:
+    with open(middleware_dir / "index.js", "w", encoding='utf-8') as f:
         f.write(middleware_code)
     
     return middleware_dir
