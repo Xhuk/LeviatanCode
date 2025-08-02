@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import settingsRoutes from "./routes/settings";
+import loggerRoutes, { LoggerService } from "./routes/logger";
 import { aiService } from "./services/ai";
 import { projectImportService } from "./services/project-import";
 import { flaskAnalyzerService } from "./services/flask-analyzer";
@@ -38,6 +39,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   wss.on('connection', (ws, req) => {
     console.log('📡 WebSocket connection established');
     
+    // Add client to logger service for real-time logs
+    LoggerService.addClient(ws);
+    
     ws.on('message', (message) => {
       try {
         const data = JSON.parse(message.toString());
@@ -51,6 +55,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
     
     ws.on('close', () => {
+      // Remove from logger service
+      LoggerService.removeClient(ws);
       // Remove from all subscriptions
       for (const [projectId, connection] of Array.from(analysisConnections.entries())) {
         if (connection === ws) {
@@ -2036,6 +2042,7 @@ Please provide a JSON response with this exact structure:
 
   // Settings routes
   app.use("/api/settings", settingsRoutes);
+  app.use("/api", loggerRoutes);
   
   // AI Chat endpoints
   app.get("/api/projects/:projectId/ai-chats", async (req, res) => {
