@@ -20,13 +20,14 @@ import {
   FolderOpen,
   Play,
   Square,
-  Trash2
+  Trash2,
+  Globe,
+  Monitor
 } from "lucide-react";
 import { ProjectImportDialog } from "@/components/project-import-dialog";
 import { SettingsDialog } from "@/components/settings-dialog";
 import { ProjectInsightsSaveButton } from "@/components/project-insights-save-button";
 import { AiDocumentAnalysisDialog } from "@/components/ai-document-analysis-dialog";
-import { AgentWindows } from "@/components/agent-windows";
 
 // Logger component with WebSocket integration
 const Logger = () => {
@@ -172,14 +173,41 @@ const PowerShellTerminal = () => {
 };
 
 // File Editor component
-const FileEditor = ({ activeFile }: { activeFile: string | null }) => {
+const FileEditor = ({ activeFile, fileName }: { activeFile: string | null; fileName: string | null }) => {
   const [content, setContent] = useState("// Select a file to edit\n// Or create a new file");
+
+  // Update content when file changes
+  useEffect(() => {
+    if (activeFile && fileName) {
+      // Simulate loading file content based on file type
+      const extension = fileName.split('.').pop()?.toLowerCase();
+      switch (extension) {
+        case 'tsx':
+        case 'ts':
+          setContent(`// ${fileName}\nimport React from 'react';\n\nconst Component = () => {\n  return (\n    <div>\n      <h1>Hello from ${fileName}</h1>\n    </div>\n  );\n};\n\nexport default Component;`);
+          break;
+        case 'js':
+          setContent(`// ${fileName}\nconst ${fileName.replace('.js', '')} = () => {\n  console.log('Hello from ${fileName}');\n};\n\nmodule.exports = ${fileName.replace('.js', '')};`);
+          break;
+        case 'json':
+          setContent(`{\n  "name": "${fileName}",\n  "version": "1.0.0",\n  "description": "Project configuration",\n  "main": "index.js"\n}`);
+          break;
+        case 'md':
+          setContent(`# ${fileName}\n\nThis is a markdown file.\n\n## Features\n\n- Feature 1\n- Feature 2\n- Feature 3\n\n## Usage\n\nAdd your content here.`);
+          break;
+        default:
+          setContent(`// ${fileName}\n// Content of ${fileName}\n// Edit this file...`);
+      }
+    } else {
+      setContent("// Select a file to edit\n// Or create a new file");
+    }
+  }, [activeFile, fileName]);
 
   return (
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between p-2 border-b border-replit-border bg-replit-panel">
         <span className="text-sm font-semibold text-replit-text">
-          {activeFile || "No file selected"}
+          {fileName || "No file selected"}
         </span>
         <div className="flex items-center space-x-2 text-xs text-replit-text-secondary">
           <span>UTF-8</span>
@@ -199,7 +227,11 @@ const FileEditor = ({ activeFile }: { activeFile: string | null }) => {
 };
 
 // Collapsible File Explorer
-const FileExplorer = ({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: () => void }) => {
+const FileExplorer = ({ isCollapsed, onToggle, onFileSelect }: { 
+  isCollapsed: boolean; 
+  onToggle: () => void;
+  onFileSelect: (filePath: string, fileName: string) => void;
+}) => {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['root']));
 
@@ -244,7 +276,10 @@ const FileExplorer = ({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggl
             selectedFile === path ? 'bg-replit-blue text-white' : 'text-replit-text'
           }`}
           style={{ paddingLeft: `${level * 16 + 8}px` }}
-          onClick={() => setSelectedFile(path)}
+          onClick={() => {
+            setSelectedFile(path);
+            onFileSelect(path, node.name);
+          }}
         >
           <File className="w-4 h-4" />
           <span className="text-sm">{node.name}</span>
@@ -311,6 +346,12 @@ export default function Dashboard() {
   const [workspaceFolders, setWorkspaceFolders] = useState<any[]>([]);
   const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
   const [activeFile, setActiveFile] = useState<string | null>(null);
+  const [activeFileName, setActiveFileName] = useState<string | null>(null);
+
+  const handleFileSelect = (filePath: string, fileName: string) => {
+    setActiveFile(filePath);
+    setActiveFileName(fileName);
+  };
 
   const { data: projects } = useQuery({
     queryKey: ["/api/projects"],
@@ -448,6 +489,7 @@ export default function Dashboard() {
         <FileExplorer 
           isCollapsed={isExplorerCollapsed}
           onToggle={() => setIsExplorerCollapsed(!isExplorerCollapsed)}
+          onFileSelect={handleFileSelect}
         />
         
         {/* Main Editor Area */}
@@ -469,7 +511,7 @@ export default function Dashboard() {
             </TabsList>
             
             <TabsContent value="editor" className="flex-1 m-0">
-              <FileEditor activeFile={activeFile} />
+              <FileEditor activeFile={activeFile} fileName={activeFileName} />
             </TabsContent>
             
             <TabsContent value="logger" className="flex-1 m-0">
@@ -482,11 +524,62 @@ export default function Dashboard() {
           </Tabs>
         </div>
         
-        {/* Agent Windows Panel */}
-        <div className="w-80 bg-replit-panel border-l border-replit-border">
-          <div className="h-full p-4">
-            <h3 className="font-semibold text-replit-text mb-4">Agent Tools</h3>
-            <AgentWindows />
+        {/* Agent Tools Panel */}
+        <div className="w-80 bg-replit-panel border-l border-replit-border flex flex-col">
+          <div className="p-3 border-b border-replit-border">
+            <h3 className="font-semibold text-replit-text">Agent Tools</h3>
+          </div>
+          <div className="flex-1 p-3">
+            <div className="grid grid-cols-2 gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-20 flex flex-col items-center justify-center gap-2 bg-replit-elevated hover:bg-replit-blue/20 border-replit-border"
+              >
+                <Terminal className="w-5 h-5" />
+                <span className="text-xs">Terminal</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-20 flex flex-col items-center justify-center gap-2 bg-replit-elevated hover:bg-replit-blue/20 border-replit-border"
+              >
+                <FileText className="w-5 h-5" />
+                <span className="text-xs">File Analysis</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-20 flex flex-col items-center justify-center gap-2 bg-replit-elevated hover:bg-replit-blue/20 border-replit-border"
+              >
+                <Globe className="w-5 h-5" />
+                <span className="text-xs">Web Preview</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-20 flex flex-col items-center justify-center gap-2 bg-replit-elevated hover:bg-replit-blue/20 border-replit-border"
+              >
+                <Monitor className="w-5 h-5" />
+                <span className="text-xs">System Monitor</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-20 flex flex-col items-center justify-center gap-2 bg-replit-elevated hover:bg-replit-blue/20 border-replit-border"
+              >
+                <Database className="w-5 h-5" />
+                <span className="text-xs">Database</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-20 flex flex-col items-center justify-center gap-2 bg-replit-elevated hover:bg-replit-blue/20 border-replit-border"
+              >
+                <Settings className="w-5 h-5" />
+                <span className="text-xs">Config</span>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
