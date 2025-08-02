@@ -19,7 +19,7 @@ copy .env.example .env
 # Edit .env with your Supabase DATABASE_URL
 
 # 4. Automated setup
-python scripts/setup-windows.py
+python scripts/setup-windows-fixed.py
 
 # 5. Validation
 python scripts/windows-complete-test.py

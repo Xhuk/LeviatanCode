@@ -11,8 +11,8 @@ cd LeviatanCode
 copy .env.example .env
 # Edit .env with your database URL and API keys
 
-# 3. Run Python setup
-python scripts/setup-windows.py
+# 3. Run Python setup  
+python scripts/setup-windows-fixed.py
 
 # 4. Validate setup (use simple version for Windows)
 python scripts/windows-test-simple.py
