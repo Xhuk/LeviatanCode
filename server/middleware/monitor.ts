@@ -155,21 +155,52 @@ class MiddlewareMonitor {
     try {
       console.log('🔄 Starting Flask Analyzer service...');
       
-      // First, ensure dependencies are installed
-      const installCommand = 'cd flask_analyzer && pip install -r requirements.txt --quiet';
+      // Create virtual environment and install dependencies
+      const isWindows = process.platform === 'win32';
+      const venvPath = 'flask_analyzer/venv';
+      const pythonExe = isWindows ? 'python' : 'python3';
+      const pipExe = isWindows ? `${venvPath}/Scripts/pip` : `${venvPath}/bin/pip`;
+      const pythonVenv = isWindows ? `${venvPath}/Scripts/python` : `${venvPath}/bin/python`;
       
       try {
-        await execAsync(installCommand);
-        console.log('📦 Flask dependencies installed');
+        // Check if virtual environment exists
+        const venvExists = await this.checkPathExists(venvPath);
+        
+        if (!venvExists) {
+          console.log('📦 Creating Python virtual environment...');
+          await execAsync(`cd flask_analyzer && ${pythonExe} -m venv venv`);
+        }
+        
+        // Install dependencies in virtual environment
+        console.log('📦 Installing Flask dependencies...');
+        await execAsync(`cd flask_analyzer && ${pipExe} install -r requirements.txt --quiet`);
+        console.log('✅ Flask dependencies installed in virtual environment');
+        
       } catch (installError) {
-        console.warn('Warning: Could not install dependencies:', installError);
+        console.warn('Warning: Could not setup virtual environment, trying system Python:', installError);
+        // Fallback to system Python
+        try {
+          await execAsync('cd flask_analyzer && pip install -r requirements.txt --quiet');
+        } catch (fallbackError) {
+          console.error('Failed to install dependencies with system Python:', fallbackError);
+          throw fallbackError;
+        }
       }
 
-      // Start the Flask analyzer using Python
-      const command = 'cd flask_analyzer && python run_server.py &';
+      // Start the Flask analyzer using virtual environment Python or system Python
+      let startCommand: string;
+      const venvPythonExists = await this.checkPathExists(pythonVenv);
+      
+      if (venvPythonExists) {
+        startCommand = `cd flask_analyzer && ${pythonVenv} run_server.py`;
+      } else {
+        startCommand = `cd flask_analyzer && ${pythonExe} run_server.py`;
+      }
+      
+      console.log(`🚀 Starting Flask server with command: ${startCommand}`);
       
       // Start the process in the background
-      exec(command, (error, stdout, stderr) => {
+      const child = exec(startCommand, (error, stdout, stderr) => {
         if (error) {
           console.error('Flask Analyzer start error:', error);
           const metric = this.metrics.get('Flask Analyzer');
@@ -177,15 +208,26 @@ class MiddlewareMonitor {
             metric.status = 'error';
             metric.errors++;
           }
-        } else {
-          console.log('✅ Flask Analyzer started successfully');
         }
       });
 
-      // Wait a moment and check if it's running
+      // Log output for debugging
+      if (child.stdout) {
+        child.stdout.on('data', (data) => {
+          console.log('Flask stdout:', data.toString());
+        });
+      }
+      
+      if (child.stderr) {
+        child.stderr.on('data', (data) => {
+          console.log('Flask stderr:', data.toString());
+        });
+      }
+
+      // Wait and check if it's running
       setTimeout(async () => {
         await this.checkFlaskAnalyzerStatus();
-      }, 5000); // Increased wait time
+      }, 8000); // Increased wait time for startup
 
       return true;
     } catch (error) {
@@ -195,6 +237,15 @@ class MiddlewareMonitor {
         metric.status = 'error';
         metric.errors++;
       }
+      return false;
+    }
+  }
+
+  private async checkPathExists(path: string): Promise<boolean> {
+    try {
+      await execAsync(`test -e ${path} || [[ -e ${path} ]]`);
+      return true;
+    } catch {
       return false;
     }
   }
@@ -216,14 +267,31 @@ class MiddlewareMonitor {
   private async stopFlaskAnalyzer(): Promise<boolean> {
     try {
       // Kill Flask analyzer process (Windows and Unix compatible)
-      let killCommand = 'pkill -f "python.*app.py" || true';
+      let killCommands: string[] = [];
       
-      // Check if running on Windows
       if (process.platform === 'win32') {
-        killCommand = 'taskkill /F /IM python.exe || true';
+        // Windows commands
+        killCommands = [
+          'taskkill /F /FI "COMMANDLINE=*run_server.py*" /T || echo "No Flask process found"',
+          'taskkill /F /FI "COMMANDLINE=*flask_analyzer*" /T || echo "No Flask analyzer process found"'
+        ];
+      } else {
+        // Unix/Linux commands
+        killCommands = [
+          'pkill -f ".*run_server.py" || echo "No Flask process found"',
+          'pkill -f ".*flask_analyzer.*python" || echo "No Flask analyzer process found"'
+        ];
       }
       
-      await execAsync(killCommand);
+      // Execute all kill commands
+      for (const cmd of killCommands) {
+        try {
+          await execAsync(cmd);
+        } catch (error) {
+          console.log(`Kill command failed (expected): ${cmd}`);
+        }
+      }
+      
       console.log('🛑 Flask Analyzer service stopped');
       
       const metric = this.metrics.get('Flask Analyzer');
