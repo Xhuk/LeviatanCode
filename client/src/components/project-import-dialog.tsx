@@ -127,10 +127,10 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
           Import Project
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl w-full h-fit max-h-[85vh] top-[8vh] transform-none overflow-hidden">
+      <DialogContent className="max-w-lg w-full h-fit max-h-[70vh] top-[5vh] transform-none overflow-hidden">
         <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 rounded-lg opacity-75 blur-sm animate-pulse -z-10"></div>
         <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 rounded-lg animate-gradient-x -z-10"></div>
-        <div className="max-h-[75vh] overflow-y-auto">
+        <div className="max-h-[60vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
               <FolderOpen className="h-5 w-5" />
@@ -142,7 +142,7 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
           </DialogHeader>
 
         {importMutation.isPending ? (
-          <div className="space-y-6 py-6">
+          <div className="space-y-4 py-4">
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-500" />
               <h3 className="text-lg font-semibold mb-2">Importing and Analyzing Project</h3>
@@ -176,7 +176,7 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
             <Progress value={(analysisStep / (analysisSteps.length - 1)) * 100} className="w-full" />
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Basic Info */}
             <div className="space-y-4">
               <div className="space-y-2">
