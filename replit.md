@@ -55,9 +55,10 @@ The system is built as a monorepo with a React TypeScript frontend using shadcn/
 Preferred communication style: Simple, everyday language.
 Target platform: Windows machines with Python and PowerShell support
 Database preference: Supabase (serverless PostgreSQL)
-Development port: 5005 (configured for Windows with npm run windev)
+Development port: 5000 (main app), 5001 (Flask analyzer)
 Setup preference: Python scripts for better accuracy and reliability
 Deployment target: Local Windows development with option for Windows Server production
+Architecture preference: Dual-service setup with main app + Flask analyzer for comprehensive analysis
 
 # System Architecture
 
