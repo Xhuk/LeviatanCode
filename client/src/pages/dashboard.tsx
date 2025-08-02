@@ -1750,25 +1750,25 @@ export default function Dashboard() {
             {isAgentMenuCollapsed ? (
               <div className="space-y-2">
 
-                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
+                <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "file-analysis" ? "active" : ""}`} onClick={() => setActiveTab("file-analysis")}>
                   <FileText className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
+                <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "git-management" ? "active" : ""}`} onClick={() => setActiveTab("git-management")}>
                   <GitBranch className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center" onClick={() => setActiveTab("system-monitor")}>
+                <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "system-monitor" ? "active" : ""}`} onClick={() => setActiveTab("system-monitor")}>
                   <Monitor className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center" onClick={() => setActiveTab("middleware-monitor")}>
+                <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "middleware-monitor" ? "active" : ""}`} onClick={() => setActiveTab("middleware-monitor")}>
                   <Activity className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center" onClick={() => setActiveTab("database-console")}>
+                <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "database-console" ? "active" : ""}`} onClick={() => setActiveTab("database-console")}>
                   <Database className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
+                <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "leviatan-settings" ? "active" : ""}`} onClick={() => setActiveTab("leviatan-settings")}>
                   <Settings className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
+                <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "configuration" ? "active" : ""}`} onClick={() => setActiveTab("configuration")}>
                   <Key className="w-4 h-4" />
                 </Button>
 
@@ -1778,7 +1778,7 @@ export default function Dashboard() {
 
                 <Button 
                   variant="ghost" 
-                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                  className={`agent-tool-button w-full justify-start gap-3 p-3 h-auto ${activeTab === "file-analysis" ? "active" : ""}`}
                   onClick={() => setActiveTab("file-analysis")}
                 >
                   <FileText className="w-5 h-5" />
@@ -1790,7 +1790,7 @@ export default function Dashboard() {
 
                 <Button 
                   variant="ghost" 
-                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                  className={`agent-tool-button w-full justify-start gap-3 p-3 h-auto ${activeTab === "system-monitor" ? "active" : ""}`}
                   onClick={() => setActiveTab("system-monitor")}
                 >
                   <Monitor className="w-5 h-5" />
@@ -1801,7 +1801,7 @@ export default function Dashboard() {
                 </Button>
                 <Button 
                   variant="ghost" 
-                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                  className={`agent-tool-button w-full justify-start gap-3 p-3 h-auto ${activeTab === "middleware-monitor" ? "active" : ""}`}
                   onClick={() => setActiveTab("middleware-monitor")}
                 >
                   <Activity className="w-5 h-5" />
@@ -1812,7 +1812,7 @@ export default function Dashboard() {
                 </Button>
                 <Button 
                   variant="ghost" 
-                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                  className={`agent-tool-button w-full justify-start gap-3 p-3 h-auto ${activeTab === "database-console" ? "active" : ""}`}
                   onClick={() => setActiveTab("database-console")}
                 >
                   <Database className="w-5 h-5" />
@@ -1823,7 +1823,7 @@ export default function Dashboard() {
                 </Button>
                 <Button 
                   variant="ghost" 
-                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                  className={`agent-tool-button w-full justify-start gap-3 p-3 h-auto ${activeTab === "git-management" ? "active" : ""}`}
                   onClick={() => setActiveTab("git-management")}
                 >
                   <GitBranch className="w-5 h-5" />
@@ -1834,7 +1834,7 @@ export default function Dashboard() {
                 </Button>
                 <Button 
                   variant="ghost" 
-                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                  className={`agent-tool-button w-full justify-start gap-3 p-3 h-auto ${activeTab === "leviatan-settings" ? "active" : ""}`}
                   onClick={() => setActiveTab("leviatan-settings")}
                 >
                   <Settings className="w-5 h-5" />

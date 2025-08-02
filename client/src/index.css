@@ -311,3 +311,84 @@ select:focus {
 .animate-gradient-x {
   animation: gradient-x 3s ease infinite;
 }
+
+/* Leviatan chasing snake border animation */
+@keyframes snake-border {
+  0% {
+    border-image-source: linear-gradient(90deg, 
+      transparent, transparent, transparent, 
+      #22c55e, #22c55e, #22c55e,
+      transparent, transparent, transparent
+    );
+  }
+  25% {
+    border-image-source: linear-gradient(180deg, 
+      transparent, transparent, transparent, 
+      #22c55e, #22c55e, #22c55e,
+      transparent, transparent, transparent
+    );
+  }
+  50% {
+    border-image-source: linear-gradient(270deg, 
+      transparent, transparent, transparent, 
+      #22c55e, #22c55e, #22c55e,
+      transparent, transparent, transparent
+    );
+  }
+  75% {
+    border-image-source: linear-gradient(0deg, 
+      transparent, transparent, transparent, 
+      #22c55e, #22c55e, #22c55e,
+      transparent, transparent, transparent
+    );
+  }
+  100% {
+    border-image-source: linear-gradient(90deg, 
+      transparent, transparent, transparent, 
+      #22c55e, #22c55e, #22c55e,
+      transparent, transparent, transparent
+    );
+  }
+}
+
+/* Agent Tools button styles */
+.agent-tool-button {
+  position: relative;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.agent-tool-button:hover {
+  background-color: rgba(34, 197, 94, 0.05);
+  border-color: rgba(34, 197, 94, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.agent-tool-button.active {
+  border: 2px solid;
+  border-image: linear-gradient(90deg, 
+    transparent, transparent, transparent, 
+    #22c55e, #22c55e, #22c55e,
+    transparent, transparent, transparent
+  ) 1;
+  animation: snake-border 2s ease infinite;
+  background-color: rgba(34, 197, 94, 0.1);
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+}
+
+.agent-tool-button.active::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(90deg, 
+    transparent, transparent, transparent, 
+    #22c55e, #22c55e, #22c55e,
+    transparent, transparent, transparent
+  );
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  animation: snake-border 2s ease infinite;
+}
