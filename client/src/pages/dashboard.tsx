@@ -23,7 +23,11 @@ import {
   Square,
   Trash2,
   Globe,
-  Monitor
+  Monitor,
+  GitBranch,
+  GitCommit,
+  Upload,
+  Download
 } from "lucide-react";
 import { ProjectImportDialog } from "@/components/project-import-dialog";
 import { SettingsDialog } from "@/components/settings-dialog";
@@ -81,6 +85,162 @@ const Logger = () => {
           <div key={i} className="text-xs py-0.5">{log}</div>
         ))}
       </ScrollArea>
+    </div>
+  );
+};
+
+// Git Log Panel component (former Configuration page)
+const GitLogPanel = () => {
+  const [gitConfig, setGitConfig] = useState({
+    username: "",
+    email: "",
+    remoteUrl: "",
+    branch: "main"
+  });
+  const [commits, setCommits] = useState([
+    {
+      hash: "a1b2c3d",
+      message: "Initial commit",
+      author: "Developer",
+      date: "2024-01-15 10:30:00",
+      branch: "main"
+    },
+    {
+      hash: "e4f5g6h",
+      message: "Add Monaco Editor integration",
+      author: "Developer", 
+      date: "2024-01-15 14:20:00",
+      branch: "main"
+    },
+    {
+      hash: "i7j8k9l",
+      message: "Implement syntax highlighting",
+      author: "Developer",
+      date: "2024-01-15 16:45:00", 
+      branch: "main"
+    }
+  ]);
+
+  return (
+    <div className="h-full bg-replit-bg p-6 overflow-y-auto">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-replit-text">Git Configuration & Log</h2>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm" className="modern-button">
+              <GitBranch className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
+        </div>
+        
+        {/* Git Configuration */}
+        <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
+          <h3 className="text-lg font-medium text-replit-text mb-4">Repository Configuration</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-replit-text-secondary mb-2">Username</label>
+              <Input
+                value={gitConfig.username}
+                onChange={(e) => setGitConfig({...gitConfig, username: e.target.value})}
+                placeholder="Your Git username"
+                className="bg-replit-elevated border-replit-border"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-replit-text-secondary mb-2">Email</label>
+              <Input
+                value={gitConfig.email}
+                onChange={(e) => setGitConfig({...gitConfig, email: e.target.value})}
+                placeholder="your.email@example.com"
+                className="bg-replit-elevated border-replit-border"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-replit-text-secondary mb-2">Remote URL</label>
+              <Input
+                value={gitConfig.remoteUrl}
+                onChange={(e) => setGitConfig({...gitConfig, remoteUrl: e.target.value})}
+                placeholder="https://github.com/user/repo.git"
+                className="bg-replit-elevated border-replit-border"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-replit-text-secondary mb-2">Current Branch</label>
+              <Input
+                value={gitConfig.branch}
+                onChange={(e) => setGitConfig({...gitConfig, branch: e.target.value})}
+                placeholder="main"
+                className="bg-replit-elevated border-replit-border"
+              />
+            </div>
+          </div>
+          <div className="mt-4 flex space-x-2">
+            <Button className="modern-button bg-replit-blue hover:bg-replit-blue-secondary">
+              Save Configuration
+            </Button>
+            <Button variant="outline" className="modern-button">
+              Test Connection
+            </Button>
+          </div>
+        </div>
+
+        {/* Git Log */}
+        <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
+          <h3 className="text-lg font-medium text-replit-text mb-4">Recent Commits</h3>
+          <div className="space-y-3">
+            {commits.map((commit) => (
+              <div key={commit.hash} className="flex items-center justify-between p-3 bg-replit-elevated rounded-lg border border-replit-border">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-replit-blue rounded-full"></div>
+                  <div>
+                    <div className="font-medium text-replit-text text-sm">{commit.message}</div>
+                    <div className="text-xs text-replit-text-secondary">
+                      {commit.hash} • {commit.author} • {commit.date}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs bg-replit-blue/20 text-replit-blue px-2 py-1 rounded">
+                    {commit.branch}
+                  </span>
+                  <Button variant="ghost" size="sm" className="p-1">
+                    <GitCommit className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Environment Settings */}
+        <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
+          <h3 className="text-lg font-medium text-replit-text mb-4">Environment Settings</h3>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="font-medium text-replit-text text-sm">Auto-commit on save</div>
+                <div className="text-xs text-replit-text-secondary">Automatically commit changes when files are saved</div>
+              </div>
+              <Button variant="outline" size="sm">Toggle</Button>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="font-medium text-replit-text text-sm">Push on commit</div>
+                <div className="text-xs text-replit-text-secondary">Automatically push commits to remote repository</div>
+              </div>
+              <Button variant="outline" size="sm">Toggle</Button>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="font-medium text-replit-text text-sm">Branch protection</div>
+                <div className="text-xs text-replit-text-secondary">Require approval for main branch changes</div>
+              </div>
+              <Button variant="outline" size="sm">Configure</Button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -467,10 +627,38 @@ export default function Dashboard() {
   const [isAgentMenuCollapsed, setIsAgentMenuCollapsed] = useState(false);
   const [activeFile, setActiveFile] = useState<string | null>(null);
   const [activeFileName, setActiveFileName] = useState<string | null>(null);
+  const [gitStatus, setGitStatus] = useState<string>("Ready");
+  const [activeTab, setActiveTab] = useState<string>("editor");
 
   const handleFileSelect = (filePath: string, fileName: string) => {
     setActiveFile(filePath);
     setActiveFileName(fileName);
+  };
+
+  const handleGitPush = async () => {
+    setGitStatus("Pushing...");
+    try {
+      // Simulate git push
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setGitStatus("Push completed");
+      setTimeout(() => setGitStatus("Ready"), 3000);
+    } catch (error) {
+      setGitStatus("Push failed");
+      setTimeout(() => setGitStatus("Ready"), 3000);
+    }
+  };
+
+  const handleGitPull = async () => {
+    setGitStatus("Pulling...");
+    try {
+      // Simulate git pull
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setGitStatus("Pull completed");
+      setTimeout(() => setGitStatus("Ready"), 3000);
+    } catch (error) {
+      setGitStatus("Pull failed");
+      setTimeout(() => setGitStatus("Ready"), 3000);
+    }
   };
 
   const { data: projects } = useQuery({
@@ -596,10 +784,35 @@ export default function Dashboard() {
             <Camera size={16} />
           </Button>
           
-          <SettingsDialog />
-          <Button variant="ghost" size="sm" className="modern-button hover:bg-replit-elevated rounded-lg">
-            <UserCircle size={20} className="text-replit-text-secondary" />
-          </Button>
+          <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 mr-2">
+              <span className="text-xs text-replit-text-secondary">Git:</span>
+              <span className="text-xs text-replit-text">{gitStatus}</span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleGitPush}
+              className="h-8 px-2 modern-button"
+              disabled={gitStatus !== "Ready"}
+            >
+              <Upload className="w-3 h-3 mr-1" />
+              <span className="text-xs">Push</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleGitPull}
+              className="h-8 px-2 modern-button"
+              disabled={gitStatus !== "Ready"}
+            >
+              <Download className="w-3 h-3 mr-1" />
+              <span className="text-xs">Pull</span>
+            </Button>
+            <Button variant="ghost" size="sm" className="modern-button hover:bg-replit-elevated rounded-lg">
+              <UserCircle size={20} className="text-replit-text-secondary" />
+            </Button>
+          </div>
         </div>
       </nav>
 
@@ -630,7 +843,7 @@ export default function Dashboard() {
                   <FileText className="w-4 h-4" />
                 </Button>
                 <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
-                  <Globe className="w-4 h-4" />
+                  <GitBranch className="w-4 h-4" />
                 </Button>
                 <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
                   <Monitor className="w-4 h-4" />
@@ -668,10 +881,10 @@ export default function Dashboard() {
                   variant="ghost" 
                   className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
                 >
-                  <Globe className="w-5 h-5" />
+                  <GitBranch className="w-5 h-5" />
                   <div className="text-left">
-                    <div className="font-medium text-sm">Web Preview</div>
-                    <div className="text-xs text-replit-text-secondary">Live application preview</div>
+                    <div className="font-medium text-sm">Git Management</div>
+                    <div className="text-xs text-replit-text-secondary">Version control and repository</div>
                   </div>
                 </Button>
                 <Button 
@@ -697,11 +910,12 @@ export default function Dashboard() {
                 <Button 
                   variant="ghost" 
                   className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                  onClick={() => setActiveTab("git-log")}
                 >
                   <Settings className="w-5 h-5" />
                   <div className="text-left">
                     <div className="font-medium text-sm">Configuration</div>
-                    <div className="text-xs text-replit-text-secondary">Environment settings</div>
+                    <div className="text-xs text-replit-text-secondary">Environment and Git settings</div>
                   </div>
                 </Button>
               </div>
@@ -718,7 +932,7 @@ export default function Dashboard() {
         
         {/* Main Editor Area */}
         <div className="flex-1 flex flex-col">
-          <Tabs defaultValue="editor" className="h-full flex flex-col">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
             <TabsList className="bg-replit-panel/90 backdrop-blur-lg border-b border-replit-border rounded-none h-12 w-full justify-start shadow-sm">
               <TabsTrigger value="editor" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
                 <FileText className="w-4 h-4" />
@@ -732,6 +946,10 @@ export default function Dashboard() {
                 <Terminal className="w-4 h-4" />
                 PowerShell
               </TabsTrigger>
+              <TabsTrigger value="git-log" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
+                <GitCommit className="w-4 h-4" />
+                Git Log
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="editor" className="flex-1 m-0">
@@ -744,6 +962,10 @@ export default function Dashboard() {
             
             <TabsContent value="powershell" className="flex-1 m-0">
               <PowerShellTerminal />
+            </TabsContent>
+            
+            <TabsContent value="git-log" className="flex-1 m-0">
+              <GitLogPanel />
             </TabsContent>
           </Tabs>
         </div>
