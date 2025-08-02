@@ -1780,21 +1780,30 @@ export default function Dashboard() {
               <GitLogPanel />
             </TabsContent>
             
-            <TabsContent value="database-console" className="flex-1 m-0">
-              <DatabaseConsole />
-            </TabsContent>
+            {/* Agent Tool Tabs - Only show when activeTab matches */}
+            {activeTab === "database-console" && (
+              <TabsContent value="database-console" className="flex-1 m-0">
+                <DatabaseConsole />
+              </TabsContent>
+            )}
             
-            <TabsContent value="system-monitor" className="flex-1 m-0">
-              <SystemMonitor />
-            </TabsContent>
+            {activeTab === "system-monitor" && (
+              <TabsContent value="system-monitor" className="flex-1 m-0">
+                <SystemMonitor />
+              </TabsContent>
+            )}
             
-            <TabsContent value="file-analysis" className="flex-1 m-0">
-              <FileAnalysis />
-            </TabsContent>
+            {activeTab === "file-analysis" && (
+              <TabsContent value="file-analysis" className="flex-1 m-0">
+                <FileAnalysis />
+              </TabsContent>
+            )}
             
-            <TabsContent value="git-management" className="flex-1 m-0">
-              <GitManagement currentProject={currentProject} />
-            </TabsContent>
+            {activeTab === "git-management" && (
+              <TabsContent value="git-management" className="flex-1 m-0">
+                <GitManagement currentProject={currentProject} />
+              </TabsContent>
+            )}
           </Tabs>
         </div>
       </div>
