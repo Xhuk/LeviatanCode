@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import settingsRoutes from "./routes/settings";
 import { aiService } from "./services/ai";
@@ -25,6 +26,50 @@ import {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
+  
+  // Setup WebSocket server for real-time analysis updates
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Store active analysis connections
+  const analysisConnections = new Map<string, WebSocket>();
+  
+  wss.on('connection', (ws, req) => {
+    console.log('📡 WebSocket connection established');
+    
+    ws.on('message', (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        if (data.type === 'subscribe_analysis' && data.projectId) {
+          analysisConnections.set(data.projectId, ws);
+          console.log(`📡 Subscribed to analysis updates for project: ${data.projectId}`);
+        }
+      } catch (e) {
+        console.warn('Invalid WebSocket message:', e);
+      }
+    });
+    
+    ws.on('close', () => {
+      // Remove from all subscriptions
+      for (const [projectId, connection] of analysisConnections.entries()) {
+        if (connection === ws) {
+          analysisConnections.delete(projectId);
+          console.log(`📡 Unsubscribed from analysis updates for project: ${projectId}`);
+        }
+      }
+    });
+  });
+  
+  // Helper function to broadcast analysis updates
+  const broadcastAnalysisUpdate = (projectId: string, update: any) => {
+    const ws = analysisConnections.get(projectId);
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: 'analysis_update',
+        projectId,
+        ...update
+      }));
+    }
+  };
 
   // Configure multer for file uploads with enhanced filtering
   const upload = multer({ 
@@ -674,6 +719,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`🐍 Generate Python script: ${generateScript ? 'Yes' : 'No'}`);
       console.log(`🤖 AI Interaction Status: ACTIVE - Analyzing project structure and generating insights...`);
       
+      // Send initial analysis started update via WebSocket
+      broadcastAnalysisUpdate(projectId, {
+        status: 'started',
+        message: `Starting AI document analysis for project: ${projectId}`,
+        workingDirectory: workingDirectory || 'current',
+        generateScript: generateScript || false
+      });
+      
       // Get the actual project to analyze its structure
       let project;
       let projectFiles = {};
@@ -1218,6 +1271,17 @@ if __name__ == "__main__":
       console.log(`📊 File Analysis: ${Object.keys(projectFiles).length} files scanned, ${fileCount} total analyzed`);
       console.log(`🐍 Python Script: ${generateScript ? 'Generated (' + (analysisResult.pythonScript?.length || 0) + ' chars)' : 'Not requested'}`);
       
+      // Send analysis completed update via WebSocket
+      broadcastAnalysisUpdate(projectId, {
+        status: 'completed',
+        message: `Analysis complete! Found ${detectedTechnologies.length} technologies, ${detectedInsights.length} insights, ${detectedRecommendations.length} recommendations`,
+        technologies: detectedTechnologies,
+        insights: detectedInsights,
+        recommendations: detectedRecommendations,
+        fileCount: Object.keys(projectFiles).length,
+        totalAnalyzed: fileCount
+      });
+      
       // Always create the Python analysis file
       if (analysisResult.pythonScript) {
         
@@ -1227,6 +1291,13 @@ if __name__ == "__main__":
           
           fs.writeFileSync(scriptPath, analysisResult.pythonScript, 'utf8');
           console.log(`💾 Python analysis script saved to: ${scriptPath}`);
+          
+          // Send script creation update via WebSocket
+          broadcastAnalysisUpdate(projectId, {
+            status: 'script_created',
+            message: `Python analysis script saved to: ${scriptFileName}`,
+            scriptPath: scriptPath
+          });
           
           // Also create a readme with usage instructions
           const readmeContent = `# Project Analysis Script

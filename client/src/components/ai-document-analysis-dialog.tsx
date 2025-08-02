@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAnalysisWebSocket } from "@/hooks/use-analysis-websocket";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import {
@@ -41,6 +42,9 @@ export function AiDocumentAnalysisDialog({
   const [generateScript, setGenerateScript] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // WebSocket connection for real-time analysis updates
+  const { updates, isConnected, currentStatus, clearUpdates, latestUpdate } = useAnalysisWebSocket(projectId);
 
   const analysisMutation = useMutation({
     mutationFn: async () => {
@@ -75,6 +79,7 @@ export function AiDocumentAnalysisDialog({
   const resetAnalysis = () => {
     setAnalysisResult(null);
     setGenerateScript(false);
+    clearUpdates();
   };
 
   return (
@@ -165,6 +170,71 @@ export function AiDocumentAnalysisDialog({
                 </div>
               </CardContent>
             </Card>
+
+            {/* Real-time Analysis Progress */}
+            {(analysisMutation.isPending || updates.length > 0) && (
+              <Card className="border-blue-200 dark:border-blue-800">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
+                    Real-time Analysis Progress
+                    {isConnected ? (
+                      <span className="flex items-center gap-1 text-xs text-green-600">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        Connected
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-xs text-red-600">
+                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                        Disconnected
+                      </span>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {currentStatus && (
+                      <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                        <span className="text-sm font-medium">{currentStatus}</span>
+                      </div>
+                    )}
+                    
+                    {latestUpdate && (
+                      <div className="grid grid-cols-2 gap-4">
+                        {latestUpdate.fileCount !== undefined && (
+                          <div className="text-center p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                            <div className="text-xl font-bold text-green-600">{latestUpdate.fileCount}</div>
+                            <div className="text-xs text-green-700 dark:text-green-400">Files Found</div>
+                          </div>
+                        )}
+                        {latestUpdate.technologies && latestUpdate.technologies.length > 0 && (
+                          <div className="text-center p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg">
+                            <div className="text-xl font-bold text-purple-600">{latestUpdate.technologies.length}</div>
+                            <div className="text-xs text-purple-700 dark:text-purple-400">Technologies</div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {updates.length > 0 && (
+                      <div>
+                        <div className="text-xs font-medium text-muted-foreground mb-2">Recent Activity</div>
+                        <ScrollArea className="h-24 bg-slate-50 dark:bg-slate-950/50 rounded p-2">
+                          <div className="space-y-1">
+                            {updates.slice(-3).map((update, index) => (
+                              <div key={index} className="text-xs text-muted-foreground">
+                                <span className="font-mono text-blue-600">{update.status}</span> - {update.message}
+                              </div>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             <div className="flex justify-center">
               <Button 

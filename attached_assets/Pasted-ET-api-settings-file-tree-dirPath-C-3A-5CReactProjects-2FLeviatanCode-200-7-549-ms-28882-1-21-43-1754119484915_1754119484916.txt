@@ -1,0 +1,41 @@
+ET /api/settings/file-tree?dirPath=C%3A%5CReactProjects%2FLeviatanCode 200 7.549 ms - 28882
+1:21:43 AM [express] GET /api/projects/LeviatanCode/prompt-templates 304 in 1ms :: []
+GET /api/projects/LeviatanCode/prompt-templates 304 0.516 ms - -
+1:21:43 AM [express] GET /api/projects/LeviatanCode/files-structure 404 in 0ms :: {"message":"Projec…
+GET /api/projects/LeviatanCode/files-structure 404 0.282 ms - 31
+1:21:43 AM [express] GET /api/projects/LeviatanCode/ai-chats 304 in 1ms :: []
+GET /api/projects/LeviatanCode/ai-chats 304 0.317 ms - -
+1:21:43 AM [express] GET /api/projects/LeviatanCode 404 in 0ms :: {"message":"Project not found"}
+GET /api/projects/LeviatanCode 404 0.287 ms - 31
+🧠 Starting AI document analysis for project: LeviatanCode
+📁 Working directory: C:\ReactProjects
+🐍 Generate Python script: No
+🤖 AI Interaction Status: ACTIVE - Analyzing project structure and generating insights...
+📁 Analyzing files:
+🔍 File extensions found:
+📄 Total content length: 0 characters
+✅ Document analysis completed for project: LeviatanCode
+🎯 AI Analysis Results: Found 0 technologies, 3 insights, 3 recommendations
+📊 File Analysis: 0 files scanned, 0 total analyzed
+🐍 Python Script: Not requested
+💾 Python analysis script saved to: C:\ReactProjects\LeviatanCode_analyzer.py
+📄 Analysis README saved to: C:\ReactProjects\LeviatanCode_analysis_README.md
+🤖 AI Interaction Status: COMPLETED - Analysis successfully generated and delivered to user
+1:21:47 AM [express] POST /api/projects/LeviatanCode/analyze-documents 200 in 5ms :: {"summary":"Ana…
+POST /api/projects/LeviatanCode/analyze-documents 200 5.218 ms - 15911
+Terminate batch job (Y/N)? Y
+C:\ReactProjects\LeviatanCode [main ≡ +10 ~2 -0 !]> python C:\ReactProjects\LeviatanCode_analyzer.py
+🔍 Analyzing project: .
+📁 Creating file tree...
+🔧 Detecting technologies...
+📦 Analyzing dependencies...
+🤖 Generating AI insights...
+
+✅ Analysis complete!
+📊 Results saved to: LeviatanCode_analysis.json
+📁 Total files: 206
+💻 Technologies: TypeScript, JavaScript, Python, HTML, CSS, Batch, PowerShell, SQL, Shell, C++, C
+🛠️  Frameworks: Environment Configuration, Node.js/npm, Python Poetry, TypeScript, Express.js, Yarn, Webpack, Spring Framework, Flask, Tailwind CSS, Vite
+📝 Lines of code: 34,376
+⚠️  AI analysis failed - provide GEMINI_API_KEY for enhanced insights
+C:\ReactProjects\LeviatanCode [main ≡ +11 ~2 -0 !]>
