@@ -1,0 +1,565 @@
+client:536 WebSocket connection to 'ws://localhost:5005/?token=xeTs696X9QjN' failed: 
+setupWebSocket @ client:536
+client:536 Uncaught (in promise) SyntaxError: Failed to construct 'WebSocket': The URL 'ws://localhost:undefined/?token=xeTs696X9QjN' is invalid.
+    at setupWebSocket (client:536:19)
+    at fallback (client:509:16)
+    at WebSocket.<anonymous> (client:555:7)
+hook.js:608 Warning: Encountered two children with the same key, `[object Object]`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. Error Component Stack
+    at div (<anonymous>)
+    at chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at @radix-ui_react-select.js?v=3dd1dc5e:1068:13
+    at div (<anonymous>)
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at @radix-ui_react-select.js?v=3dd1dc5e:611:59
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at chunk-CSEUQ3EW.js?v=3dd1dc5e:244:22
+    at SelectPortal (<anonymous>)
+    at _c7 (select.tsx:73:6)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at CollectionProvider (chunk-6TG6PFLG.js?v=3dd1dc5e:31:13)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Popper (@radix-ui_react-select.js?v=3dd1dc5e:108:11)
+    at Select (@radix-ui_react-select.js?v=3dd1dc5e:399:5)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at nav (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1394:47)
+    at Route (wouter.js?v=3dd1dc5e:323:16)
+    at Switch (wouter.js?v=3dd1dc5e:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=3dd1dc5e:951:5)
+    at QueryClientProvider (@tanstack_react-query.js?v=3dd1dc5e:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+hook.js:608 Warning: Encountered two children with the same key, `[object Object]`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. Error Component Stack
+    at div (<anonymous>)
+    at chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at @radix-ui_react-select.js?v=3dd1dc5e:1068:13
+    at div (<anonymous>)
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at @radix-ui_react-select.js?v=3dd1dc5e:611:59
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at chunk-CSEUQ3EW.js?v=3dd1dc5e:244:22
+    at SelectPortal (<anonymous>)
+    at _c7 (select.tsx:73:6)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at CollectionProvider (chunk-6TG6PFLG.js?v=3dd1dc5e:31:13)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Popper (@radix-ui_react-select.js?v=3dd1dc5e:108:11)
+    at Select (@radix-ui_react-select.js?v=3dd1dc5e:399:5)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at nav (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1394:47)
+    at Route (wouter.js?v=3dd1dc5e:323:16)
+    at Switch (wouter.js?v=3dd1dc5e:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=3dd1dc5e:951:5)
+    at QueryClientProvider (@tanstack_react-query.js?v=3dd1dc5e:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+hook.js:608 Warning: Encountered two children with the same key, `[object Object]`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. Error Component Stack
+    at div (<anonymous>)
+    at chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at @radix-ui_react-select.js?v=3dd1dc5e:1068:13
+    at div (<anonymous>)
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at @radix-ui_react-select.js?v=3dd1dc5e:611:59
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at chunk-CSEUQ3EW.js?v=3dd1dc5e:244:22
+    at SelectPortal (<anonymous>)
+    at _c7 (select.tsx:73:6)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at CollectionProvider (chunk-6TG6PFLG.js?v=3dd1dc5e:31:13)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Popper (@radix-ui_react-select.js?v=3dd1dc5e:108:11)
+    at Select (@radix-ui_react-select.js?v=3dd1dc5e:399:5)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at nav (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1394:47)
+    at Route (wouter.js?v=3dd1dc5e:323:16)
+    at Switch (wouter.js?v=3dd1dc5e:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=3dd1dc5e:951:5)
+    at QueryClientProvider (@tanstack_react-query.js?v=3dd1dc5e:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+chunk-WERSD76P.js?v=3dd1dc5e:9934 Uncaught Error: Objects are not valid as a React child (found: object with keys {name, path}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (chunk-WERSD76P.js?v=3dd1dc5e:9934:17)
+    at reconcileChildFibers2 (chunk-WERSD76P.js?v=3dd1dc5e:10564:15)
+    at reconcileChildren (chunk-WERSD76P.js?v=3dd1dc5e:14290:37)
+    at updateHostComponent (chunk-WERSD76P.js?v=3dd1dc5e:14807:11)
+    at beginWork (chunk-WERSD76P.js?v=3dd1dc5e:15935:22)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=3dd1dc5e:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=3dd1dc5e:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=3dd1dc5e:3733:39)
+    at beginWork$1 (chunk-WERSD76P.js?v=3dd1dc5e:19765:15)
+    at performUnitOfWork (chunk-WERSD76P.js?v=3dd1dc5e:19198:20)
+chunk-WERSD76P.js?v=3dd1dc5e:9934 Uncaught Error: Objects are not valid as a React child (found: object with keys {name, path}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (chunk-WERSD76P.js?v=3dd1dc5e:9934:17)
+    at reconcileChildFibers2 (chunk-WERSD76P.js?v=3dd1dc5e:10564:15)
+    at reconcileChildren (chunk-WERSD76P.js?v=3dd1dc5e:14290:37)
+    at updateHostComponent (chunk-WERSD76P.js?v=3dd1dc5e:14807:11)
+    at beginWork (chunk-WERSD76P.js?v=3dd1dc5e:15935:22)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=3dd1dc5e:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=3dd1dc5e:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=3dd1dc5e:3733:39)
+    at beginWork$1 (chunk-WERSD76P.js?v=3dd1dc5e:19765:15)
+    at performUnitOfWork (chunk-WERSD76P.js?v=3dd1dc5e:19198:20)
+chunk-WERSD76P.js?v=3dd1dc5e:9934 Uncaught Error: Objects are not valid as a React child (found: object with keys {name, path}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (chunk-WERSD76P.js?v=3dd1dc5e:9934:17)
+    at reconcileChildFibers2 (chunk-WERSD76P.js?v=3dd1dc5e:10564:15)
+    at reconcileChildren (chunk-WERSD76P.js?v=3dd1dc5e:14290:37)
+    at updateHostComponent (chunk-WERSD76P.js?v=3dd1dc5e:14807:11)
+    at beginWork (chunk-WERSD76P.js?v=3dd1dc5e:15935:22)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=3dd1dc5e:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=3dd1dc5e:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=3dd1dc5e:3733:39)
+    at beginWork$1 (chunk-WERSD76P.js?v=3dd1dc5e:19765:15)
+    at performUnitOfWork (chunk-WERSD76P.js?v=3dd1dc5e:19198:20)
+chunk-WERSD76P.js?v=3dd1dc5e:9934 Uncaught Error: Objects are not valid as a React child (found: object with keys {name, path}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (chunk-WERSD76P.js?v=3dd1dc5e:9934:17)
+    at reconcileChildFibers2 (chunk-WERSD76P.js?v=3dd1dc5e:10564:15)
+    at reconcileChildren (chunk-WERSD76P.js?v=3dd1dc5e:14290:37)
+    at updateHostComponent (chunk-WERSD76P.js?v=3dd1dc5e:14807:11)
+    at beginWork (chunk-WERSD76P.js?v=3dd1dc5e:15935:22)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=3dd1dc5e:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=3dd1dc5e:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=3dd1dc5e:3733:39)
+    at beginWork$1 (chunk-WERSD76P.js?v=3dd1dc5e:19765:15)
+    at performUnitOfWork (chunk-WERSD76P.js?v=3dd1dc5e:19198:20)
+hook.js:608 Warning: Encountered two children with the same key, `[object Object]`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. Error Component Stack
+    at div (<anonymous>)
+    at chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at @radix-ui_react-select.js?v=3dd1dc5e:1068:13
+    at div (<anonymous>)
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at @radix-ui_react-select.js?v=3dd1dc5e:611:59
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at chunk-CSEUQ3EW.js?v=3dd1dc5e:244:22
+    at SelectPortal (<anonymous>)
+    at _c7 (select.tsx:73:6)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at CollectionProvider (chunk-6TG6PFLG.js?v=3dd1dc5e:31:13)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Popper (@radix-ui_react-select.js?v=3dd1dc5e:108:11)
+    at Select (@radix-ui_react-select.js?v=3dd1dc5e:399:5)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at nav (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1394:47)
+    at Route (wouter.js?v=3dd1dc5e:323:16)
+    at Switch (wouter.js?v=3dd1dc5e:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=3dd1dc5e:951:5)
+    at QueryClientProvider (@tanstack_react-query.js?v=3dd1dc5e:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+hook.js:608 Warning: Encountered two children with the same key, `[object Object]`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. Error Component Stack
+    at div (<anonymous>)
+    at chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at @radix-ui_react-select.js?v=3dd1dc5e:1068:13
+    at div (<anonymous>)
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at @radix-ui_react-select.js?v=3dd1dc5e:611:59
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at chunk-CSEUQ3EW.js?v=3dd1dc5e:244:22
+    at SelectPortal (<anonymous>)
+    at _c7 (select.tsx:73:6)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at CollectionProvider (chunk-6TG6PFLG.js?v=3dd1dc5e:31:13)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Popper (@radix-ui_react-select.js?v=3dd1dc5e:108:11)
+    at Select (@radix-ui_react-select.js?v=3dd1dc5e:399:5)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at nav (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1394:47)
+    at Route (wouter.js?v=3dd1dc5e:323:16)
+    at Switch (wouter.js?v=3dd1dc5e:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=3dd1dc5e:951:5)
+    at QueryClientProvider (@tanstack_react-query.js?v=3dd1dc5e:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+hook.js:608 Warning: Encountered two children with the same key, `[object Object]`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. Error Component Stack
+    at div (<anonymous>)
+    at chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at @radix-ui_react-select.js?v=3dd1dc5e:1068:13
+    at div (<anonymous>)
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at @radix-ui_react-select.js?v=3dd1dc5e:611:59
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at chunk-CSEUQ3EW.js?v=3dd1dc5e:244:22
+    at SelectPortal (<anonymous>)
+    at _c7 (select.tsx:73:6)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at CollectionProvider (chunk-6TG6PFLG.js?v=3dd1dc5e:31:13)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Popper (@radix-ui_react-select.js?v=3dd1dc5e:108:11)
+    at Select (@radix-ui_react-select.js?v=3dd1dc5e:399:5)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at nav (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1394:47)
+    at Route (wouter.js?v=3dd1dc5e:323:16)
+    at Switch (wouter.js?v=3dd1dc5e:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=3dd1dc5e:951:5)
+    at QueryClientProvider (@tanstack_react-query.js?v=3dd1dc5e:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+chunk-WERSD76P.js?v=3dd1dc5e:9934 Uncaught Error: Objects are not valid as a React child (found: object with keys {name, path}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (chunk-WERSD76P.js?v=3dd1dc5e:9934:17)
+    at reconcileChildFibers2 (chunk-WERSD76P.js?v=3dd1dc5e:10564:15)
+    at reconcileChildren (chunk-WERSD76P.js?v=3dd1dc5e:14290:37)
+    at updateHostComponent (chunk-WERSD76P.js?v=3dd1dc5e:14807:11)
+    at beginWork (chunk-WERSD76P.js?v=3dd1dc5e:15935:22)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=3dd1dc5e:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=3dd1dc5e:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=3dd1dc5e:3733:39)
+    at beginWork$1 (chunk-WERSD76P.js?v=3dd1dc5e:19765:15)
+    at performUnitOfWork (chunk-WERSD76P.js?v=3dd1dc5e:19198:20)
+chunk-WERSD76P.js?v=3dd1dc5e:9934 Uncaught Error: Objects are not valid as a React child (found: object with keys {name, path}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (chunk-WERSD76P.js?v=3dd1dc5e:9934:17)
+    at reconcileChildFibers2 (chunk-WERSD76P.js?v=3dd1dc5e:10564:15)
+    at reconcileChildren (chunk-WERSD76P.js?v=3dd1dc5e:14290:37)
+    at updateHostComponent (chunk-WERSD76P.js?v=3dd1dc5e:14807:11)
+    at beginWork (chunk-WERSD76P.js?v=3dd1dc5e:15935:22)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=3dd1dc5e:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=3dd1dc5e:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=3dd1dc5e:3733:39)
+    at beginWork$1 (chunk-WERSD76P.js?v=3dd1dc5e:19765:15)
+    at performUnitOfWork (chunk-WERSD76P.js?v=3dd1dc5e:19198:20)
+chunk-WERSD76P.js?v=3dd1dc5e:9934 Uncaught Error: Objects are not valid as a React child (found: object with keys {name, path}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (chunk-WERSD76P.js?v=3dd1dc5e:9934:17)
+    at reconcileChildFibers2 (chunk-WERSD76P.js?v=3dd1dc5e:10564:15)
+    at reconcileChildren (chunk-WERSD76P.js?v=3dd1dc5e:14290:37)
+    at updateHostComponent (chunk-WERSD76P.js?v=3dd1dc5e:14807:11)
+    at beginWork (chunk-WERSD76P.js?v=3dd1dc5e:15935:22)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=3dd1dc5e:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=3dd1dc5e:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=3dd1dc5e:3733:39)
+    at beginWork$1 (chunk-WERSD76P.js?v=3dd1dc5e:19765:15)
+    at performUnitOfWork (chunk-WERSD76P.js?v=3dd1dc5e:19198:20)
+chunk-WERSD76P.js?v=3dd1dc5e:9934 Uncaught Error: Objects are not valid as a React child (found: object with keys {name, path}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (chunk-WERSD76P.js?v=3dd1dc5e:9934:17)
+    at reconcileChildFibers2 (chunk-WERSD76P.js?v=3dd1dc5e:10564:15)
+    at reconcileChildren (chunk-WERSD76P.js?v=3dd1dc5e:14290:37)
+    at updateHostComponent (chunk-WERSD76P.js?v=3dd1dc5e:14807:11)
+    at beginWork (chunk-WERSD76P.js?v=3dd1dc5e:15935:22)
+    at HTMLUnknownElement.callCallback2 (chunk-WERSD76P.js?v=3dd1dc5e:3674:22)
+    at Object.invokeGuardedCallbackDev (chunk-WERSD76P.js?v=3dd1dc5e:3699:24)
+    at invokeGuardedCallback (chunk-WERSD76P.js?v=3dd1dc5e:3733:39)
+    at beginWork$1 (chunk-WERSD76P.js?v=3dd1dc5e:19765:15)
+    at performUnitOfWork (chunk-WERSD76P.js?v=3dd1dc5e:19198:20)
+hook.js:608 The above error occurred in the <span> component:
+
+    at span
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:1264:13
+    at div
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-6TG6PFLG.js?v=3dd1dc5e:53:15
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:1157:7
+    at _c11 (http://localhost:5005/src/components/ui/select.tsx:196:13)
+    at div
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:1068:13
+    at div
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:611:59
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-CSEUQ3EW.js?v=3dd1dc5e:244:22
+    at SelectPortal
+    at _c7 (http://localhost:5005/src/components/ui/select.tsx:117:12)
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at CollectionProvider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-6TG6PFLG.js?v=3dd1dc5e:31:13)
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Popper (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:108:11)
+    at Select (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:399:5)
+    at div
+    at div
+    at nav
+    at div
+    at Dashboard (http://localhost:5005/src/pages/dashboard.tsx:2882:47)
+    at Route (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/wouter.js?v=3dd1dc5e:323:16)
+    at Switch (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/wouter.js?v=3dd1dc5e:379:17)
+    at Router
+    at div
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at TooltipProvider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3dd1dc5e:951:5)
+    at QueryClientProvider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@tanstack_react-query.js?v=3dd1dc5e:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+overrideMethod @ hook.js:608
+hook.js:608 The above error occurred in the <span> component:
+
+    at span
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:1264:13
+    at div
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-6TG6PFLG.js?v=3dd1dc5e:53:15
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:1157:7
+    at _c11 (http://localhost:5005/src/components/ui/select.tsx:196:13)
+    at div
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:1068:13
+    at div
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:611:59
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-CSEUQ3EW.js?v=3dd1dc5e:244:22
+    at SelectPortal
+    at _c7 (http://localhost:5005/src/components/ui/select.tsx:117:12)
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at CollectionProvider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-6TG6PFLG.js?v=3dd1dc5e:31:13)
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Popper (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:108:11)
+    at Select (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:399:5)
+    at div
+    at div
+    at nav
+    at div
+    at Dashboard (http://localhost:5005/src/pages/dashboard.tsx:2882:47)
+    at Route (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/wouter.js?v=3dd1dc5e:323:16)
+    at Switch (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/wouter.js?v=3dd1dc5e:379:17)
+    at Router
+    at div
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at TooltipProvider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3dd1dc5e:951:5)
+    at QueryClientProvider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@tanstack_react-query.js?v=3dd1dc5e:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+overrideMethod @ hook.js:608
+hook.js:608 The above error occurred in the <span> component:
+
+    at span
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:1264:13
+    at div
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-6TG6PFLG.js?v=3dd1dc5e:53:15
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:1157:7
+    at _c11 (http://localhost:5005/src/components/ui/select.tsx:196:13)
+    at div
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:1068:13
+    at div
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:611:59
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-CSEUQ3EW.js?v=3dd1dc5e:244:22
+    at SelectPortal
+    at _c7 (http://localhost:5005/src/components/ui/select.tsx:117:12)
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at CollectionProvider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-6TG6PFLG.js?v=3dd1dc5e:31:13)
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Popper (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:108:11)
+    at Select (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:399:5)
+    at div
+    at div
+    at nav
+    at div
+    at Dashboard (http://localhost:5005/src/pages/dashboard.tsx:2882:47)
+    at Route (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/wouter.js?v=3dd1dc5e:323:16)
+    at Switch (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/wouter.js?v=3dd1dc5e:379:17)
+    at Router
+    at div
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at TooltipProvider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3dd1dc5e:951:5)
+    at QueryClientProvider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@tanstack_react-query.js?v=3dd1dc5e:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+overrideMethod @ hook.js:608
+hook.js:608 The above error occurred in the <span> component:
+
+    at span
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:1264:13
+    at div
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-6TG6PFLG.js?v=3dd1dc5e:53:15
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:1157:7
+    at _c11 (http://localhost:5005/src/components/ui/select.tsx:196:13)
+    at div
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:1068:13
+    at div
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-6TG6PFLG.js?v=3dd1dc5e:41:15
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:611:59
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:43:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-Z7JUZCUR.js?v=3dd1dc5e:20:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-ORUK6BJI.js?v=3dd1dc5e:42:13
+    at http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-CSEUQ3EW.js?v=3dd1dc5e:244:22
+    at SelectPortal
+    at _c7 (http://localhost:5005/src/components/ui/select.tsx:117:12)
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at CollectionProvider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-6TG6PFLG.js?v=3dd1dc5e:31:13)
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at Popper (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:108:11)
+    at Select (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-select.js?v=3dd1dc5e:399:5)
+    at div
+    at div
+    at nav
+    at div
+    at Dashboard (http://localhost:5005/src/pages/dashboard.tsx:2882:47)
+    at Route (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/wouter.js?v=3dd1dc5e:323:16)
+    at Switch (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/wouter.js?v=3dd1dc5e:379:17)
+    at Router
+    at div
+    at Provider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=3dd1dc5e:38:15)
+    at TooltipProvider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=3dd1dc5e:951:5)
+    at QueryClientProvider (http://localhost:5005/@fs/C:/ReactProjects/LeviatanCode/node_modules/.vite/deps/@tanstack_react-query.js?v=3dd1dc5e:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+overrideMethod @ hook.js:608
+chunk-WERSD76P.js?v=3dd1dc5e:19413 Uncaught Error: Objects are not valid as a React child (found: object with keys {name, path}). If you meant to render a collection of children, use an array instead.
+    at throwOnInvalidObjectType (chunk-WERSD76P.js?v=3dd1dc5e:9934:17)
+    at reconcileChildFibers2 (chunk-WERSD76P.js?v=3dd1dc5e:10564:15)
+    at reconcileChildren (chunk-WERSD76P.js?v=3dd1dc5e:14290:37)
+    at updateHostComponent (chunk-WERSD76P.js?v=3dd1dc5e:14807:11)
+    at beginWork (chunk-WERSD76P.js?v=3dd1dc5e:15935:22)
+    at beginWork$1 (chunk-WERSD76P.js?v=3dd1dc5e:19753:22)
+    at performUnitOfWork (chunk-WERSD76P.js?v=3dd1dc5e:19198:20)
+    at workLoopSync (chunk-WERSD76P.js?v=3dd1dc5e:19137:13)
+    at renderRootSync (chunk-WERSD76P.js?v=3dd1dc5e:19116:15)
+    at recoverFromConcurrentError (chunk-WERSD76P.js?v=3dd1dc5e:18736:28)

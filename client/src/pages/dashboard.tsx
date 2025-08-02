@@ -1564,11 +1564,16 @@ export default function Dashboard() {
               </SelectTrigger>
               <SelectContent>
                 {workspaceFolders.length > 0 ? (
-                  workspaceFolders.map((folder: string) => (
-                    <SelectItem key={folder} value={folder}>
-                      {folder}
-                    </SelectItem>
-                  ))
+                  workspaceFolders.map((folder: any, index: number) => {
+                    // Handle both string and object folder formats
+                    const folderName = typeof folder === 'string' ? folder : folder.name || folder.path || `folder-${index}`;
+                    const folderValue = typeof folder === 'string' ? folder : folder.path || folder.name || `folder-${index}`;
+                    return (
+                      <SelectItem key={`folder-${index}-${folderValue}`} value={folderValue}>
+                        {folderName}
+                      </SelectItem>
+                    );
+                  })
                 ) : (
                   <SelectItem value="no-workspace" disabled>No workspace folders</SelectItem>
                 )}
