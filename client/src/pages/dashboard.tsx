@@ -1440,6 +1440,7 @@ export default function Dashboard() {
   const [workspaceFolders, setWorkspaceFolders] = useState<string[]>([]);
   const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
   const [isAgentMenuCollapsed, setIsAgentMenuCollapsed] = useState(false);
+  const [isAiChatCollapsed, setIsAiChatCollapsed] = useState(false);
   const [activeFile, setActiveFile] = useState<string | null>(null);
   const [activeFileName, setActiveFileName] = useState<string | null>(null);
   const [gitStatus, setGitStatus] = useState<string>("Not configured");
@@ -1751,7 +1752,7 @@ export default function Dashboard() {
           <div className="flex-1 p-2">
             {isAgentMenuCollapsed ? (
               <div className="space-y-2">
-                <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "ai-chat" ? "active" : ""}`} onClick={() => setActiveTab("ai-chat")}>
+                <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${!isAiChatCollapsed ? "active" : ""}`} onClick={() => setIsAiChatCollapsed(!isAiChatCollapsed)}>
                   <Bot className="w-4 h-4" />
                 </Button>
                 <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "file-analysis" ? "active" : ""}`} onClick={() => setActiveTab("file-analysis")}>
@@ -1781,8 +1782,8 @@ export default function Dashboard() {
               <div className="space-y-2">
                 <Button 
                   variant="ghost" 
-                  className={`agent-tool-button w-full justify-start gap-3 p-3 h-auto ${activeTab === "ai-chat" ? "active" : ""}`}
-                  onClick={() => setActiveTab("ai-chat")}
+                  className={`agent-tool-button w-full justify-start gap-3 p-3 h-auto ${!isAiChatCollapsed ? "active" : ""}`}
+                  onClick={() => setIsAiChatCollapsed(!isAiChatCollapsed)}
                 >
                   <Bot className="w-5 h-5" />
                   <div className="text-left">
@@ -1882,6 +1883,35 @@ export default function Dashboard() {
           currentProject={currentProject}
         />
         
+        {/* AI Chat Panel */}
+        <div className={`${isAiChatCollapsed ? 'w-12' : 'w-80'} bg-replit-panel border-r border-replit-border transition-all duration-300 flex flex-col`}>
+          <div className="p-3 border-b border-replit-border flex items-center justify-between">
+            {!isAiChatCollapsed && (
+              <h3 className="font-semibold text-replit-text text-sm flex items-center gap-2">
+                <Bot className="w-4 h-4" />
+                AI Chat
+              </h3>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsAiChatCollapsed(!isAiChatCollapsed)}
+              className="p-1 h-8 w-8"
+            >
+              {isAiChatCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            </Button>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            {isAiChatCollapsed ? (
+              <div className="flex items-center justify-center h-full">
+                <Bot className="w-6 h-6 text-replit-text-secondary" />
+              </div>
+            ) : (
+              <AiChatPanel projectId={currentProject} />
+            )}
+          </div>
+        </div>
+        
         {/* Main Editor Area */}
         <div className="flex-1 flex flex-col">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
@@ -1963,11 +1993,7 @@ export default function Dashboard() {
               </TabsContent>
             )}
             
-            {activeTab === "ai-chat" && (
-              <TabsContent value="ai-chat" className="flex-1 m-0">
-                <AiChatPanel projectId={currentProject} />
-              </TabsContent>
-            )}
+
 
           </Tabs>
         </div>
