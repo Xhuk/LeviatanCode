@@ -2499,5 +2499,64 @@ Please provide a JSON response with this exact structure:
     }
   });
 
+  // Windows Debug Agent endpoints
+  app.get('/api/debug/system-info', async (req, res) => {
+    try {
+      const { WindowsDebugService } = await import('./services/windows-debug');
+      const debugService = WindowsDebugService.getInstance();
+      const systemInfo = await debugService.getSystemInfo();
+      res.json(systemInfo);
+    } catch (error) {
+      console.error('Error getting system info:', error);
+      res.status(500).json({ error: 'Failed to get system information' });
+    }
+  });
+
+  app.get('/api/debug/processes', async (req, res) => {
+    try {
+      const { WindowsDebugService } = await import('./services/windows-debug');
+      const debugService = WindowsDebugService.getInstance();
+      const processes = await debugService.getProcesses();
+      res.json(processes);
+    } catch (error) {
+      console.error('Error getting processes:', error);
+      res.status(500).json({ error: 'Failed to get process information' });
+    }
+  });
+
+  app.get('/api/debug/environment', async (req, res) => {
+    try {
+      const { WindowsDebugService } = await import('./services/windows-debug');
+      const debugService = WindowsDebugService.getInstance();
+      const environment = await debugService.getEnvironmentVariables();
+      res.json(environment);
+    } catch (error) {
+      console.error('Error getting environment variables:', error);
+      res.status(500).json({ error: 'Failed to get environment variables' });
+    }
+  });
+
+  app.post('/api/debug/kill-process', async (req, res) => {
+    try {
+      const { pid } = req.body;
+      if (!pid || typeof pid !== 'number') {
+        return res.status(400).json({ error: 'Invalid process ID' });
+      }
+
+      const { WindowsDebugService } = await import('./services/windows-debug');
+      const debugService = WindowsDebugService.getInstance();
+      const result = await debugService.killProcess(pid);
+      
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(500).json(result);
+      }
+    } catch (error) {
+      console.error('Error killing process:', error);
+      res.status(500).json({ error: 'Failed to kill process' });
+    }
+  });
+
   return httpServer;
 }
