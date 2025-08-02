@@ -672,52 +672,151 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`📁 Working directory: ${workingDirectory || 'current'}`);
       console.log(`🐍 Generate Python script: ${generateScript ? 'Yes' : 'No'}`);
       
-      // Mock analysis result for now (would integrate with real AI service)
+      // Get the actual project to analyze its structure
+      const project = await storage.getProject(projectId);
+      const projectFiles = project?.files || {};
+      
+      // Analyze the actual project structure
+      const fileExtensions = Object.keys(projectFiles).map(path => {
+        const ext = path.split('.').pop()?.toLowerCase();
+        return ext;
+      }).filter(Boolean);
+      
+      const detectedTechnologies = [];
+      const detectedInsights = [];
+      const detectedRecommendations = [];
+      
+      // Detect technologies based on file extensions and content
+      if (fileExtensions.includes('js') || fileExtensions.includes('jsx')) {
+        detectedTechnologies.push('JavaScript');
+      }
+      if (fileExtensions.includes('ts') || fileExtensions.includes('tsx')) {
+        detectedTechnologies.push('TypeScript');
+      }
+      if (fileExtensions.includes('py')) {
+        detectedTechnologies.push('Python');
+      }
+      if (fileExtensions.includes('java')) {
+        detectedTechnologies.push('Java');
+      }
+      if (fileExtensions.includes('cs')) {
+        detectedTechnologies.push('C#');
+      }
+      if (fileExtensions.includes('cpp') || fileExtensions.includes('c')) {
+        detectedTechnologies.push('C/C++');
+      }
+      if (fileExtensions.includes('php')) {
+        detectedTechnologies.push('PHP');
+      }
+      if (fileExtensions.includes('rb')) {
+        detectedTechnologies.push('Ruby');
+      }
+      if (fileExtensions.includes('go')) {
+        detectedTechnologies.push('Go');
+      }
+      if (fileExtensions.includes('rs')) {
+        detectedTechnologies.push('Rust');
+      }
+      
+      // Check for specific frameworks and libraries
+      const fileContents = Object.values(projectFiles).map(f => f.content || '').join(' ');
+      if (fileContents.includes('react') || fileContents.includes('React')) {
+        detectedTechnologies.push('React');
+      }
+      if (fileContents.includes('vue') || fileContents.includes('Vue')) {
+        detectedTechnologies.push('Vue.js');
+      }
+      if (fileContents.includes('angular') || fileContents.includes('Angular')) {
+        detectedTechnologies.push('Angular');
+      }
+      if (fileContents.includes('express') || fileContents.includes('Express')) {
+        detectedTechnologies.push('Express.js');
+      }
+      if (fileContents.includes('django') || fileContents.includes('Django')) {
+        detectedTechnologies.push('Django');
+      }
+      if (fileContents.includes('flask') || fileContents.includes('Flask')) {
+        detectedTechnologies.push('Flask');
+      }
+      
+      // Generate insights based on project structure
+      const fileCount = Object.keys(projectFiles).length;
+      if (fileCount > 0) {
+        detectedInsights.push(`Project contains ${fileCount} files across various directories`);
+      }
+      
+      if (detectedTechnologies.includes('TypeScript')) {
+        detectedInsights.push('Uses TypeScript for enhanced type safety and developer experience');
+        detectedRecommendations.push('Consider setting up strict TypeScript configuration for better type checking');
+      }
+      
+      if (detectedTechnologies.includes('React')) {
+        detectedInsights.push('React-based frontend architecture detected');
+        detectedRecommendations.push('Consider implementing React Testing Library for component testing');
+      }
+      
+      if (detectedTechnologies.includes('Python')) {
+        detectedInsights.push('Python-based backend or scripting detected');
+        detectedRecommendations.push('Consider setting up virtual environment and requirements.txt');
+      }
+      
+      // Default recommendations
+      if (detectedRecommendations.length === 0) {
+        detectedRecommendations.push('Consider adding automated testing framework');
+        detectedRecommendations.push('Implement proper documentation for project setup');
+        detectedRecommendations.push('Add version control and CI/CD pipeline');
+      }
+      
+      // Default insights if none detected
+      if (detectedInsights.length === 0) {
+        detectedInsights.push('Project structure analysis completed');
+        detectedInsights.push('Consider organizing files into logical directories');
+      }
+      
       const analysisResult = {
-        summary: "This project appears to be a comprehensive development environment with TypeScript/React frontend and Express.js backend. The codebase includes advanced project import mechanisms, AI integration, and file management capabilities.",
-        technologies: ["TypeScript", "React", "Express.js", "Node.js", "Tailwind CSS", "Drizzle ORM", "PostgreSQL", "Vite"],
-        recommendations: [
-          "Consider adding automated testing with Jest or Vitest",
-          "Implement API documentation with Swagger/OpenAPI", 
-          "Add monitoring and logging for production deployment",
-          "Consider implementing caching strategies for better performance"
-        ],
-        insights: [
-          "Project follows modern full-stack JavaScript architecture",
-          "Uses shadcn/ui components for consistent design system",
-          "Implements proper TypeScript types across frontend and backend",
-          "Has file upload and ZIP extraction capabilities built-in"
-        ]
+        summary: `Analyzed project "${projectId}" with ${fileCount} files. Detected technologies: ${detectedTechnologies.join(', ') || 'None specified'}. The project appears to be a ${detectedTechnologies[0] || 'general-purpose'} application.`,
+        technologies: detectedTechnologies,
+        recommendations: detectedRecommendations,
+        insights: detectedInsights
       };
 
       // Generate Python script if requested
       if (generateScript) {
+        const scriptTechnologies = detectedTechnologies.join(', ') || 'various technologies';
         analysisResult.pythonScript = `#!/usr/bin/env python3
 """
-Document Analysis Script
+Project Analysis Script for ${projectId}
 Generated by LeviatanCode AI
 
-This script analyzes project documents and extracts key insights.
+This script analyzes the ${projectId} project containing ${scriptTechnologies}.
+Detected ${fileCount} files for analysis.
 """
 
 import os
 import json
 from pathlib import Path
 from typing import Dict, List, Any
+import datetime
 
 def analyze_project_structure(project_path: str) -> Dict[str, Any]:
-    """Analyze project structure and extract insights."""
+    """Analyze project structure and extract insights for ${projectId}."""
     insights = {
+        "project_name": "${projectId}",
+        "analysis_date": datetime.datetime.now().isoformat(),
         "file_types": {},
+        "technologies": [],
         "dependencies": [],
-        "architecture_notes": [],
-        "recommendations": []
+        "structure_analysis": [],
+        "recommendations": ${JSON.stringify(detectedRecommendations)}
     }
     
     # Walk through project directory
     for root, dirs, files in os.walk(project_path):
-        # Skip node_modules and other build directories
-        dirs[:] = [d for d in dirs if d not in ['node_modules', 'dist', 'build', '.git']]
+        # Skip common build/cache directories
+        dirs[:] = [d for d in dirs if d not in [
+            'node_modules', 'dist', 'build', '.git', '__pycache__', 
+            '.pytest_cache', 'target', 'bin', 'obj'
+        ]]
         
         for file in files:
             file_path = Path(root) / file
@@ -726,50 +825,104 @@ def analyze_project_structure(project_path: str) -> Dict[str, Any]:
             # Count file types
             insights["file_types"][ext] = insights["file_types"].get(ext, 0) + 1
             
-            # Analyze specific files
-            if file == 'package.json':
-                try:
-                    with open(file_path, 'r') as f:
-                        package_data = json.load(f)
-                        if 'dependencies' in package_data:
-                            insights["dependencies"].extend(package_data['dependencies'].keys())
-                except Exception as e:
-                    print(f"Error reading {file_path}: {e}")
+            # Detect technologies based on file patterns
+            ${detectedTechnologies.includes('JavaScript') || detectedTechnologies.includes('TypeScript') ? `
+            if ext in ['.js', '.jsx', '.ts', '.tsx']:
+                insights["technologies"].append("JavaScript/TypeScript")
+                if file == 'package.json':
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            package_data = json.load(f)
+                            if 'dependencies' in package_data:
+                                insights["dependencies"].extend(package_data['dependencies'].keys())
+                    except Exception as e:
+                        print(f"Error reading {file_path}: {e}")` : ''}
+            
+            ${detectedTechnologies.includes('Python') ? `
+            if ext == '.py':
+                insights["technologies"].append("Python")
+                if file == 'requirements.txt':
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            requirements = f.read().strip().split('\\n')
+                            insights["dependencies"].extend([req.split('==')[0].split('>=')[0] for req in requirements if req])
+                    except Exception as e:
+                        print(f"Error reading {file_path}: {e}")` : ''}
+    
+    # Remove duplicates
+    insights["technologies"] = list(set(insights["technologies"]))
+    insights["dependencies"] = list(set(insights["dependencies"]))
     
     return insights
 
-def generate_report(insights: Dict[str, Any]) -> str:
-    """Generate a markdown report from insights."""
-    report = "# Project Analysis Report\\n\\n"
+def generate_detailed_report(insights: Dict[str, Any]) -> str:
+    """Generate a comprehensive markdown report."""
+    report = f"""# {insights['project_name']} Analysis Report
+
+**Analysis Date:** {insights['analysis_date']}
+**Technologies Detected:** ${scriptTechnologies}
+
+## Project Overview
+This analysis was generated for the ${projectId} project, which appears to be a ${detectedTechnologies[0] || 'multi-technology'} application.
+
+## File Type Distribution
+"""
     
-    # File type breakdown
-    report += "## File Type Distribution\\n"
     for ext, count in sorted(insights["file_types"].items()):
-        report += f"- {ext or 'no extension'}: {count} files\\n"
+        ext_name = ext or 'no extension'
+        report += f"- **{ext_name}**: {count} files\\n"
     
-    # Dependencies
     if insights["dependencies"]:
         report += "\\n## Dependencies\\n"
         for dep in sorted(set(insights["dependencies"])):
             report += f"- {dep}\\n"
     
+    if insights["recommendations"]:
+        report += "\\n## Recommendations\\n"
+        for i, rec in enumerate(insights["recommendations"], 1):
+            report += f"{i}. {rec}\\n"
+    
+    report += f"""
+## Analysis Summary
+- Total files analyzed: {sum(insights["file_types"].values()) if insights["file_types"] else 0}
+- Primary technologies: {', '.join(insights["technologies"]) if insights["technologies"] else 'Not detected'}
+- Dependencies found: {len(insights["dependencies"])}
+
+---
+*Generated by LeviatanCode AI Document Analysis*
+"""
+    
     return report
+
+def export_json_summary(insights: Dict[str, Any], filename: str = "${projectId}_analysis.json"):
+    """Export analysis results as JSON."""
+    with open(filename, 'w', encoding='utf-8') as f:
+        json.dump(insights, f, indent=2, ensure_ascii=False)
+    print(f"JSON summary exported to {filename}")
 
 if __name__ == "__main__":
     project_path = input("Enter project path (or press Enter for current directory): ").strip() or "."
     
-    print("Analyzing project structure...")
+    print(f"Analyzing ${projectId} project structure...")
+    print(f"Target technologies: ${scriptTechnologies}")
+    print("-" * 50)
+    
     insights = analyze_project_structure(project_path)
     
-    print("Generating report...")
-    report = generate_report(insights)
+    print("Generating comprehensive report...")
+    report = generate_detailed_report(insights)
     
-    # Save report
-    with open("project_analysis_report.md", "w") as f:
+    # Save reports
+    with open("${projectId}_analysis_report.md", "w", encoding='utf-8') as f:
         f.write(report)
     
-    print("Analysis complete! Report saved to 'project_analysis_report.md'")
-    print(f"Found {sum(insights['file_types'].values())} total files")
+    export_json_summary(insights)
+    
+    print(f"\\n✅ Analysis complete!")
+    print(f"📄 Report saved to '${projectId}_analysis_report.md'")
+    print(f"📊 JSON data saved to '${projectId}_analysis.json'")
+    print(f"🔍 Found {sum(insights['file_types'].values())} total files")
+    print(f"💡 Technologies: {', '.join(insights['technologies']) or 'None detected'}")
 `;
       }
 
