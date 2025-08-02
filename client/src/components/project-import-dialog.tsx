@@ -34,15 +34,32 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
   const importMutation = useMutation({
     mutationFn: async (data: FormData | { gitUrl: string; name: string; description: string; projectPath: string }) => {
       if (data instanceof FormData) {
+        // Trigger extraction started event
+        window.dispatchEvent(new CustomEvent('extraction:start'));
+        
         const response = await fetch("/api/projects/import/files", {
           method: "POST",
           body: data,
         });
         if (!response.ok) {
           const error = await response.json();
+          window.dispatchEvent(new CustomEvent('extraction:error', { detail: { message: error.message } }));
           throw new Error(error.message || "Import failed");
         }
-        return response.json();
+        
+        const result = await response.json();
+        
+        // Trigger extraction completed event
+        if (result.zipFiles && result.zipFiles.length > 0) {
+          window.dispatchEvent(new CustomEvent('extraction:complete', { 
+            detail: { 
+              fileCount: result.zipFiles.length, 
+              extractPath: result.extractedPath || 'working directory' 
+            }
+          }));
+        }
+        
+        return result;
       } else {
         return apiRequest("POST", "/api/projects/import/git", data);
       }

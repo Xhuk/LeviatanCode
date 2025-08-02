@@ -5,17 +5,19 @@ import { EditorPanel } from "@/components/panels/editor-panel";
 import { TerminalPanel } from "@/components/panels/terminal-panel";
 import { AiChatPanel } from "@/components/panels/ai-chat-panel";
 import { DocumentationPanel } from "@/components/panels/documentation-panel";
+import { ExtractionPanel } from "@/components/panels/extraction-panel";
 import { PromptTemplatesPanel } from "@/components/panels/prompt-templates-panel";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable-panels";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Database, Play, Settings, UserCircle, Cog, Brain, FileText, MessageSquare, AlertTriangle, Upload, FolderOpen } from "lucide-react";
+import { Database, Play, Settings, UserCircle, Cog, Brain, FileText, MessageSquare, AlertTriangle, Upload, FolderOpen, Sparkles } from "lucide-react";
 import { ServiceStatusIndicator } from "@/components/service-status-indicator";
 import { ProjectImportDialog } from "@/components/project-import-dialog";
 import { SettingsDialog } from "@/components/settings-dialog";
 import { ProjectInsightsSaveButton } from "@/components/project-insights-save-button";
+import { AiDocumentAnalysisDialog } from "@/components/ai-document-analysis-dialog";
 
 export default function Dashboard() {
   const [currentProject, setCurrentProject] = useState<string>("demo-project-1");
@@ -106,6 +108,12 @@ export default function Dashboard() {
                 )}
               </SelectContent>
             </Select>
+            
+            {/* AI Analysis Button */}
+            <AiDocumentAnalysisDialog 
+              projectId={currentProject}
+              workingDirectory={workingDirectory}
+            />
           </div>
         </div>
         <div className="flex items-center space-x-4">
@@ -190,6 +198,10 @@ export default function Dashboard() {
                   <FileText className="w-3 h-3" />
                   Docs
                 </TabsTrigger>
+                <TabsTrigger value="extraction" className="flex items-center gap-2 text-xs">
+                  <Upload className="w-3 h-3" />
+                  Extraction
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="ai-chat" className="flex-1 m-0">
@@ -202,6 +214,10 @@ export default function Dashboard() {
               
               <TabsContent value="docs" className="flex-1 m-0">
                 <DocumentationPanel projectId={currentProject} />
+              </TabsContent>
+              
+              <TabsContent value="extraction" className="flex-1 m-0">
+                <ExtractionPanel />
               </TabsContent>
             </Tabs>
           </ResizablePanel>
