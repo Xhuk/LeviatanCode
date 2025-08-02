@@ -544,6 +544,225 @@ const SystemMonitor = () => {
   );
 };
 
+// Git Management component
+const GitManagement = () => {
+  const [branches, setBranches] = useState([
+    { name: "main", isActive: true, lastCommit: "2 hours ago", author: "Developer" },
+    { name: "feature/user-auth", isActive: false, lastCommit: "1 day ago", author: "Developer" },
+    { name: "hotfix/bug-fixes", isActive: false, lastCommit: "3 days ago", author: "Developer" }
+  ]);
+  
+  const [stagedFiles, setStagedFiles] = useState([
+    { name: "client/src/pages/dashboard.tsx", status: "modified", additions: 23, deletions: 5 },
+    { name: "server/routes.ts", status: "modified", additions: 8, deletions: 2 },
+    { name: "README.md", status: "added", additions: 15, deletions: 0 }
+  ]);
+
+  const [commitMessage, setCommitMessage] = useState("");
+  const [remoteUrl, setRemoteUrl] = useState("https://github.com/user/leviatancode.git");
+
+  return (
+    <div className="h-full bg-replit-bg p-6 overflow-y-auto">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-replit-text">Git Management</h2>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm" className="modern-button">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh Status
+            </Button>
+            <Button variant="outline" size="sm" className="modern-button">
+              <GitBranch className="w-4 h-4 mr-2" />
+              New Branch
+            </Button>
+          </div>
+        </div>
+
+        {/* Repository Status */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-replit-panel rounded-lg p-4 border border-replit-border">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-replit-text">3</div>
+                <div className="text-sm text-replit-text-secondary">Branches</div>
+              </div>
+              <GitBranch className="w-8 h-8 text-replit-blue" />
+            </div>
+          </div>
+          
+          <div className="bg-replit-panel rounded-lg p-4 border border-replit-border">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-replit-text">12</div>
+                <div className="text-sm text-replit-text-secondary">Commits Ahead</div>
+              </div>
+              <Upload className="w-8 h-8 text-green-500" />
+            </div>
+          </div>
+          
+          <div className="bg-replit-panel rounded-lg p-4 border border-replit-border">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold text-replit-text">3</div>
+                <div className="text-sm text-replit-text-secondary">Modified Files</div>
+              </div>
+              <FileText className="w-8 h-8 text-orange-500" />
+            </div>
+          </div>
+        </div>
+
+        {/* Branch Management */}
+        <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
+          <h3 className="text-lg font-medium text-replit-text mb-4">Branches</h3>
+          <div className="space-y-3">
+            {branches.map((branch) => (
+              <div key={branch.name} className="flex items-center justify-between p-3 bg-replit-elevated rounded-lg border border-replit-border">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-2 h-2 rounded-full ${branch.isActive ? 'bg-replit-blue' : 'bg-gray-500'}`}></div>
+                  <div>
+                    <div className="font-medium text-replit-text text-sm flex items-center space-x-2">
+                      <span>{branch.name}</span>
+                      {branch.isActive && (
+                        <span className="text-xs bg-replit-blue/20 text-replit-blue px-2 py-1 rounded">
+                          Current
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-replit-text-secondary">
+                      Last commit: {branch.lastCommit} by {branch.author}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {!branch.isActive && (
+                    <Button variant="ghost" size="sm" className="text-replit-blue hover:text-replit-blue-secondary">
+                      <GitBranch className="w-3 h-3 mr-1" />
+                      Switch
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-300">
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Staging Area */}
+        <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-medium text-replit-text">Staging Area</h3>
+            <div className="flex space-x-2">
+              <Button variant="outline" size="sm" className="modern-button">
+                Stage All
+              </Button>
+              <Button variant="outline" size="sm" className="modern-button">
+                Unstage All
+              </Button>
+            </div>
+          </div>
+          
+          <div className="space-y-2 mb-4">
+            {stagedFiles.map((file) => (
+              <div key={file.name} className="flex items-center justify-between p-2 bg-replit-elevated rounded border border-replit-border">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-2 h-2 rounded-full ${
+                    file.status === 'modified' ? 'bg-yellow-500' : 
+                    file.status === 'added' ? 'bg-green-500' : 'bg-red-500'
+                  }`}></div>
+                  <span className="text-sm text-replit-text font-mono">{file.name}</span>
+                  <span className={`text-xs px-2 py-1 rounded ${
+                    file.status === 'modified' ? 'bg-yellow-500/20 text-yellow-400' :
+                    file.status === 'added' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                  }`}>
+                    {file.status}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-3 text-xs text-replit-text-secondary">
+                  <span className="text-green-400">+{file.additions}</span>
+                  <span className="text-red-400">-{file.deletions}</span>
+                  <Button variant="ghost" size="sm" className="p-1">
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Commit Section */}
+          <div className="space-y-3">
+            <textarea
+              value={commitMessage}
+              onChange={(e) => setCommitMessage(e.target.value)}
+              placeholder="Enter commit message..."
+              className="w-full h-20 p-3 bg-replit-elevated border border-replit-border rounded-lg text-replit-text text-sm resize-none"
+            />
+            <div className="flex space-x-2">
+              <Button className="modern-button bg-replit-blue hover:bg-replit-blue-secondary">
+                <GitCommit className="w-4 h-4 mr-2" />
+                Commit Changes
+              </Button>
+              <Button variant="outline" className="modern-button">
+                Commit & Push
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Remote Management */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
+            <h3 className="text-lg font-medium text-replit-text mb-4">Remote Repository</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-replit-text-secondary mb-2">Remote URL</label>
+                <Input
+                  value={remoteUrl}
+                  onChange={(e) => setRemoteUrl(e.target.value)}
+                  className="bg-replit-elevated border-replit-border font-mono text-sm"
+                />
+              </div>
+              <div className="flex space-x-2">
+                <Button variant="outline" size="sm" className="modern-button flex-1">
+                  <Download className="w-3 h-3 mr-1" />
+                  Pull
+                </Button>
+                <Button variant="outline" size="sm" className="modern-button flex-1">
+                  <Upload className="w-3 h-3 mr-1" />
+                  Push
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
+            <h3 className="text-lg font-medium text-replit-text mb-4">Quick Actions</h3>
+            <div className="space-y-2">
+              <Button variant="outline" size="sm" className="modern-button w-full justify-start">
+                <GitBranch className="w-4 h-4 mr-2" />
+                Create Pull Request
+              </Button>
+              <Button variant="outline" size="sm" className="modern-button w-full justify-start">
+                <GitCommit className="w-4 h-4 mr-2" />
+                View History
+              </Button>
+              <Button variant="outline" size="sm" className="modern-button w-full justify-start">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Sync with Remote
+              </Button>
+              <Button variant="outline" size="sm" className="modern-button w-full justify-start">
+                <Settings className="w-4 h-4 mr-2" />
+                Repository Settings
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // File Analysis component
 const FileAnalysis = () => {
   const [analysisResults, setAnalysisResults] = useState({
@@ -1356,6 +1575,7 @@ export default function Dashboard() {
                 <Button 
                   variant="ghost" 
                   className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                  onClick={() => setActiveTab("git-management")}
                 >
                   <GitBranch className="w-5 h-5" />
                   <div className="text-left">
@@ -1456,6 +1676,10 @@ export default function Dashboard() {
             
             <TabsContent value="file-analysis" className="flex-1 m-0">
               <FileAnalysis />
+            </TabsContent>
+            
+            <TabsContent value="git-management" className="flex-1 m-0">
+              <GitManagement />
             </TabsContent>
           </Tabs>
         </div>
