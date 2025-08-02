@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTheme } from "@/contexts/theme-context";
 import { Button } from "@/components/ui/button";
 import { ConfigurationChecker } from "@/components/configuration-checker";
+import { MiddlewareMonitor } from "@/components/middleware-monitor";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -1798,6 +1799,17 @@ export default function Dashboard() {
                 <Button 
                   variant="ghost" 
                   className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
+                  onClick={() => setActiveTab("middleware-monitor")}
+                >
+                  <Activity className="w-5 h-5" />
+                  <div className="text-left">
+                    <div className="font-medium text-sm">Middleware Monitor</div>
+                    <div className="text-xs text-replit-text-secondary">Start/stop middleware with performance tracking</div>
+                  </div>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
                   onClick={() => setActiveTab("database-console")}
                 >
                   <Database className="w-5 h-5" />
@@ -1901,6 +1913,12 @@ export default function Dashboard() {
             {activeTab === "system-monitor" && (
               <TabsContent value="system-monitor" className="flex-1 m-0">
                 <SystemMonitor />
+              </TabsContent>
+            )}
+            
+            {activeTab === "middleware-monitor" && (
+              <TabsContent value="middleware-monitor" className="flex-1 m-0">
+                <MiddlewareMonitor />
               </TabsContent>
             )}
             

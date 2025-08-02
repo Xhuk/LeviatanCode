@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { middlewareMonitor, monitoringRoutes } from "./middleware/monitor";
 
 // Load environment variables first
 dotenv.config();
@@ -56,7 +57,10 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Load and apply middleware
+  // Add monitoring routes first
+  app.use(monitoringRoutes);
+  
+  // Load and apply middleware with monitoring
   try {
     const corsModule = await import("../middleware/cors.js");
     const securityModule = await import("../middleware/security.js");
@@ -64,19 +68,27 @@ app.use((req, res, next) => {
     const loggingModule = await import("../middleware/logging.js");
     const errorModule = await import("../middleware/errorHandler.js");
 
-    // Apply CORS middleware
-    app.use(corsModule.default);
+    // Apply CORS middleware with monitoring
+    app.use(middlewareMonitor.createMonitoredMiddleware('CORS', corsModule.default));
 
-    // Apply security middleware
-    securityModule.default(app);
+    // Apply security middleware with monitoring
+    const securityMiddleware = (req: Request, res: Response, next: NextFunction) => {
+      securityModule.default(app);
+      next();
+    };
+    app.use(middlewareMonitor.createMonitoredMiddleware('Security', securityMiddleware));
 
-    // Apply logging middleware
-    loggingModule.default(app);
+    // Apply logging middleware with monitoring
+    const loggingMiddleware = (req: Request, res: Response, next: NextFunction) => {
+      loggingModule.default(app);
+      next();
+    };
+    app.use(middlewareMonitor.createMonitoredMiddleware('Logging', loggingMiddleware));
 
-    // Apply session middleware
-    app.use(sessionModule.default);
+    // Apply session middleware with monitoring
+    app.use(middlewareMonitor.createMonitoredMiddleware('Session', sessionModule.default));
     
-    console.log("[INFO] All middleware loaded successfully");
+    console.log("[INFO] All middleware loaded successfully with monitoring");
   } catch (error: any) {
     console.warn("Some middleware failed to load:", error?.message || error);
     console.log("Continuing with basic setup...");

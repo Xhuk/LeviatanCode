@@ -129,21 +129,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Configuration verification endpoint
-  app.get('/api/configuration/verify/:projectId', async (req, res) => {
+  app.get('/api/configuration/verify/:projectId(*)', async (req, res) => {
     try {
       const { projectId } = req.params;
       const configChecks = [];
 
-      // Check working directory
+      // Check working directory - handle Windows paths in Replit environment
       const workingDir = process.env.WORKING_DIRECTORY || '';
-      configChecks.push({
-        category: 'workspace',
-        name: 'Working Directory',
-        status: workingDir ? 'ok' : 'warning',
-        message: workingDir ? `Set to: ${workingDir}` : 'No working directory configured',
-        canUpdateFromFrontend: true,
-        frontendLocation: 'Settings > Development'
-      });
+      const isWindowsPath = projectId.includes(':') || projectId.includes('\\');
+      
+      if (isWindowsPath) {
+        // This is a Windows path being accessed in Replit environment
+        configChecks.push({
+          category: 'workspace',
+          name: 'Working Directory',
+          status: 'error',
+          message: `Windows path "${projectId}" not accessible in Replit environment`,
+          canUpdateFromFrontend: true,
+          frontendLocation: 'Settings > Development'
+        });
+      } else {
+        configChecks.push({
+          category: 'workspace',
+          name: 'Working Directory',
+          status: workingDir ? 'ok' : 'warning',
+          message: workingDir ? `Set to: ${workingDir}` : 'No working directory configured',
+          canUpdateFromFrontend: true,
+          frontendLocation: 'Settings > Development'
+        });
+      }
 
       // Check database connection
       try {
@@ -225,7 +239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // File tree endpoint for workspace
-  app.get('/api/workspace/file-tree/:projectId', async (req, res) => {
+  app.get('/api/workspace/file-tree/:projectId(*)', async (req, res) => {
     try {
       const { projectId } = req.params;
       const workingDir = process.env.WORKING_DIRECTORY || '';
