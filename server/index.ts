@@ -11,16 +11,10 @@ if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'development';
 }
 
-// Override PORT for Windows development - force 5005 for local Windows development
-if (process.platform === 'win32' || process.env.NODE_ENV === 'development') {
-  // Check if running locally (not in Replit) by checking for Windows platform or local dev indicators
-  const isLocalDevelopment = process.platform === 'win32' || 
-    (!process.env.REPLIT && !process.env.REPLIT_ID && !process.env.REPL_ID);
-  
-  if (isLocalDevelopment) {
-    process.env.PORT = '5005';
-    console.log('[INFO] Windows/Local development detected - using port 5005');
-  }
+// Port configuration - use Replit's PORT environment variable
+if (!process.env.PORT) {
+  process.env.PORT = '5000';
+  console.log('[INFO] No PORT specified - defaulting to 5000');
 }
 
 console.log(`[INFO] Environment: ${process.env.NODE_ENV}`);
@@ -108,16 +102,11 @@ app.use((req, res, next) => {
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Default to 5005 for Windows development, fallback to 5000 for Replit
-  const port = parseInt(process.env.PORT || '5005', 10);
+  // Default to 5000 for Replit, fallback based on environment
+  const port = parseInt(process.env.PORT || '5000', 10);
   
-  // Windows-compatible server configuration
-  const listenOptions = {
-    port,
-    host: process.platform === 'win32' ? '127.0.0.1' : '0.0.0.0'
-  };
-  
-  server.listen(listenOptions, () => {
+  // Server configuration for Replit
+  server.listen(port, '0.0.0.0', () => {
     log(`serving on port ${port}`);
   });
 })();

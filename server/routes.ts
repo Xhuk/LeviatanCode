@@ -2036,6 +2036,56 @@ Please provide a JSON response with this exact structure:
 
   // Settings routes
   app.use("/api/settings", settingsRoutes);
+  
+  // AI Chat endpoints
+  app.get("/api/projects/:projectId/ai-chats", async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      // Mock AI chat history - replace with actual implementation
+      const chats = [
+        {
+          id: "1",
+          role: "user",
+          content: "How do I implement authentication in this project?",
+          timestamp: new Date().toISOString()
+        },
+        {
+          id: "2", 
+          role: "assistant",
+          content: "Based on your project structure, I can see you're using Express.js. For authentication, I recommend implementing JWT tokens with bcrypt for password hashing. Here's a basic setup...",
+          timestamp: new Date().toISOString()
+        }
+      ];
+      res.json(chats);
+    } catch (error) {
+      console.error('Error fetching AI chats:', error);
+      res.status(500).json({ error: 'Failed to fetch AI chats' });
+    }
+  });
+
+  app.post("/api/projects/:projectId/ai-chats", async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      const { message } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ error: 'Message is required' });
+      }
+
+      // Mock AI response - replace with actual AI integration
+      const response = {
+        id: Date.now().toString(),
+        role: "assistant",
+        content: `I understand you're asking: "${message}". Based on your project context, here's my response...`,
+        timestamp: new Date().toISOString()
+      };
+
+      res.json(response);
+    } catch (error) {
+      console.error('Error sending AI chat message:', error);
+      res.status(500).json({ error: 'Failed to send message' });
+    }
+  });
 
   return httpServer;
 }
