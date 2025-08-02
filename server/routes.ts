@@ -50,7 +50,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     ws.on('close', () => {
       // Remove from all subscriptions
-      for (const [projectId, connection] of analysisConnections.entries()) {
+      for (const [projectId, connection] of Array.from(analysisConnections.entries())) {
         if (connection === ws) {
           analysisConnections.delete(projectId);
           console.log(`📡 Unsubscribed from analysis updates for project: ${projectId}`);
@@ -741,13 +741,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const path = require('path');
         
         try {
-          const projectDir = workingDirectory || process.cwd();
+          // Determine the correct project directory
+          let projectDir = workingDirectory || process.cwd();
           console.log(`🔍 Scanning directory: ${projectDir}`);
+          
+          // If workingDirectory is specified but doesn't exist, use current directory
+          if (workingDirectory && !fs.existsSync(workingDirectory)) {
+            console.log(`⚠️  Specified directory ${workingDirectory} doesn't exist, using current directory`);
+            projectDir = process.cwd();
+          }
           
           // Also try scanning the specific project folder if it exists
           const specificProjectDir = path.join(projectDir, projectId);
-          const targetDir = fs.existsSync(specificProjectDir) ? specificProjectDir : projectDir;
-          console.log(`🎯 Target directory selected: ${targetDir}`);
+          let targetDir = projectDir;
+          
+          if (fs.existsSync(specificProjectDir)) {
+            targetDir = specificProjectDir;
+            console.log(`🎯 Found specific project directory: ${targetDir}`);
+          } else {
+            console.log(`🎯 Using base directory: ${targetDir}`);
+          }
           
           const scanDirectory = (dir: string, baseDir: string = dir): any => {
             const files: any = {};
@@ -763,13 +776,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
                 
                 const stat = fs.statSync(fullPath);
-                if (stat.isFile() && stat.size < 1024 * 1024) { // Files under 1MB
-                  try {
-                    const content = fs.readFileSync(fullPath, 'utf8');
-                    files[relativePath] = { content, size: stat.size };
-                    console.log(`📄 Added file: ${relativePath} (${stat.size} bytes)`);
-                  } catch (readError) {
-                    console.log(`⚠️  Could not read ${relativePath}: ${readError.message}`);
+                if (stat.isFile() && stat.size < 2 * 1024 * 1024) { // Files under 2MB
+                  // Check if it's a text file extension we want to analyze
+                  const ext = path.extname(item).toLowerCase();
+                  const textExtensions = ['.js', '.ts', '.jsx', '.tsx', '.py', '.java', '.cpp', '.c', '.h', '.cs', '.php', '.rb', '.go', '.rs', '.swift', '.kt', '.scala', '.css', '.scss', '.sass', '.less', '.html', '.htm', '.xml', '.svg', '.json', '.md', '.txt', '.yaml', '.yml', '.toml', '.ini', '.conf', '.config', '.sql', '.sh', '.bat', '.ps1', '.cmd', '.dockerfile'];
+                  
+                  if (textExtensions.includes(ext) || ext === '') { // Include extensionless files
+                    try {
+                      const content = fs.readFileSync(fullPath, 'utf8');
+                      files[relativePath] = { content, size: stat.size };
+                      console.log(`📄 Added file: ${relativePath} (${stat.size} bytes)`);
+                    } catch (readError) {
+                      // Skip files that can't be read as text
+                      console.log(`⚠️  Could not read ${relativePath}: ${(readError as Error).message}`);
+                    }
                   }
                 } else if (stat.isDirectory()) {
                   const subFiles = scanDirectory(fullPath, baseDir);
@@ -779,13 +799,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 }
               }
             } catch (scanError) {
-              console.log(`⚠️  Could not scan directory ${dir}: ${scanError.message}`);
+              console.log(`⚠️  Could not scan directory ${dir}: ${(scanError as Error).message}`);
             }
             return files;
           };
           
+          // Send scanning started update
+          broadcastAnalysisUpdate(projectId, {
+            status: 'scanning_files',
+            message: `Starting file scan in directory: ${targetDir}`,
+            fileCount: 0
+          });
+          
           projectFiles = scanDirectory(targetDir);
           console.log(`📊 Found ${Object.keys(projectFiles).length} files for analysis in ${targetDir}`);
+          
+          // Send file scan update via WebSocket
+          broadcastAnalysisUpdate(projectId, {
+            status: 'scanning_complete',
+            message: `Found ${Object.keys(projectFiles).length} files in ${targetDir}`,
+            fileCount: Object.keys(projectFiles).length
+          });
+          
+          // Debug: Let's check what we found
+          console.log(`📂 Directory contents:`, fs.readdirSync(targetDir).slice(0, 10));
+          console.log(`📁 Sample files found:`, Object.keys(projectFiles).slice(0, 10));
           
           // If no files found in project directory, scan current working directory more broadly
           if (Object.keys(projectFiles).length === 0) {
@@ -796,9 +834,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const broadScan = scanDirectory(appDir);
             projectFiles = broadScan;
             console.log(`📊 Broader scan found ${Object.keys(projectFiles).length} files`);
+            
+            // Send broader scan update via WebSocket
+            broadcastAnalysisUpdate(projectId, {
+              status: 'scanning_complete',
+              message: `Broader scan found ${Object.keys(projectFiles).length} files`,
+              fileCount: Object.keys(projectFiles).length
+            });
           }
         } catch (fsError) {
-          console.log(`⚠️  File system analysis failed: ${fsError.message}`);
+          console.log(`⚠️  File system analysis failed: ${(fsError as Error).message}`);
         }
       }
       
@@ -811,11 +856,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return ext;
       }).filter(Boolean);
       
-      console.log(`🔍 File extensions found: ${[...new Set(fileExtensions)].join(', ')}`);
+      console.log(`🔍 File extensions found: ${Array.from(new Set(fileExtensions)).join(', ')}`);
       
-      const detectedTechnologies = [];
-      const detectedInsights = [];
-      const detectedRecommendations = [];
+      const detectedTechnologies: string[] = [];
+      const detectedInsights: string[] = [];
+      const detectedRecommendations: string[] = [];
+      
+      // Send technology detection started update
+      broadcastAnalysisUpdate(projectId, {
+        status: 'analyzing_files',
+        message: `Detecting technologies from ${filePaths.length} files...`,
+        fileCount: filePaths.length
+      });
       
       // Detect technologies based on file extensions and content
       if (fileExtensions.includes('js') || fileExtensions.includes('jsx')) {
@@ -871,6 +923,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (fileContents.includes('flask') || fileContents.includes('Flask')) {
         detectedTechnologies.push('Flask');
       }
+      
+      // Send technology detection complete update
+      broadcastAnalysisUpdate(projectId, {
+        status: 'analyzing_files',
+        message: `Technology detection complete: ${detectedTechnologies.length} technologies found`,
+        technologies: detectedTechnologies,
+        fileCount: filePaths.length
+      });
       
       // Generate insights based on project structure
       const fileCount = Object.keys(projectFiles).length;
