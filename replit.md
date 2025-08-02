@@ -13,6 +13,7 @@ Development port: 5000 (main app), 5001 (Flask analyzer)
 Setup preference: Python scripts for better accuracy and reliability
 Deployment target: Local Windows development with option for Windows Server production
 Architecture preference: Dual-service setup with main app + Flask analyzer for comprehensive analysis
+Theme implementation: Comprehensive light/dark mode for entire application (completed January 2025)
 
 # System Architecture
 
@@ -46,6 +47,13 @@ Architecture preference: Dual-service setup with main app + Flask analyzer for c
 - **Session Storage**: PostgreSQL sessions using connect-pg-simple.
 - **File System**: Virtual file system stored as JSONB in the database for project files.
 - **Credential Storage**: Secure credential management system (`vaultSecrets` table) with workspace-scoped, encrypted storage using Supabase backend.
+
+## Theme System (January 2025)
+- **ThemeProvider**: React context managing light/dark/auto theme modes with localStorage persistence
+- **CSS Variables**: Comprehensive light and dark mode color schemes for entire application
+- **Editor Integration**: Monaco Editor theme synchronization with app theme
+- **Settings Controls**: Functional theme, font size, and tab size controls in LeviatanSettings
+- **Auto Detection**: System preference detection for automatic theme switching
 
 ## Authentication and Authorization
 - **User Management**: Username/password authentication with bcrypt hashing.
