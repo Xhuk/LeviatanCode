@@ -86,10 +86,11 @@ Deployment target: Local Windows development with option for Windows Server prod
 
 # External Dependencies
 
-## AI Services
-- **OpenAI GPT-4o**: Primary AI model for chat completions and code analysis
-- **Google Gemini**: Alternative AI model for diversified responses
+## AI Services (Cloud-Based - No Local LLM Required)
+- **OpenAI GPT-4o**: Primary AI model for chat completions and code analysis via API
+- **Google Gemini**: Alternative AI model for diversified responses via API  
 - **AI Features**: Chat interface, code suggestions, documentation generation, and data analysis
+- **Setup**: Only requires API keys, no local AI installation needed
 
 ## Database and Infrastructure
 - **Neon Database**: Serverless PostgreSQL hosting with connection pooling
