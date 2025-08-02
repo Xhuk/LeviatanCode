@@ -51,14 +51,14 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    if (workingDirData && 'workingDirectory' in workingDirData) {
-      setWorkingDirectory(workingDirData.workingDirectory as string);
+    if (workingDirData && typeof workingDirData === 'object' && workingDirData !== null && 'workingDirectory' in workingDirData) {
+      setWorkingDirectory((workingDirData as any).workingDirectory);
     }
   }, [workingDirData]);
 
   useEffect(() => {
-    if (foldersData && 'folders' in foldersData) {
-      setWorkspaceFolders(foldersData.folders as any[]);
+    if (foldersData && typeof foldersData === 'object' && foldersData !== null && 'folders' in foldersData) {
+      setWorkspaceFolders((foldersData as any).folders);
     }
   }, [foldersData]);
 
@@ -134,7 +134,7 @@ export default function Dashboard() {
           <ProjectImportDialog onProjectImported={setCurrentProject} />
           <ProjectInsightsSaveButton 
             projectId={currentProject} 
-            projectName={(project && 'name' in project ? project.name : "Current Project") as string}
+            projectName={(project && typeof project === 'object' && project !== null && 'name' in project ? (project as any).name : "Current Project")}
             projectPath="."
           />
           
