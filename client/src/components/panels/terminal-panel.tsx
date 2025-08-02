@@ -49,12 +49,10 @@ export function TerminalPanel({ projectId }: TerminalPanelProps) {
     },
     onSuccess: (data, command) => {
       addTerminalLine(data.output || '', data.exitCode === 0 ? 'success' : 'error');
-      addPrompt();
       setIsRunning(false);
     },
     onError: (error: any) => {
       addTerminalLine(`Error: ${error.message || 'Command execution failed'}`, 'error');
-      addPrompt();
       setIsRunning(false);
     }
   });
@@ -77,7 +75,6 @@ export function TerminalPanel({ projectId }: TerminalPanelProps) {
     ];
     
     setTerminalLines(initialLines);
-    addPrompt();
     
     // Initialize console with sample logs
     const initialConsole: ConsoleLog[] = [
@@ -155,7 +152,7 @@ export function TerminalPanel({ projectId }: TerminalPanelProps) {
   };
 
   const addPrompt = () => {
-    addTerminalLine('PS C:\\LeviatanCode> ', 'prompt');
+    // No longer needed since we show the prompt inline
   };
 
   const addConsoleLog = (message: string, level: ConsoleLog['level'] = 'info', source?: string) => {
@@ -187,7 +184,6 @@ export function TerminalPanel({ projectId }: TerminalPanelProps) {
     // Simple built-in commands
     if (command === 'clear' || command === 'cls') {
       setTerminalLines([]);
-      addPrompt();
       setIsRunning(false);
       return;
     }
@@ -199,7 +195,6 @@ export function TerminalPanel({ projectId }: TerminalPanelProps) {
       addTerminalLine('  ls/dir - List directory contents', 'output');
       addTerminalLine('  cd <path> - Change directory', 'output');
       addTerminalLine('  npm/node/python - Run development commands', 'output');
-      addPrompt();
       setIsRunning(false);
       return;
     }
@@ -209,7 +204,6 @@ export function TerminalPanel({ projectId }: TerminalPanelProps) {
       executeCommandMutation.mutate(command);
     } catch (error) {
       addTerminalLine(`Error executing command: ${error}`, 'error');
-      addPrompt();
       setIsRunning(false);
     }
   };
@@ -239,7 +233,6 @@ export function TerminalPanel({ projectId }: TerminalPanelProps) {
 
   const clearTerminal = () => {
     setTerminalLines([]);
-    addPrompt();
   };
 
   const clearConsole = () => {
@@ -314,38 +307,50 @@ export function TerminalPanel({ projectId }: TerminalPanelProps) {
             className="flex-1 overflow-y-auto p-3 bg-black font-mono text-sm"
           >
             {terminalLines.map((line) => (
-              <div key={line.id} className={`${getLineColor(line.type)} mb-1`}>
+              <div key={line.id} className={`${getLineColor(line.type)} mb-1 flex`}>
                 {line.type === 'prompt' ? (
                   <span className="select-none">{line.content}</span>
+                ) : line.type === 'command' ? (
+                  <div className="w-full">
+                    <span className="text-green-400 select-none">PS C:\LeviatanCode&gt; </span>
+                    <span className="text-blue-400">{line.content}</span>
+                  </div>
                 ) : (
-                  <span>{line.content}</span>
+                  <span className="whitespace-pre-wrap">{line.content}</span>
                 )}
               </div>
             ))}
+            {/* Current command prompt */}
+            <div className="flex items-center">
+              <span className="text-green-400 select-none">PS C:\LeviatanCode&gt; </span>
+              <span className="text-white">{currentCommand}</span>
+              {!isRunning && <span className="text-green-400 animate-pulse ml-1">|</span>}
+              {isRunning && <span className="text-yellow-400 ml-2 animate-pulse">executing...</span>}
+            </div>
           </div>
 
-          <div className="p-3 border-t border-gray-800 bg-gray-900">
+          <div className="p-2 border-t border-gray-800 bg-gray-900">
             <div className="flex items-center gap-2">
-              <span className="text-green-400 font-mono text-sm shrink-0">PS C:\LeviatanCode&gt;</span>
               <Input
                 ref={commandInputRef}
                 value={currentCommand}
                 onChange={(e) => setCurrentCommand(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Type your command here..."
-                className="flex-1 bg-black border-gray-700 text-white font-mono"
+                placeholder="Type command here and press Enter..."
+                className="flex-1 bg-black border-gray-700 text-white font-mono text-sm h-8"
                 disabled={isRunning}
+                autoFocus
               />
               <Button
                 size="sm"
                 onClick={executeCommand}
                 disabled={!currentCommand.trim() || isRunning}
-                className="shrink-0"
+                className="shrink-0 h-8"
               >
                 {isRunning ? (
-                  <Activity className="h-4 w-4 animate-spin" />
+                  <Activity className="h-3 w-3 animate-spin" />
                 ) : (
-                  <Send className="h-4 w-4" />
+                  <Send className="h-3 w-3" />
                 )}
               </Button>
             </div>
