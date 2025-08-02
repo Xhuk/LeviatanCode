@@ -121,11 +121,40 @@ app.use((req, res, next) => {
   server.listen(port, '0.0.0.0', async () => {
     log(`serving on port ${port}`);
     
-    // Auto-start Flask Analyzer
+    // Auto-start Flask Analyzer with startup delay
     console.log('[INFO] Auto-starting Flask Analyzer...');
     try {
       await middlewareMonitor.startMiddleware('Flask Analyzer');
-      console.log('[INFO] Flask Analyzer started successfully');
+      console.log('[INFO] Flask Analyzer startup initiated, waiting for service to be ready...');
+      
+      // Wait for Flask Analyzer to be fully ready
+      let attempts = 0;
+      const maxAttempts = 20; // 20 seconds max wait
+      
+      while (attempts < maxAttempts) {
+        try {
+          const response = await fetch('http://localhost:5001/health', {
+            method: 'GET',
+            signal: AbortSignal.timeout(2000)
+          });
+          
+          if (response.ok) {
+            console.log('[INFO] Flask Analyzer is ready and responding');
+            break;
+          }
+        } catch (error) {
+          // Flask not ready yet, continue waiting
+        }
+        
+        attempts++;
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+      }
+      
+      if (attempts >= maxAttempts) {
+        console.warn('[WARN] Flask Analyzer startup timeout - continuing anyway');
+      } else {
+        console.log('[INFO] Main application startup complete');
+      }
     } catch (error) {
       console.warn('[WARN] Failed to auto-start Flask Analyzer:', error);
     }

@@ -252,7 +252,7 @@ class MiddlewareMonitor {
       // Wait and check if it's running
       setTimeout(async () => {
         await this.checkFlaskAnalyzerStatus();
-      }, 8000); // Increased wait time for startup
+      }, 3000); // Initial check after 3 seconds
 
       return true;
     } catch (error) {
