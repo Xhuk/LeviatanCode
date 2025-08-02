@@ -1,0 +1,98 @@
+Logger client connected
+📡 Subscribed to analysis updates for project: demo-project-1
+[INFO] CSP disabled for development mode
+4:03:55 PM [express] GET /api/settings/workspace-folders 304 in 3ms :: {"folders":[{"name":"cadence"…
+[INFO] CSP disabled for development mode
+4:04:04 PM [express] GET /api/middleware/status 200 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+🔄 Starting Flask Analyzer service...
+📦 Creating Python virtual environment...
+4:04:09 PM [express] GET /api/middleware/status 304 in 0ms :: {"globallyEnabled":true,"total":5,"act…
+4:04:14 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+📦 Installing Flask dependencies...
+Warning: Could not setup virtual environment, trying system Python: Error: Command failed: cd flask_analyzer && flask_analyzer/venv/Scripts/pip install -r requirements.txt --quiet
+'flask_analyzer' is not recognized as an internal or external command,
+operable program or batch file.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at ChildProcess.exithandler (node:child_process:414:12)
+    at ChildProcess.emit (node:events:518:28)
+    at maybeClose (node:internal/child_process:1101:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:304:5) {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'cd flask_analyzer && flask_analyzer/venv/Scripts/pip install -r requirements.txt --quiet',
+  stdout: '',
+  stderr: "'flask_analyzer' is not recognized as an internal or external command,\r\n" +
+    'operable program or batch file.\r\n'
+}
+4:04:19 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+Failed to install dependencies with system Python: Error: Command failed: cd flask_analyzer && pip install -r requirements.txt --quiet
+WARNING: Ignoring invalid distribution ~ (C:\Python311\Lib\site-packages)
+WARNING: Ignoring invalid distribution ~ip (C:\Python311\Lib\site-packages)
+WARNING: The candidate selected for download or install is a yanked version: 'pathlib2' candidate (version 2.3.7 at https://files.pythonhosted.org/packages/b9/be/c3f055e15009e16e80e606b2c6229770dd0741c3d64747b3691259d6f35a/pathlib2-2.3.7-py2.py3-none-any.whl (from https://pypi.org/simple/pathlib2/))
+Reason for being yanked: missing proper six dependency requirement
+WARNING: Ignoring invalid distribution ~ (C:\Python311\Lib\site-packages)
+WARNING: Ignoring invalid distribution ~ip (C:\Python311\Lib\site-packages)
+  WARNING: Failed to write executable - trying to use .deleteme logic
+ERROR: Could not install packages due to an OSError: [WinError 2] The system cannot find the file specified: 'C:\\Python311\\Scripts\\dotenv.exe' -> 'C:\\Python311\\Scripts\\dotenv.exe.deleteme'
+
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at ChildProcess.exithandler (node:child_process:414:12)
+    at ChildProcess.emit (node:events:518:28)
+    at maybeClose (node:internal/child_process:1101:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:304:5) {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'cd flask_analyzer && pip install -r requirements.txt --quiet',
+  stdout: '',
+  stderr: 'WARNING: Ignoring invalid distribution ~ (C:\\Python311\\Lib\\site-packages)\r\n' +
+    'WARNING: Ignoring invalid distribution ~ip (C:\\Python311\\Lib\\site-packages)\r\n' +
+    "WARNING: The candidate selected for download or install is a yanked version: 'pathlib2' candidate (version 2.3.7 at https://files.pythonhosted.org/packages/b9/be/c3f055e15009e16e80e606b2c6229770dd0741c3d64747b3691259d6f35a/pathlib2-2.3.7-py2.py3-none-any.whl (from https://pypi.org/simple/pathlib2/))\r\n" +
+    'Reason for being yanked: missing proper six dependency requirement\r\n' +
+    'WARNING: Ignoring invalid distribution ~ (C:\\Python311\\Lib\\site-packages)\r\n' +
+    'WARNING: Ignoring invalid distribution ~ip (C:\\Python311\\Lib\\site-packages)\r\n' +
+    '  WARNING: Failed to write executable - trying to use .deleteme logic\r\n' +
+    "ERROR: Could not install packages due to an OSError: [WinError 2] The system cannot find the file specified: 'C:\\\\Python311\\\\Scripts\\\\dotenv.exe' -> 'C:\\\\Python311\\\\Scripts\\\\dotenv.exe.deleteme'\r\n" +
+    '\r\n'
+}
+Error starting Flask Analyzer: Error: Command failed: cd flask_analyzer && pip install -r requirements.txt --quiet
+WARNING: Ignoring invalid distribution ~ (C:\Python311\Lib\site-packages)
+WARNING: Ignoring invalid distribution ~ip (C:\Python311\Lib\site-packages)
+WARNING: The candidate selected for download or install is a yanked version: 'pathlib2' candidate (version 2.3.7 at https://files.pythonhosted.org/packages/b9/be/c3f055e15009e16e80e606b2c6229770dd0741c3d64747b3691259d6f35a/pathlib2-2.3.7-py2.py3-none-any.whl (from https://pypi.org/simple/pathlib2/))
+Reason for being yanked: missing proper six dependency requirement
+WARNING: Ignoring invalid distribution ~ (C:\Python311\Lib\site-packages)
+WARNING: Ignoring invalid distribution ~ip (C:\Python311\Lib\site-packages)
+  WARNING: Failed to write executable - trying to use .deleteme logic
+ERROR: Could not install packages due to an OSError: [WinError 2] The system cannot find the file specified: 'C:\\Python311\\Scripts\\dotenv.exe' -> 'C:\\Python311\\Scripts\\dotenv.exe.deleteme'
+
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at ChildProcess.exithandler (node:child_process:414:12)
+    at ChildProcess.emit (node:events:518:28)
+    at maybeClose (node:internal/child_process:1101:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:304:5) {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'cd flask_analyzer && pip install -r requirements.txt --quiet',
+  stdout: '',
+  stderr: 'WARNING: Ignoring invalid distribution ~ (C:\\Python311\\Lib\\site-packages)\r\n' +
+    'WARNING: Ignoring invalid distribution ~ip (C:\\Python311\\Lib\\site-packages)\r\n' +
+    "WARNING: The candidate selected for download or install is a yanked version: 'pathlib2' candidate (version 2.3.7 at https://files.pythonhosted.org/packages/b9/be/c3f055e15009e16e80e606b2c6229770dd0741c3d64747b3691259d6f35a/pathlib2-2.3.7-py2.py3-none-any.whl (from https://pypi.org/simple/pathlib2/))\r\n" +
+    'Reason for being yanked: missing proper six dependency requirement\r\n' +
+    'WARNING: Ignoring invalid distribution ~ (C:\\Python311\\Lib\\site-packages)\r\n' +
+    'WARNING: Ignoring invalid distribution ~ip (C:\\Python311\\Lib\\site-packages)\r\n' +
+    '  WARNING: Failed to write executable - trying to use .deleteme logic\r\n' +
+    "ERROR: Could not install packages due to an OSError: [WinError 2] The system cannot find the file specified: 'C:\\\\Python311\\\\Scripts\\\\dotenv.exe' -> 'C:\\\\Python311\\\\Scripts\\\\dotenv.exe.deleteme'\r\n" +
+    '\r\n'
+}
+4:04:20 PM [express] POST /api/middleware/start 200 in 13161ms :: {"success":false,"message":"Middle…
+4:04:20 PM [express] GET /api/middleware/status 200 in 0ms :: {"globallyEnabled":true,"total":5,"act…
+4:04:25 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+4:04:30 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…

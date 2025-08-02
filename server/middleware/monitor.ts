@@ -157,10 +157,10 @@ class MiddlewareMonitor {
       
       // Create virtual environment and install dependencies
       const isWindows = process.platform === 'win32';
-      const venvPath = 'flask_analyzer/venv';
+      const venvPath = isWindows ? 'flask_analyzer\\venv' : 'flask_analyzer/venv';
       const pythonExe = isWindows ? 'python' : 'python3';
-      const pipExe = isWindows ? `${venvPath}/Scripts/pip` : `${venvPath}/bin/pip`;
-      const pythonVenv = isWindows ? `${venvPath}/Scripts/python` : `${venvPath}/bin/python`;
+      const pipExe = isWindows ? `${venvPath}\\Scripts\\pip` : `${venvPath}/bin/pip`;
+      const pythonVenv = isWindows ? `${venvPath}\\Scripts\\python` : `${venvPath}/bin/python`;
       
       try {
         // Check if virtual environment exists
@@ -173,28 +173,42 @@ class MiddlewareMonitor {
         
         // Install dependencies in virtual environment
         console.log('📦 Installing Flask dependencies...');
-        await execAsync(`cd flask_analyzer && ${pipExe} install -r requirements.txt --quiet`);
+        const installCmd = isWindows 
+          ? `cd flask_analyzer && ${pipExe} install -r requirements.txt --quiet --user`
+          : `cd flask_analyzer && ${pipExe} install -r requirements.txt --quiet`;
+        await execAsync(installCmd);
         console.log('✅ Flask dependencies installed in virtual environment');
         
       } catch (installError) {
         console.warn('Warning: Could not setup virtual environment, trying system Python:', installError);
-        // Fallback to system Python
+        // Fallback to system Python with minimal dependencies
         try {
-          await execAsync('cd flask_analyzer && pip install -r requirements.txt --quiet');
+          console.log('📦 Installing minimal Flask dependencies with system Python...');
+          const systemInstallCmd = isWindows 
+            ? 'cd flask_analyzer && pip install flask flask-cors requests werkzeug --user --quiet'
+            : 'cd flask_analyzer && pip install flask flask-cors requests werkzeug --quiet';
+          await execAsync(systemInstallCmd);
+          console.log('✅ Minimal Flask dependencies installed with system Python');
         } catch (fallbackError) {
           console.error('Failed to install dependencies with system Python:', fallbackError);
-          throw fallbackError;
+          // Continue anyway, maybe Flask is already installed globally
+          console.log('⚠️ Continuing with existing Python packages...');
         }
       }
 
       // Start the Flask analyzer using virtual environment Python or system Python
       let startCommand: string;
-      const venvPythonExists = await this.checkPathExists(pythonVenv);
       
-      if (venvPythonExists) {
-        startCommand = `cd flask_analyzer && ${pythonVenv} run_server.py`;
+      if (isWindows) {
+        // Use batch script for Windows
+        startCommand = `cd flask_analyzer && start_flask.bat`;
       } else {
-        startCommand = `cd flask_analyzer && ${pythonExe} run_server.py`;
+        const venvPythonExists = await this.checkPathExists(pythonVenv);
+        if (venvPythonExists) {
+          startCommand = `cd flask_analyzer && ${pythonVenv} run_server.py`;
+        } else {
+          startCommand = `cd flask_analyzer && ${pythonExe} run_server.py`;
+        }
       }
       
       console.log(`🚀 Starting Flask server with command: ${startCommand}`);
@@ -243,7 +257,11 @@ class MiddlewareMonitor {
 
   private async checkPathExists(path: string): Promise<boolean> {
     try {
-      await execAsync(`test -e ${path} || [[ -e ${path} ]]`);
+      const isWindows = process.platform === 'win32';
+      const checkCmd = isWindows 
+        ? `if exist "${path}" (echo exists)` 
+        : `test -e ${path}`;
+      await execAsync(checkCmd);
       return true;
     } catch {
       return false;
