@@ -1,0 +1,60 @@
+C:\ReactProjects\LeviatanCode [main ≡ +11 ~4 -0 !]> scripts\start-windows.bat
+Starting LeviatanCode on Windows...
+[dotenv@17.2.1] injecting env (1) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+[INFO] Environment: development
+[INFO] CSP disabled for development mode
+[INFO] All middleware loaded successfully
+12:57:07 PM [express] serving on port 5005
+GET / 200 59.692 ms - -
+GET /@vite/client 200 109.589 ms - -
+GET /@fs/C:/ReactProjects/LeviatanCode/node_modules/vite/dist/client/env.mjs 304 0.472 ms - -
+GET /src/main.tsx?v=fAoNPBWfhqQlPZGq9Qo2i 200 134.156 ms - -
+GET /@react-refresh 304 141.897 ms - -
+GET /src/App.tsx?v=fAoNPBWfhqQlPZGq9Qo2i 200 34.490 ms - -
+Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+GET /src/lib/queryClient.ts 304 654.267 ms - -
+GET /src/pages/not-found.tsx 304 646.280 ms - -
+GET /src/components/ui/tooltip.tsx 304 647.973 ms - -
+GET /src/components/ui/toaster.tsx 304 1295.809 ms - -
+GET /src/pages/dashboard.tsx 304 703.418 ms - -
+GET /src/lib/utils.ts 304 211.744 ms - -
+GET /src/hooks/use-toast.ts 304 241.687 ms - -
+GET /src/components/ui/card.tsx 304 247.924 ms - -
+GET /src/components/ui/toast.tsx 304 244.878 ms - -
+GET /src/components/ui/button.tsx 304 38.938 ms - -
+GET /src/components/ui/tabs.tsx 304 20.119 ms - -
+GET /src/components/ui/select.tsx 304 45.766 ms - -
+GET /src/components/ui/input.tsx 304 0.405 ms - -
+GET /src/components/ui/scroll-area.tsx 304 0.387 ms - -
+GET /src/components/project-import-dialog.tsx 304 0.367 ms - -
+GET /src/components/project-insights-save-button.tsx 304 0.389 ms - -
+GET /src/components/ai-document-analysis-dialog.tsx 304 0.394 ms - -
+GET /src/components/vault-explorer.tsx 304 0.607 ms - -
+GET /src/components/leviatan-settings.tsx 304 0.404 ms - -
+GET /src/components/ui/dialog.tsx 304 41.694 ms - -
+GET /src/hooks/use-project-insights.ts 304 18.658 ms - -
+GET /src/components/ui/badge.tsx 304 54.848 ms - -
+GET /src/components/ui/label.tsx 304 56.096 ms - -
+GET /src/components/ui/progress.tsx 304 20.786 ms - -
+GET /src/components/ui/textarea.tsx 304 20.452 ms - -
+GET /src/hooks/use-analysis-websocket.ts 304 0.498 ms - -
+12:57:10 PM [express] GET /api/projects/demo-project-1/insights 200 in 7ms :: {"insights":{"projectId…
+GET /api/projects/demo-project-1/insights?projectPath=. 200 5.723 ms - 676
+12:57:10 PM [express] GET /api/workspace/demo-project-1/git/config 304 in 1ms :: {"username":"","emai…
+GET /api/workspace/demo-project-1/git/config 304 0.614 ms - -
+12:57:10 PM [express] GET /api/projects 200 in 1ms :: [{"id":"demo-project-1","name":"ProductData_Ana…
+GET /api/projects 200 0.538 ms - 1280
+12:57:10 PM [express] GET /api/projects/demo-project-1 200 in 1ms :: {"id":"demo-project-1","name":"P…
+GET /api/projects/demo-project-1 200 0.679 ms - 1278
+12:57:10 PM [express] GET /api/settings/working-directory 304 in 2ms :: {"workingDirectory":"C:\\Reac…
+GET /api/settings/working-directory 304 0.833 ms - -
+12:57:10 PM [express] GET /api/workspace/folders 304 in 10ms :: ["cadence","cadence crm","LeviatanCod…
+GET /api/workspace/folders 304 9.060 ms - -
+12:57:10 PM [express] GET /api/settings/workspace-folders 304 in 2ms :: {"folders":[{"name":"cadence"…
+GET /api/settings/workspace-folders 304 1.518 ms - -
+GET /favicon.ico 200 6.342 ms - -
+📡 WebSocket connection established
+Logger client connected
+📡 Subscribed to analysis updates for project: demo-project-1
