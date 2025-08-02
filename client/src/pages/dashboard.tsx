@@ -1271,7 +1271,7 @@ const FileEditor = ({ activeFile, fileName }: { activeFile: string | null; fileN
             colorDecorators: true,
             codeLens: true,
             lightbulb: {
-              enabled: "on"
+              enabled: true
             }
           }}
           loading={<div className="flex items-center justify-center h-full text-replit-text">Loading editor...</div>}
@@ -1756,10 +1756,13 @@ export default function Dashboard() {
                 <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
                   <GitBranch className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
+                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center" onClick={() => setActiveTab("system-monitor")}>
                   <Monitor className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
+                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center" onClick={() => setActiveTab("middleware-monitor")}>
+                  <Activity className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center" onClick={() => setActiveTab("database-console")}>
                   <Database className="w-4 h-4" />
                 </Button>
                 <Button variant="ghost" size="sm" className="w-full h-10 p-2 flex items-center justify-center">
