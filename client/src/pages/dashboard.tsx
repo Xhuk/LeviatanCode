@@ -1441,7 +1441,6 @@ export default function Dashboard() {
   const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
   const [isAgentMenuCollapsed, setIsAgentMenuCollapsed] = useState(false);
   const [isAiChatCollapsed, setIsAiChatCollapsed] = useState(false);
-  const [agentMenuWidth, setAgentMenuWidth] = useState(256);
   const [explorerWidth, setExplorerWidth] = useState(256);
   const [aiChatWidth, setAiChatWidth] = useState(320);
   const [isDragging, setIsDragging] = useState<string | null>(null);
@@ -1607,15 +1606,12 @@ export default function Dashboard() {
     
     const mouseX = e.clientX - containerRect.left;
     
-    if (isDragging === 'agent-menu') {
-      const newWidth = Math.max(200, Math.min(400, mouseX));
-      setAgentMenuWidth(newWidth);
-    } else if (isDragging === 'explorer') {
-      const agentMenuCurrentWidth = isAgentMenuCollapsed ? 48 : agentMenuWidth;
+    if (isDragging === 'explorer') {
+      const agentMenuCurrentWidth = isAgentMenuCollapsed ? 48 : 256;
       const newWidth = Math.max(200, Math.min(400, mouseX - agentMenuCurrentWidth));
       setExplorerWidth(newWidth);
     } else if (isDragging === 'ai-chat') {
-      const agentMenuCurrentWidth = isAgentMenuCollapsed ? 48 : agentMenuWidth;
+      const agentMenuCurrentWidth = isAgentMenuCollapsed ? 48 : 256;
       const explorerCurrentWidth = isExplorerCollapsed ? 48 : explorerWidth;
       const newWidth = Math.max(280, Math.min(500, mouseX - agentMenuCurrentWidth - explorerCurrentWidth));
       setAiChatWidth(newWidth);
@@ -1636,7 +1632,7 @@ export default function Dashboard() {
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, agentMenuWidth, explorerWidth, aiChatWidth, isAgentMenuCollapsed, isExplorerCollapsed]);
+  }, [isDragging, explorerWidth, aiChatWidth, isAgentMenuCollapsed, isExplorerCollapsed]);
 
   return (
     <div className="h-screen bg-replit-dark text-replit-text flex flex-col overflow-hidden dashboard-container">
@@ -1784,10 +1780,7 @@ export default function Dashboard() {
       {/* Main Layout */}
       <div className="flex-1 flex overflow-hidden">
         {/* Agent Tools Menu */}
-        <div 
-          className="bg-replit-panel border-r border-replit-border flex flex-col relative group"
-          style={{ width: isAgentMenuCollapsed ? '48px' : `${agentMenuWidth}px` }}
-        >
+        <div className={`${isAgentMenuCollapsed ? 'w-12' : 'w-64'} bg-replit-panel border-r border-replit-border transition-all duration-300 flex flex-col`}>
           <div className="p-3 border-b border-replit-border flex items-center justify-between">
             {!isAgentMenuCollapsed && (
               <h3 className="font-semibold text-replit-text text-sm">Agent Tools</h3>
@@ -1926,13 +1919,6 @@ export default function Dashboard() {
             )}
           </div>
           
-          {/* Drag Handle for Agent Menu */}
-          {!isAgentMenuCollapsed && (
-            <div 
-              className="absolute right-0 top-0 w-1 h-full cursor-col-resize bg-transparent hover:bg-replit-blue/30 transition-colors"
-              onMouseDown={(e) => handleMouseDown(e, 'agent-menu')}
-            />
-          )}
         </div>
 
         {/* File Explorer */}
