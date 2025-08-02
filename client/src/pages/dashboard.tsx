@@ -1602,26 +1602,18 @@ export default function Dashboard() {
 
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDragging) return;
+    e.preventDefault();
     
     const containerRect = document.querySelector('.dashboard-container')?.getBoundingClientRect();
     if (!containerRect) return;
     
     const mouseX = e.clientX - containerRect.left;
     
-    if (isDragging === 'explorer') {
+    if (isDragging === 'explorer' || isDragging === 'explorer-left') {
       const agentMenuCurrentWidth = isAgentMenuCollapsed ? 48 : 256;
       const newWidth = Math.max(200, Math.min(400, mouseX - agentMenuCurrentWidth));
       setExplorerWidth(newWidth);
-    } else if (isDragging === 'explorer-left') {
-      const agentMenuCurrentWidth = isAgentMenuCollapsed ? 48 : 256;
-      const newWidth = Math.max(200, Math.min(400, mouseX - agentMenuCurrentWidth));
-      setExplorerWidth(newWidth);
-    } else if (isDragging === 'ai-chat') {
-      const agentMenuCurrentWidth = isAgentMenuCollapsed ? 48 : 256;
-      const explorerCurrentWidth = isExplorerCollapsed ? 48 : explorerWidth;
-      const newWidth = Math.max(280, Math.min(500, mouseX - agentMenuCurrentWidth - explorerCurrentWidth));
-      setAiChatWidth(newWidth);
-    } else if (isDragging === 'ai-chat-left') {
+    } else if (isDragging === 'ai-chat' || isDragging === 'ai-chat-left') {
       const agentMenuCurrentWidth = isAgentMenuCollapsed ? 48 : 256;
       const explorerCurrentWidth = isExplorerCollapsed ? 48 : explorerWidth;
       const newWidth = Math.max(280, Math.min(500, mouseX - agentMenuCurrentWidth - explorerCurrentWidth));
@@ -1942,7 +1934,7 @@ export default function Dashboard() {
           {/* Left Drag Handle for File Explorer */}
           {!isExplorerCollapsed && (
             <div 
-              className="absolute left-0 top-0 w-2 h-full cursor-grab hover:cursor-grab active:cursor-grabbing bg-transparent hover:bg-replit-blue/30 transition-colors z-10"
+              className="absolute left-0 top-0 w-2 h-full cursor-grab hover:cursor-grab active:cursor-grabbing bg-blue-500/20 hover:bg-replit-blue/40 transition-colors z-10 border-r border-blue-500/30"
               onMouseDown={(e) => handleMouseDown(e, 'explorer-left')}
             />
           )}
@@ -1957,7 +1949,7 @@ export default function Dashboard() {
           {/* Right Drag Handle for File Explorer */}
           {!isExplorerCollapsed && (
             <div 
-              className="absolute right-0 top-0 w-2 h-full cursor-grab hover:cursor-grab active:cursor-grabbing bg-transparent hover:bg-replit-blue/30 transition-colors"
+              className="absolute right-0 top-0 w-2 h-full cursor-grab hover:cursor-grab active:cursor-grabbing bg-blue-500/20 hover:bg-replit-blue/40 transition-colors border-l border-blue-500/30"
               onMouseDown={(e) => handleMouseDown(e, 'explorer')}
             />
           )}
@@ -1971,7 +1963,7 @@ export default function Dashboard() {
           {/* Left Drag Handle for AI Chat (shared with editor) */}
           {!isAiChatCollapsed && (
             <div 
-              className="absolute left-0 top-0 w-2 h-full cursor-grab hover:cursor-grab active:cursor-grabbing bg-transparent hover:bg-replit-blue/30 transition-colors z-10"
+              className="absolute left-0 top-0 w-2 h-full cursor-grab hover:cursor-grab active:cursor-grabbing bg-blue-500/20 hover:bg-replit-blue/40 transition-colors z-10 border-r border-blue-500/30"
               onMouseDown={(e) => handleMouseDown(e, 'ai-chat-left')}
             />
           )}
@@ -2007,7 +1999,7 @@ export default function Dashboard() {
         <div className="flex-1 flex flex-col relative">
           {/* Left Drag Handle for Editor (shared with AI Chat) */}
           <div 
-            className="absolute left-0 top-0 w-2 h-full cursor-grab hover:cursor-grab active:cursor-grabbing bg-transparent hover:bg-replit-blue/30 transition-colors z-20"
+            className="absolute left-0 top-0 w-2 h-full cursor-grab hover:cursor-grab active:cursor-grabbing bg-blue-500/20 hover:bg-replit-blue/40 transition-colors z-20 border-r border-blue-500/30"
             onMouseDown={(e) => handleMouseDown(e, 'ai-chat-left')}
           />
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
