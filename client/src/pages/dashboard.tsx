@@ -1686,17 +1686,7 @@ export default function Dashboard() {
                     <div className="text-xs text-replit-text-secondary">Analyze project structure</div>
                   </div>
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
-                  onClick={() => setActiveTab("git-management")}
-                >
-                  <GitBranch className="w-5 h-5" />
-                  <div className="text-left">
-                    <div className="font-medium text-sm">Git Management</div>
-                    <div className="text-xs text-replit-text-secondary">Version control and repository</div>
-                  </div>
-                </Button>
+
                 <Button 
                   variant="ghost" 
                   className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
@@ -1722,7 +1712,7 @@ export default function Dashboard() {
                 <Button 
                   variant="ghost" 
                   className="w-full justify-start gap-3 p-3 h-auto hover:bg-replit-elevated"
-                  onClick={() => setActiveTab("git-log")}
+                  onClick={() => setActiveTab("git-management")}
                 >
                   <Settings className="w-5 h-5" />
                   <div className="text-left">
