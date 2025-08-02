@@ -22,19 +22,19 @@ if __name__ == '__main__':
         port = int(os.environ.get('FLASK_PORT', 5001))
         debug = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
         
-        logger.info(f"🚀 Starting LeviatanCode Flask Analyzer API")
-        logger.info(f"📍 Server running on: http://localhost:{port}")
-        logger.info(f"🔧 Debug mode: {debug}")
-        logger.info(f"🤖 OpenAI API configured: {bool(os.environ.get('OPENAI_API_KEY'))}")
-        logger.info(f"🤖 Gemini API configured: {bool(os.environ.get('GEMINI_API_KEY'))}")
-        logger.info(f"📊 Ready to analyze projects!")
+        logger.info(f"Starting LeviatanCode Flask Analyzer API")
+        logger.info(f"Server running on: http://localhost:{port}")
+        logger.info(f"Debug mode: {debug}")
+        logger.info(f"OpenAI API configured: {bool(os.environ.get('OPENAI_API_KEY'))}")
+        logger.info(f"Gemini API configured: {bool(os.environ.get('GEMINI_API_KEY'))}")
+        logger.info(f"Ready to analyze projects!")
         
         app.run(host='0.0.0.0', port=port, debug=debug)
         
     except ImportError as e:
-        print(f"❌ Error importing Flask app: {e}")
-        print("💡 Make sure you've installed requirements: pip install -r requirements.txt")
+        print("Error importing Flask app:", str(e))
+        print("Make sure you've installed requirements: pip install -r requirements.txt")
         sys.exit(1)
     except Exception as e:
-        print(f"❌ Error starting server: {e}")
+        print("Error starting server:", str(e))
         sys.exit(1)

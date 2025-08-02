@@ -174,7 +174,7 @@ class MiddlewareMonitor {
         // Install dependencies in virtual environment
         console.log('📦 Installing Flask dependencies...');
         const installCmd = isWindows 
-          ? `cd flask_analyzer && ${pipExe} install -r requirements.txt --quiet --user`
+          ? `cd flask_analyzer && ${pipExe} install flask flask-cors requests werkzeug --quiet`
           : `cd flask_analyzer && ${pipExe} install -r requirements.txt --quiet`;
         await execAsync(installCmd);
         console.log('✅ Flask dependencies installed in virtual environment');

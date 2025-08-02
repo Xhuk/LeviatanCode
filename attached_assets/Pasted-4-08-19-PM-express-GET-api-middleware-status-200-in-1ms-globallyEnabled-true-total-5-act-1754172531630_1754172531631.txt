@@ -1,0 +1,62 @@
+4:08:19 PM [express] GET /api/middleware/status 200 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+4:08:24 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+🔄 Starting Flask Analyzer service...
+📦 Installing Flask dependencies...
+Warning: Could not setup virtual environment, trying system Python: Error: Command failed: cd flask_analyzer && flask_analyzer\venv\Scripts\pip install -r requirements.txt --quiet --user
+The system cannot find the path specified.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at ChildProcess.exithandler (node:child_process:414:12)
+    at ChildProcess.emit (node:events:518:28)
+    at maybeClose (node:internal/child_process:1101:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:304:5) {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'cd flask_analyzer && flask_analyzer\\venv\\Scripts\\pip install -r requirements.txt --quiet --user',
+  stdout: '',
+  stderr: 'The system cannot find the path specified.\r\n'
+}
+📦 Installing minimal Flask dependencies with system Python...
+✅ Minimal Flask dependencies installed with system Python
+🚀 Starting Flask server with command: cd flask_analyzer && start_flask.bat
+4:08:27 PM [express] POST /api/middleware/start 200 in 2317ms :: {"success":true,"message":"Middlewa…
+4:08:27 PM [express] GET /api/middleware/status 304 in 0ms :: {"globallyEnabled":true,"total":5,"act…
+Flask stdout: 🔧 Starting Flask Analyzer for Windows...
+
+Flask stdout: ✅ Using virtual environment
+
+Flask stderr: Traceback (most recent call last):
+  File "C:\ReactProjects\LeviatanCode\flask_analyzer\run_server.py", line 20, in <module>
+
+Flask stderr:     from app import app, logger
+  File "C:\ReactProjects\LeviatanCode\flask_analyzer\app.py", line 19, in <module>
+
+Flask stderr:     from flask import Flask, request, jsonify, abort
+
+Flask stderr: ModuleNotFoundError: No module named 'flask'
+
+
+Flask stderr: During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+
+Flask stderr:   File "C:\ReactProjects\LeviatanCode\flask_analyzer\run_server.py", line 35, in <module>
+
+Flask stderr:     print(f"\u274c Error importing Flask app: {e}")
+
+Flask stderr:   File "C:\Python311\Lib\encodings\cp1252.py", line 19, in encode
+
+Flask stderr:     return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+
+Flask stderr:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u274c' in position 0: character maps to <undefined>
+
+Flask stdout: Press any key to continue . . .
+4:08:32 PM [express] GET /api/middleware/status 304 in 0ms :: {"globallyEnabled":true,"total":5,"act…
+4:08:37 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+[INFO] CSP disabled for development mode
+4:08:40 PM [express] GET /api/configuration/verify/demo-project-1 304 in 5ms :: [{"category":"worksp…
+4:08:42 PM [express] GET /api/middleware/status 200 in 0ms :: {"globallyEnabled":true,"total":5,"act…
+4:08:47 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
