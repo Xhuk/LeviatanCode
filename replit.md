@@ -34,6 +34,8 @@ The system is built as a monorepo with a React TypeScript frontend using shadcn/
 - **Application Successfully Running**: LeviatanCode interface fully functional with project import dialog, file upload, and AI chat capabilities working
 - **Middleware Production Deployment**: Complete middleware stack deployed with CORS, security headers, rate limiting, session management, and error handling
 - **File Upload Fix**: Resolved HTTP method error in project import functionality - file uploads now working correctly
+- **ZIP File Support**: Added automatic ZIP decompression with intelligent file filtering - imports ZIP archives and extracts only relevant source code files
+- **Enhanced File Handling**: Improved large file management with 50MB limits, smart filtering of build directories, and automatic detection of code files vs binary assets
 
 # User Preferences
 

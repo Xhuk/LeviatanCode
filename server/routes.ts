@@ -6,6 +6,9 @@ import { aiService } from "./services/ai";
 import { projectImportService } from "./services/project-import";
 import multer from "multer";
 import { z } from "zod";
+import yauzl from "yauzl";
+import path from "path";
+import { promisify } from "util";
 import { 
   insertProjectSchema,
   insertProjectExecutionSchema,
@@ -22,12 +25,47 @@ import {
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
-  // Configure multer for file uploads
+  // Configure multer for file uploads with enhanced filtering
   const upload = multer({ 
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 10 * 1024 * 1024, // 10MB limit
-      files: 50 // Max 50 files
+      fileSize: 50 * 1024 * 1024, // 50MB per file
+      files: 100, // Max 100 files
+      fieldSize: 10 * 1024 * 1024 // 10MB for form fields
+    },
+    fileFilter: (req, file, cb) => {
+      // Skip large files that are typically not needed for code analysis
+      const skipExtensions = [
+        '.exe', '.dll', '.so', '.dylib', '.bin', '.iso', '.img',
+        '.rar', '.7z', '.tar', '.gz', '.bz2', // Keep .zip for processing
+        '.mp4', '.avi', '.mov', '.mkv', '.wmv', '.flv',
+        '.mp3', '.wav', '.flac', '.ogg', '.m4a',
+        '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp',
+        '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+        '.dmg', '.pkg', '.deb', '.rpm', '.msi'
+      ];
+      
+      const fileExt = file.originalname.toLowerCase().substring(file.originalname.lastIndexOf('.'));
+      
+      // Skip files in common build/cache directories
+      const skipPaths = [
+        'node_modules/', 'dist/', 'build/', 'target/', 'bin/', 'obj/',
+        '.git/', '.svn/', '.hg/', '.next/', '.nuxt/', '.cache/',
+        'vendor/', 'packages/', 'libs/', '__pycache__/', '.pytest_cache/',
+        'coverage/', '.coverage/', '.nyc_output/', 'temp/', 'tmp/',
+        '.idea/', '.vscode/settings.json', '.vs/', '*.log'
+      ];
+      
+      const isSkippedPath = skipPaths.some(path => 
+        file.originalname.toLowerCase().includes(path.toLowerCase())
+      );
+      
+      if (skipExtensions.includes(fileExt) || isSkippedPath) {
+        cb(null, false); // Skip this file
+        return;
+      }
+      
+      cb(null, true); // Accept this file
     }
   });
 

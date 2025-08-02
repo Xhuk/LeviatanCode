@@ -5,6 +5,8 @@ import type { Project } from "@shared/schema";
 import { ProjectInsights, ProjectInsightsSchema, createDefaultInsights } from "@shared/insights-schema";
 import * as fs from "fs";
 import * as path from "path";
+import yauzl from "yauzl";
+import { Readable } from "stream";
 
 interface ImportedFile {
   name: string;
@@ -24,17 +26,157 @@ interface AnalysisResult {
 }
 
 class ProjectImportService {
+  
+  // Extract ZIP files and return file contents
+  private async extractZipFile(zipBuffer: Buffer): Promise<ImportedFile[]> {
+    return new Promise((resolve, reject) => {
+      const extractedFiles: ImportedFile[] = [];
+      
+      yauzl.fromBuffer(zipBuffer, { lazyEntries: true }, (err, zipfile) => {
+        if (err) {
+          reject(new Error(`Failed to read ZIP file: ${err.message}`));
+          return;
+        }
+        
+        if (!zipfile) {
+          reject(new Error('Invalid ZIP file'));
+          return;
+        }
+        
+        zipfile.readEntry();
+        
+        zipfile.on('entry', (entry) => {
+          // Skip directories and common build/cache paths
+          if (/\/$/.test(entry.fileName)) {
+            zipfile.readEntry();
+            return;
+          }
+          
+          // Skip large files and unwanted directories
+          const skipPaths = [
+            'node_modules/', 'dist/', 'build/', 'target/', 'bin/', 'obj/',
+            '.git/', '.svn/', '.hg/', '.next/', '.nuxt/', '.cache/',
+            'vendor/', 'packages/', 'libs/', '__pycache__/', '.pytest_cache/',
+            'coverage/', '.coverage/', '.nyc_output/', 'temp/', 'tmp/',
+            '.idea/', '.vscode/', '.vs/'
+          ];
+          
+          const shouldSkip = skipPaths.some(skipPath => 
+            entry.fileName.toLowerCase().includes(skipPath.toLowerCase())
+          );
+          
+          if (shouldSkip || entry.uncompressedSize > 5 * 1024 * 1024) { // Skip files > 5MB
+            zipfile.readEntry();
+            return;
+          }
+          
+          // Only process text files and common code files
+          const allowedExtensions = [
+            '.js', '.ts', '.jsx', '.tsx', '.vue', '.svelte',
+            '.py', '.java', '.c', '.cpp', '.h', '.hpp', '.cs',
+            '.php', '.rb', '.go', '.rs', '.swift', '.kt',
+            '.html', '.css', '.scss', '.sass', '.less',
+            '.json', '.xml', '.yaml', '.yml', '.toml', '.ini',
+            '.md', '.txt', '.config', '.env', '.gitignore',
+            '.dockerfile', 'Dockerfile', 'Makefile', '.lock'
+          ];
+          
+          const fileExt = path.extname(entry.fileName).toLowerCase();
+          const fileName = path.basename(entry.fileName).toLowerCase();
+          
+          const isAllowedFile = allowedExtensions.includes(fileExt) || 
+                               ['dockerfile', 'makefile', 'package.json', 'requirements.txt', 'composer.json', 'cargo.toml', 'go.mod'].includes(fileName);
+          
+          if (!isAllowedFile) {
+            zipfile.readEntry();
+            return;
+          }
+          
+          zipfile.openReadStream(entry, (err, readStream) => {
+            if (err) {
+              console.warn(`Failed to read ${entry.fileName}:`, err);
+              zipfile.readEntry();
+              return;
+            }
+            
+            if (!readStream) {
+              zipfile.readEntry();
+              return;
+            }
+            
+            const chunks: Buffer[] = [];
+            
+            readStream.on('data', (chunk) => {
+              chunks.push(chunk);
+            });
+            
+            readStream.on('end', () => {
+              try {
+                const content = Buffer.concat(chunks).toString('utf8');
+                
+                extractedFiles.push({
+                  name: path.basename(entry.fileName),
+                  content: content,
+                  path: entry.fileName,
+                  size: entry.uncompressedSize
+                });
+              } catch (error) {
+                console.warn(`Failed to decode ${entry.fileName} as UTF-8:`, error);
+              }
+              
+              zipfile.readEntry();
+            });
+            
+            readStream.on('error', (error) => {
+              console.warn(`Stream error for ${entry.fileName}:`, error);
+              zipfile.readEntry();
+            });
+          });
+        });
+        
+        zipfile.on('end', () => {
+          resolve(extractedFiles);
+        });
+        
+        zipfile.on('error', (error) => {
+          reject(new Error(`ZIP processing error: ${error.message}`));
+        });
+      });
+    });
+  }
+
   async importFromFiles(files: any[], projectName: string, description?: string, projectPath?: string): Promise<{ projectId: string; analysis: AnalysisResult; insights: ProjectInsights }> {
     const projectId = nanoid();
     const actualProjectPath = projectPath || process.cwd();
     
-    // Process uploaded files
-    const importedFiles: ImportedFile[] = files.map(file => ({
-      name: file.originalname,
-      content: file.buffer.toString('utf8'),
-      path: file.originalname,
-      size: file.size
-    }));
+    // Process uploaded files - handle ZIP files specially
+    let importedFiles: ImportedFile[] = [];
+    
+    for (const file of files) {
+      if (file.originalname.toLowerCase().endsWith('.zip')) {
+        console.log(`Extracting ZIP file: ${file.originalname}`);
+        try {
+          const extractedFiles = await this.extractZipFile(file.buffer);
+          importedFiles.push(...extractedFiles);
+          console.log(`Extracted ${extractedFiles.length} files from ${file.originalname}`);
+        } catch (error) {
+          console.error(`Failed to extract ZIP file ${file.originalname}:`, error);
+          // Continue with other files
+        }
+      } else {
+        // Regular file processing
+        try {
+          importedFiles.push({
+            name: file.originalname,
+            content: file.buffer.toString('utf8'),
+            path: file.originalname,
+            size: file.size
+          });
+        } catch (error) {
+          console.warn(`Failed to process file ${file.originalname}:`, error);
+        }
+      }
+    }
     
     // Check for existing insightsproject.ia file
     let existingInsights: Partial<ProjectInsights> | null = null;

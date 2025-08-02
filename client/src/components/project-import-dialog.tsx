@@ -244,13 +244,13 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
                           onChange={(e) => setFiles(e.target.files)}
                           className="hidden"
                           id="file-upload"
-                          accept=".zip,.tar.gz,.js,.ts,.jsx,.tsx,.py,.java,.cpp,.c,.html,.css,.json,.md,.txt,.yml,.yaml"
+                          accept=".zip,.tar.gz,.js,.ts,.jsx,.tsx,.py,.java,.cpp,.c,.html,.css,.json,.md,.txt,.yml,.yaml,.config,.env,.gitignore"
                         />
                         <label htmlFor="file-upload" className="cursor-pointer">
                           <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
                           <p className="text-sm font-medium">Click to upload files</p>
                           <p className="text-xs text-gray-500 mt-1">
-                            Supports source code, configs, and archives
+                            Supports source code, configs, and ZIP archives (auto-extracted)
                           </p>
                         </label>
                       </div>
@@ -264,8 +264,15 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
                                 <FileText className="h-3 w-3" />
                                 <span className="truncate">{file.name}</span>
                                 <Badge variant="outline" className="text-xs">
-                                  {(file.size / 1024).toFixed(1)}KB
+                                  {file.size > 1024 * 1024 ? 
+                                    `${(file.size / 1024 / 1024).toFixed(1)}MB` : 
+                                    `${(file.size / 1024).toFixed(1)}KB`}
                                 </Badge>
+                                {file.name.toLowerCase().endsWith('.zip') && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    Will extract
+                                  </Badge>
+                                )}
                               </div>
                             ))}
                           </div>
