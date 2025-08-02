@@ -132,11 +132,11 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
         <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 rounded-lg animate-gradient-x -z-10"></div>
         <div className="overflow-visible">
           <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
+            <DialogTitle className="flex items-center space-x-2 text-white">
               <FolderOpen className="h-5 w-5" />
               <span>Import Project for AI Analysis</span>
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-white/90">
               Import your existing project and let AI analyze it to determine how to run and debug it.
             </DialogDescription>
           </DialogHeader>
