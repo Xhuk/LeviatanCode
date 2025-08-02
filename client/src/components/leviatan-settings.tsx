@@ -50,21 +50,44 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
 
   const [saveStatus, setSaveStatus] = useState<string>('');
 
+  const [systemInfo, setSystemInfo] = useState({
+    platform: '',
+    architecture: '',
+    nodeVersion: '',
+    pythonVersion: '',
+    shell: '',
+    packageManagers: '',
+    database: '',
+    cpuCount: 0,
+    totalMemory: '',
+    freeMemory: '',
+    uptime: ''
+  });
+
   useEffect(() => {
-    // Load settings from API
-    const loadSettings = async () => {
+    // Load settings and system info from API
+    const loadData = async () => {
       try {
-        const response = await fetch(`/api/workspace/${currentProject}/settings`);
-        if (response.ok) {
-          const data = await response.json();
+        const [settingsResponse, systemResponse] = await Promise.all([
+          fetch(`/api/workspace/${currentProject}/settings`),
+          fetch('/api/system/info')
+        ]);
+        
+        if (settingsResponse.ok) {
+          const data = await settingsResponse.json();
           setSettings(prev => ({ ...prev, ...data }));
         }
+        
+        if (systemResponse.ok) {
+          const sysData = await systemResponse.json();
+          setSystemInfo(sysData);
+        }
       } catch (error) {
-        console.error('Failed to load settings:', error);
+        console.error('Failed to load data:', error);
       }
     };
     
-    loadSettings();
+    loadData();
   }, [currentProject]);
 
   const handleSave = async () => {
@@ -431,23 +454,47 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-replit-text-secondary">Platform:</span>
-                    <span className="text-replit-text">Windows 11</span>
+                    <span className="text-replit-text">{systemInfo.platform || 'Loading...'}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-replit-text-secondary">Architecture:</span>
-                    <span className="text-replit-text">x64</span>
+                    <span className="text-replit-text">{systemInfo.architecture || 'Loading...'}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-replit-text-secondary">Node.js:</span>
+                    <span className="text-replit-text">{systemInfo.nodeVersion || 'Loading...'}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-replit-text-secondary">Python:</span>
+                    <span className="text-replit-text">{systemInfo.pythonVersion || 'Loading...'}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-replit-text-secondary">Shell:</span>
-                    <span className="text-replit-text">PowerShell 7.x</span>
+                    <span className="text-replit-text">{systemInfo.shell || 'Loading...'}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-replit-text-secondary">Package Manager:</span>
-                    <span className="text-replit-text">npm, pip</span>
+                    <span className="text-replit-text-secondary">Package Managers:</span>
+                    <span className="text-replit-text">{systemInfo.packageManagers || 'Loading...'}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-replit-text-secondary">Database:</span>
-                    <span className="text-replit-text">Supabase (PostgreSQL)</span>
+                    <span className="text-replit-text">{systemInfo.database || 'Loading...'}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-replit-text-secondary">CPU Cores:</span>
+                    <span className="text-replit-text">{systemInfo.cpuCount || 'Loading...'}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-replit-text-secondary">Total Memory:</span>
+                    <span className="text-replit-text">{systemInfo.totalMemory || 'Loading...'}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-replit-text-secondary">Free Memory:</span>
+                    <span className="text-replit-text">{systemInfo.freeMemory || 'Loading...'}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-replit-text-secondary">Uptime:</span>
+                    <span className="text-replit-text">{systemInfo.uptime || 'Loading...'}</span>
                   </div>
                 </div>
               </div>

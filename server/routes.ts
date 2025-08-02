@@ -711,6 +711,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // System information endpoint
+  app.get("/api/system/info", async (req, res) => {
+    try {
+      const os = require('os');
+      const { execSync } = require('child_process');
+      
+      // Get Node.js version
+      const nodeVersion = process.version;
+      
+      // Try to get Python version
+      let pythonVersion = 'Not installed';
+      try {
+        pythonVersion = execSync('python --version 2>&1', { encoding: 'utf8' }).trim();
+      } catch {
+        try {
+          pythonVersion = execSync('python3 --version 2>&1', { encoding: 'utf8' }).trim();
+        } catch {
+          pythonVersion = 'Not available';
+        }
+      }
+      
+      // Check package managers
+      const packageManagers = [];
+      try {
+        execSync('npm --version', { encoding: 'utf8' });
+        packageManagers.push('npm');
+      } catch {}
+      try {
+        execSync('pip --version', { encoding: 'utf8' });
+        packageManagers.push('pip');
+      } catch {}
+      try {
+        execSync('yarn --version', { encoding: 'utf8' });
+        packageManagers.push('yarn');
+      } catch {}
+      
+      // Get shell information
+      let shell = process.env.SHELL || 'Unknown';
+      if (os.platform() === 'win32') {
+        shell = process.env.ComSpec || 'cmd.exe';
+      }
+      
+      // Format memory
+      const totalMemory = Math.round(os.totalmem() / 1024 / 1024 / 1024 * 100) / 100 + ' GB';
+      const freeMemory = Math.round(os.freemem() / 1024 / 1024 / 1024 * 100) / 100 + ' GB';
+      
+      // Format uptime
+      const uptimeSeconds = os.uptime();
+      const hours = Math.floor(uptimeSeconds / 3600);
+      const minutes = Math.floor((uptimeSeconds % 3600) / 60);
+      const uptime = `${hours}h ${minutes}m`;
+      
+      // Database status
+      const database = process.env.DATABASE_URL ? 
+        (process.env.DATABASE_URL.includes('supabase') ? 'Supabase (PostgreSQL)' : 'PostgreSQL') : 
+        'Not configured';
+      
+      const systemInfo = {
+        platform: `${os.type()} ${os.release()}`,
+        architecture: os.arch(),
+        nodeVersion: nodeVersion,
+        pythonVersion: pythonVersion,
+        shell: shell,
+        packageManagers: packageManagers.join(', ') || 'None detected',
+        database: database,
+        cpuCount: os.cpus().length,
+        totalMemory: totalMemory,
+        freeMemory: freeMemory,
+        uptime: uptime
+      };
+      
+      res.json(systemInfo);
+    } catch (error) {
+      console.error("System info error:", error);
+      res.status(500).json({ message: "Failed to fetch system information" });
+    }
+  });
+
   // Settings endpoints
   app.get("/api/settings/environment", async (req, res) => {
     try {
