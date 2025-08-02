@@ -11,7 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Database, Play, Settings, UserCircle, Cog, Brain, FileText, MessageSquare, AlertTriangle, Upload } from "lucide-react";
+import { Database, Play, Settings, UserCircle, Cog, Brain, FileText, MessageSquare, AlertTriangle, Upload, FolderOpen } from "lucide-react";
 import { ServiceStatusIndicator } from "@/components/service-status-indicator";
 import { ProjectImportDialog } from "@/components/project-import-dialog";
 import { SettingsDialog } from "@/components/settings-dialog";
@@ -19,7 +19,8 @@ import { ProjectInsightsSaveButton } from "@/components/project-insights-save-bu
 
 export default function Dashboard() {
   const [currentProject, setCurrentProject] = useState<string>("demo-project-1");
-  const [activeFile, setActiveFile] = useState<string>("scrapers/web_scraper.html");
+  const [activeFile, setActiveFile] = useState<string>("");
+  const [workingDirectory, setWorkingDirectory] = useState<string>("");
 
   const { data: projects } = useQuery({
     queryKey: ["/api/projects"],
@@ -41,6 +42,26 @@ export default function Dashboard() {
             </div>
             <h1 className="font-bold text-lg gradient-text">LeviatanCode</h1>
           </div>
+          <Button 
+            onClick={() => {
+              const dir = prompt("Enter working directory path:", workingDirectory || "C:\\Development");
+              if (dir) {
+                setWorkingDirectory(dir);
+                // Save to .env
+                fetch("/api/settings/working-directory", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ workingDirectory: dir })
+                });
+              }
+            }}
+            variant="outline" 
+            size="sm"
+            className="border-replit-border hover:bg-replit-elevated"
+          >
+            <Settings className="mr-2 h-4 w-4" />
+            Set Working Directory
+          </Button>
           <div className="flex items-center space-x-2">
             <span className="text-replit-text-secondary text-sm">Workspace:</span>
             <Select value={currentProject} onValueChange={setCurrentProject}>
@@ -48,9 +69,13 @@ export default function Dashboard() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="demo-project-1">React_Portfolio_App</SelectItem>
-                <SelectItem value="social-scraper">Python_ML_Project</SelectItem>
-                <SelectItem value="competitor-research">NodeJS_API_Server</SelectItem>
+                {projects?.map((project: any) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                )) || (
+                  <SelectItem value="demo-project-1">Empty Project</SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>

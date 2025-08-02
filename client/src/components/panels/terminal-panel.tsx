@@ -20,67 +20,19 @@ export function TerminalPanel({ projectId }: TerminalPanelProps) {
   const terminalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Initialize with demo terminal content
+    // Initialize with empty terminal ready for development
     const initialLines: TerminalLine[] = [
       {
         id: '1',
-        content: 'PS C:\\DataScraper> python linkedin_scraper.py',
+        content: 'PowerShell 7.3.4',
+        type: 'output',
+        timestamp: new Date(Date.now() - 10000)
+      },
+      {
+        id: '2', 
+        content: 'PS C:\\Development> ',
         type: 'command',
-        timestamp: new Date(Date.now() - 300000)
-      },
-      {
-        id: '2',
-        content: 'Starting LinkedIn profile scraper...',
-        type: 'output',
-        timestamp: new Date(Date.now() - 295000)
-      },
-      {
-        id: '3',
-        content: '✓ API keys loaded successfully',
-        type: 'success',
-        timestamp: new Date(Date.now() - 290000)
-      },
-      {
-        id: '4',
-        content: '✓ Chrome driver initialized',
-        type: 'success',
-        timestamp: new Date(Date.now() - 285000)
-      },
-      {
-        id: '5',
-        content: '⚠ Rate limiting enabled: 2s delay between requests',
-        type: 'warning',
-        timestamp: new Date(Date.now() - 280000)
-      },
-      {
-        id: '6',
-        content: '📊 Scraped 127 profiles in 2.3 minutes',
-        type: 'output',
-        timestamp: new Date(Date.now() - 120000)
-      },
-      {
-        id: '7',
-        content: '✅ Data saved to: data/linkedin_profiles_20241201.csv',
-        type: 'success',
-        timestamp: new Date(Date.now() - 115000)
-      },
-      {
-        id: '8',
-        content: 'PS C:\\DataScraper> npm run analyze',
-        type: 'command',
-        timestamp: new Date(Date.now() - 60000)
-      },
-      {
-        id: '9',
-        content: '🔍 Running AI analysis on scraped data...',
-        type: 'output',
-        timestamp: new Date(Date.now() - 55000)
-      },
-      {
-        id: '10',
-        content: '📈 Generating insights with GPT-4...',
-        type: 'output',
-        timestamp: new Date(Date.now() - 30000)
+        timestamp: new Date(Date.now() - 5000)
       }
     ];
     

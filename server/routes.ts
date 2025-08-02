@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import settingsRoutes from "./routes/settings";
 import { aiService } from "./services/ai";
 import { projectImportService } from "./services/project-import";
 import multer from "multer";
@@ -832,6 +833,9 @@ Please provide a JSON response with this exact structure:
       res.status(500).json({ error: "Failed to save project insights" });
     }
   });
+
+  // Settings routes
+  app.use("/api/settings", settingsRoutes);
 
   return httpServer;
 }

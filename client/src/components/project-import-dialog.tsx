@@ -42,11 +42,7 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
         }
         return response.json();
       } else {
-        return apiRequest("/api/projects/import/git", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        });
+        return apiRequest("POST", "/api/projects/import/git", data);
       }
     },
     onSuccess: (data) => {
