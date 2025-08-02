@@ -50,11 +50,12 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
         const result = await response.json();
         
         // Trigger extraction completed event
-        if (result.zipFiles && result.zipFiles.length > 0) {
+        if (result.extractedFiles || result.zipFiles) {
+          const fileCount = result.extractedFiles?.length || result.zipFiles?.length || 0;
           window.dispatchEvent(new CustomEvent('extraction:complete', { 
             detail: { 
-              fileCount: result.zipFiles.length, 
-              extractPath: result.extractedPath || 'working directory' 
+              fileCount, 
+              extractPath: result.extractedPath || result.projectPath || 'working directory' 
             }
           }));
         }

@@ -648,7 +648,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Return the import result which should contain the created project
-      res.json(importResult);
+      // Add extracted files count for extraction tracking
+      const responseData = {
+        ...importResult,
+        extractedFiles: importResult.zipFiles || [],
+        fileCount: importResult.zipFiles?.length || 0,
+        projectPath: importResult.extractedPath
+      };
+      res.json(responseData);
     } catch (error: any) {
       console.error("Project import error:", error);
       res.status(500).json({ message: error.message || "Failed to import project" });

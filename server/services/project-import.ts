@@ -52,6 +52,9 @@ class ProjectImportService {
             return;
           }
           
+          // Log file being processed
+          console.log(`🔍 Processing: ${entry.fileName} (${entry.uncompressedSize} bytes)`);
+          
           // Skip large files and unwanted directories
           const skipPaths = [
             'node_modules/', 'dist/', 'build/', 'target/', 'bin/', 'obj/',
@@ -66,6 +69,7 @@ class ProjectImportService {
           );
           
           if (shouldSkip || entry.uncompressedSize > 5 * 1024 * 1024) { // Skip files > 5MB
+            console.log(`⏭️  Skipping: ${entry.fileName} (${shouldSkip ? 'unwanted directory' : 'too large'})`);
             zipfile.readEntry();
             return;
           }
@@ -120,8 +124,9 @@ class ProjectImportService {
                   path: entry.fileName,
                   size: entry.uncompressedSize
                 });
+                console.log(`✅ Extracted: ${entry.fileName}`);
               } catch (error) {
-                console.warn(`Failed to decode ${entry.fileName} as UTF-8:`, error);
+                console.warn(`❌ Failed to decode ${entry.fileName} as UTF-8:`, error);
               }
               
               zipfile.readEntry();
@@ -145,7 +150,7 @@ class ProjectImportService {
     });
   }
 
-  async importFromFiles(files: any[], projectName: string, description?: string, projectPath?: string): Promise<{ projectId: string; analysis: AnalysisResult; insights: ProjectInsights; extractedPath?: string; }> {
+  async importFromFiles(files: any[], projectName: string, description?: string, projectPath?: string): Promise<{ projectId: string; analysis: AnalysisResult; insights: ProjectInsights; extractedPath?: string; zipFiles?: ImportedFile[]; }> {
     const projectId = nanoid();
     const actualProjectPath = projectPath || process.cwd();
     
@@ -265,7 +270,13 @@ class ProjectImportService {
     // Save insights file to project root
     await this.saveInsightsFile(actualProjectPath, insights);
     
-    return { projectId, analysis, insights, extractedPath };
+    return {
+      projectId,
+      analysis,
+      insights,
+      extractedPath,
+      zipFiles: importedFiles
+    };
   }
   
   async importFromGit(gitUrl: string, projectName: string, description?: string, projectPath?: string): Promise<{ projectId: string; analysis: AnalysisResult; insights: ProjectInsights; extractedPath?: string; }> {

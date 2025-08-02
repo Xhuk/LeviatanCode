@@ -191,11 +191,11 @@ export function AiDocumentAnalysisDialog({
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
-                    {analysisResult.technologies.map((tech, index) => (
+                    {analysisResult.technologies?.map((tech, index) => (
                       <Badge key={index} variant="secondary">
                         {tech}
                       </Badge>
-                    ))}
+                    )) || <p className="text-sm text-muted-foreground">No technologies detected</p>}
                   </div>
                 </CardContent>
               </Card>
@@ -232,12 +232,12 @@ export function AiDocumentAnalysisDialog({
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {analysisResult.recommendations.map((rec, index) => (
+                    {analysisResult.recommendations?.map((rec, index) => (
                       <li key={index} className="text-sm flex items-start gap-2">
                         <span className="text-orange-500 mt-1">•</span>
                         <span>{rec}</span>
                       </li>
-                    ))}
+                    )) || <p className="text-sm text-muted-foreground">No recommendations available</p>}
                   </ul>
                 </CardContent>
               </Card>
@@ -252,12 +252,12 @@ export function AiDocumentAnalysisDialog({
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {analysisResult.insights.map((insight, index) => (
+                    {analysisResult.insights?.map((insight, index) => (
                       <li key={index} className="text-sm flex items-start gap-2">
                         <span className="text-purple-500 mt-1">•</span>
                         <span>{insight}</span>
                       </li>
-                    ))}
+                    )) || <p className="text-sm text-muted-foreground">No insights available</p>}
                   </ul>
                 </CardContent>
               </Card>
