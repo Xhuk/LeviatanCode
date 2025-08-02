@@ -45,7 +45,8 @@ import {
   Key,
   Eye,
   EyeOff,
-  Copy
+  Copy,
+  Bot
 } from "lucide-react";
 import { ProjectImportDialog } from "@/components/project-import-dialog";
 import { SettingsDialog } from "@/components/settings-dialog";
@@ -53,6 +54,7 @@ import { ProjectInsightsSaveButton } from "@/components/project-insights-save-bu
 import { AiDocumentAnalysisDialog } from "@/components/ai-document-analysis-dialog";
 import { VaultExplorer } from "@/components/vault-explorer";
 import { LeviatanSettings } from "@/components/leviatan-settings";
+import { AiChatPanel } from "@/components/panels/ai-chat-panel";
 
 
 // Logger component with WebSocket integration
@@ -1749,7 +1751,9 @@ export default function Dashboard() {
           <div className="flex-1 p-2">
             {isAgentMenuCollapsed ? (
               <div className="space-y-2">
-
+                <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "ai-chat" ? "active" : ""}`} onClick={() => setActiveTab("ai-chat")}>
+                  <Bot className="w-4 h-4" />
+                </Button>
                 <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "file-analysis" ? "active" : ""}`} onClick={() => setActiveTab("file-analysis")}>
                   <FileText className="w-4 h-4" />
                 </Button>
@@ -1775,7 +1779,17 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="space-y-2">
-
+                <Button 
+                  variant="ghost" 
+                  className={`agent-tool-button w-full justify-start gap-3 p-3 h-auto ${activeTab === "ai-chat" ? "active" : ""}`}
+                  onClick={() => setActiveTab("ai-chat")}
+                >
+                  <Bot className="w-5 h-5" />
+                  <div className="text-left">
+                    <div className="font-medium text-sm">AI Chat</div>
+                    <div className="text-xs text-replit-text-secondary">Chat with AI assistant</div>
+                  </div>
+                </Button>
                 <Button 
                   variant="ghost" 
                   className={`agent-tool-button w-full justify-start gap-3 p-3 h-auto ${activeTab === "file-analysis" ? "active" : ""}`}
@@ -1949,6 +1963,11 @@ export default function Dashboard() {
               </TabsContent>
             )}
             
+            {activeTab === "ai-chat" && (
+              <TabsContent value="ai-chat" className="flex-1 m-0">
+                <AiChatPanel projectId={currentProject} />
+              </TabsContent>
+            )}
 
           </Tabs>
         </div>
