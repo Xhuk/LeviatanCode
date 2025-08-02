@@ -55,6 +55,12 @@ Theme implementation: Comprehensive light/dark mode for entire application (comp
 - **Settings Controls**: Functional theme, font size, and tab size controls in LeviatanSettings
 - **Auto Detection**: System preference detection for automatic theme switching
 
+## UI Enhancements (January 2025)
+- **Agent Tools Animation**: Subtle flowing border animation for active buttons matching chat interface style
+- **Hover Effects**: Gentle green highlight with lift animation for improved user feedback
+- **Visual Consistency**: Professional button interactions with Leviatan green (#22c55e) theming
+- **Middleware Monitor**: Fully functional middleware configuration panel with real-time performance tracking
+
 ## Authentication and Authorization
 - **User Management**: Username/password authentication with bcrypt hashing.
 - **Session Management**: Express sessions with PostgreSQL store.
