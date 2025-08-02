@@ -21,6 +21,7 @@ export default function Dashboard() {
   const [currentProject, setCurrentProject] = useState<string>("demo-project-1");
   const [activeFile, setActiveFile] = useState<string>("");
   const [workingDirectory, setWorkingDirectory] = useState<string>("");
+  const [workspaceFolders, setWorkspaceFolders] = useState<any[]>([]);
 
   const { data: projects } = useQuery({
     queryKey: ["/api/projects"],
@@ -30,6 +31,28 @@ export default function Dashboard() {
     queryKey: ["/api/projects", currentProject],
     enabled: !!currentProject,
   });
+
+  // Fetch working directory and workspace folders
+  const { data: workingDirData } = useQuery({
+    queryKey: ["/api/settings/working-directory"],
+  });
+
+  const { data: foldersData } = useQuery({
+    queryKey: ["/api/settings/workspace-folders"],
+    enabled: !!workingDirectory,
+  });
+
+  useEffect(() => {
+    if (workingDirData?.workingDirectory) {
+      setWorkingDirectory(workingDirData.workingDirectory);
+    }
+  }, [workingDirData]);
+
+  useEffect(() => {
+    if (foldersData?.folders) {
+      setWorkspaceFolders(foldersData.folders);
+    }
+  }, [foldersData]);
 
   return (
     <div className="h-screen bg-replit-dark text-replit-text flex flex-col overflow-hidden">
@@ -47,11 +70,14 @@ export default function Dashboard() {
               const dir = prompt("Enter working directory path:", workingDirectory || "C:\\Development");
               if (dir) {
                 setWorkingDirectory(dir);
-                // Save to .env
+                // Save to .env and refresh data
                 fetch("/api/settings/working-directory", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ workingDirectory: dir })
+                }).then(() => {
+                  // Refresh working directory and folders data
+                  window.location.reload();
                 });
               }
             }}
@@ -69,12 +95,14 @@ export default function Dashboard() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {projects?.map((project: any) => (
-                  <SelectItem key={project.id} value={project.id}>
-                    {project.name}
-                  </SelectItem>
-                )) || (
-                  <SelectItem value="demo-project-1">Empty Project</SelectItem>
+                {workspaceFolders.length > 0 ? (
+                  workspaceFolders.map((folder: any) => (
+                    <SelectItem key={folder.path} value={folder.name}>
+                      {folder.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="no-workspace">No workspace folders</SelectItem>
                 )}
               </SelectContent>
             </Select>
@@ -118,7 +146,8 @@ export default function Dashboard() {
           {/* File Explorer */}
           <ResizablePanel defaultSize={15} minSize={10} maxSize={25}>
             <FileExplorer 
-              project={project}
+              workingDirectory={workingDirectory}
+              selectedProject={currentProject}
               activeFile={activeFile}
               onFileSelect={setActiveFile}
             />
