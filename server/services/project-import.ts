@@ -212,7 +212,7 @@ class ProjectImportService {
       name: projectName,
       description: description || analysis.description,
       userId: "demo-user",
-      files: importedFiles,
+      files: importedFiles as any,
       config: {
         framework: analysis.framework,
         language: analysis.language,
@@ -220,7 +220,7 @@ class ProjectImportService {
         dependencies: analysis.dependencies
       },
       documentation: {
-        setupInstructions: analysis.setupInstructions,
+        setupInstructions: analysis.setupInstructions.join('\n'),
         architecture: `This is a ${analysis.framework} project using ${analysis.language}.`,
         apiDocs: null,
         deployment: "Run using: " + analysis.runCommand
@@ -263,7 +263,7 @@ class ProjectImportService {
       name: projectName,
       description: description || analysis.description,
       userId: "demo-user",
-      files: mockFiles,
+      files: mockFiles as any,
       config: {
         framework: analysis.framework,
         language: analysis.language,
@@ -276,7 +276,7 @@ class ProjectImportService {
           `git clone ${gitUrl}`,
           "cd " + projectName.toLowerCase().replace(/\s+/g, '-'),
           ...analysis.setupInstructions
-        ],
+        ].join('\n'),
         architecture: `This is a ${analysis.framework} project cloned from ${gitUrl}.`,
         apiDocs: null,
         deployment: "Run using: " + analysis.runCommand
@@ -414,7 +414,7 @@ Current detection:
 
 Please provide a brief project description based on the file structure.`;
 
-      const aiAnalysis = await aiService.generateText(prompt, "gpt-4o");
+      const aiAnalysis = await aiService.generateCompletion(prompt);
       
       return {
         projectType: framework,
