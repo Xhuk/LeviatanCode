@@ -1,7 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import { storage } from "./storage";
+import { MemStorage } from "./storage";
+
+// Initialize storage instance
+const storage = new MemStorage();
 import settingsRoutes from "./routes/settings";
 import loggerRoutes, { LoggerService } from "./routes/logger";
 import { aiService } from "./services/ai";

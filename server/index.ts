@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { middlewareMonitor, monitoringRoutes } from "./middleware/monitor";
+import { testDatabaseConnection } from "./db";
 
 // Load environment variables first
 dotenv.config();
@@ -92,6 +93,13 @@ app.use((req, res, next) => {
   } catch (error: any) {
     console.warn("Some middleware failed to load:", error?.message || error);
     console.log("Continuing with basic setup...");
+  }
+
+  // Test database connection before starting server
+  console.log('🔍 Testing database connection...');
+  const dbConnected = await testDatabaseConnection();
+  if (!dbConnected) {
+    console.warn('⚠️  Database connection failed - continuing with limited functionality');
   }
 
   const server = await registerRoutes(app);
