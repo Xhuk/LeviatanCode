@@ -51,47 +51,45 @@ export default function Dashboard() {
   });
 
   useEffect(() => {
-    if (workingDirData?.workingDirectory) {
-      setWorkingDirectory(workingDirData.workingDirectory);
+    if (workingDirData && 'workingDirectory' in workingDirData) {
+      setWorkingDirectory(workingDirData.workingDirectory as string);
     }
   }, [workingDirData]);
 
   useEffect(() => {
-    if (foldersData?.folders) {
-      setWorkspaceFolders(foldersData.folders);
+    if (foldersData && 'folders' in foldersData) {
+      setWorkspaceFolders(foldersData.folders as any[]);
     }
   }, [foldersData]);
 
   return (
     <div className="h-screen bg-replit-dark text-replit-text flex flex-col overflow-hidden">
-      {/* Top Navigation Bar */}
-      <nav className="replit-panel border-b border-replit-border px-4 py-2 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-replit-blue to-replit-blue-secondary rounded-lg flex items-center justify-center">
-              <Database className="text-white" size={16} />
+      {/* Modern Top Navigation Bar */}
+      <nav className="bg-replit-panel/90 backdrop-blur-lg border-b border-replit-border px-6 py-3 flex items-center justify-between shadow-lg">
+        <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-3">
+            <div className="w-9 h-9 bg-gradient-to-br from-replit-blue to-replit-blue-secondary rounded-xl flex items-center justify-center shadow-lg">
+              <Database className="text-white" size={18} />
             </div>
-            <h1 className="font-bold text-lg gradient-text">LeviatanCode</h1>
+            <h1 className="font-bold text-xl gradient-text">LeviatanCode</h1>
           </div>
           <Button 
             onClick={() => {
               const dir = prompt("Enter working directory path:", workingDirectory || "C:\\Development");
               if (dir) {
                 setWorkingDirectory(dir);
-                // Save to .env and refresh data
                 fetch("/api/settings/working-directory", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ workingDirectory: dir })
                 }).then(() => {
-                  // Refresh working directory and folders data
                   window.location.reload();
                 });
               }
             }}
             variant="outline" 
             size="sm"
-            className="border-replit-border hover:bg-replit-elevated"
+            className="modern-button border-replit-border hover:bg-replit-elevated text-replit-text-secondary hover:text-replit-text"
           >
             <Settings className="mr-2 h-4 w-4" />
             Set Working Directory
@@ -99,7 +97,7 @@ export default function Dashboard() {
           <div className="flex items-center space-x-2">
             <span className="text-replit-text-secondary text-sm">Workspace:</span>
             <Select value={currentProject} onValueChange={setCurrentProject}>
-              <SelectTrigger className="w-48 bg-replit-elevated border-replit-border">
+              <SelectTrigger className="w-52 bg-replit-elevated border-replit-border rounded-lg modern-button">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -122,96 +120,94 @@ export default function Dashboard() {
             />
           </div>
         </div>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2 px-2 py-1 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded">
-              <AlertTriangle className="h-3 w-3 text-yellow-600 dark:text-yellow-400" />
-              <span className="text-xs text-yellow-700 dark:text-yellow-300 font-medium">
-                Free Tier
-              </span>
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+              <AlertTriangle className="h-3 w-3 text-yellow-400" />
+              <span className="text-xs text-yellow-300 font-medium">Free Tier</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50"></div>
               <span className="text-sm text-replit-text-secondary">AI Online</span>
             </div>
           </div>
           <ProjectImportDialog onProjectImported={setCurrentProject} />
           <ProjectInsightsSaveButton 
             projectId={currentProject} 
-            projectName={project?.name || "Current Project"}
+            projectName={(project && 'name' in project ? project.name : "Current Project") as string}
             projectPath="."
           />
           
-          {/* Screenshot Button */}
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={async () => {
-              try {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const video = document.createElement('video');
-                
-                const stream = await navigator.mediaDevices.getDisplayMedia({
-                  video: { mediaSource: 'screen' }
-                });
-                
-                video.srcObject = stream;
-                video.play();
-                
-                video.addEventListener('loadedmetadata', () => {
-                  canvas.width = video.videoWidth;
-                  canvas.height = video.videoHeight;
-                  ctx?.drawImage(video, 0, 0);
+          <div className="flex items-center space-x-2">
+            {/* Screenshot Button */}
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={async () => {
+                try {
+                  const canvas = document.createElement('canvas');
+                  const ctx = canvas.getContext('2d');
+                  const video = document.createElement('video');
                   
-                  const imageData = canvas.toDataURL('image/png');
-                  console.log('Screenshot taken for chat input');
+                  const stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: true
+                  });
                   
-                  stream.getTracks().forEach(track => track.stop());
-                });
-              } catch (error) {
-                console.error('Screenshot failed:', error);
-                alert('Screenshot failed. Please allow screen sharing permission.');
-              }
-            }}
-            className="border-replit-border hover:bg-replit-elevated"
-          >
-            <Camera size={14} className="mr-1" />
-            Screenshot
-          </Button>
-          
-          {/* Preview Button */}
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => {
-              const url = prompt("Enter preview URL:", previewUrl);
-              if (url) {
-                setPreviewUrl(url);
-                window.open(url, '_blank');
-              }
-            }}
-            className="border-replit-border hover:bg-replit-elevated"
-          >
-            <Globe size={14} className="mr-1" />
-            Preview
-          </Button>
-          
-          {/* Agent Windows */}
-          <AgentWindows 
-            projectId={currentProject}
-            workingDirectory={workingDirectory}
-            previewUrl={previewUrl}
-          />
-          
-          <Button className="bg-replit-blue hover:bg-replit-blue-secondary">
-            <Play size={14} className="mr-1" />
-            Run Project
-          </Button>
-          <div className="flex items-center space-x-1">
+                  video.srcObject = stream;
+                  video.play();
+                  
+                  video.addEventListener('loadedmetadata', () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    ctx?.drawImage(video, 0, 0);
+                    
+                    const imageData = canvas.toDataURL('image/png');
+                    console.log('Screenshot taken for chat input');
+                    
+                    stream.getTracks().forEach(track => track.stop());
+                  });
+                } catch (error) {
+                  console.error('Screenshot failed:', error);
+                  alert('Screenshot failed. Please allow screen sharing permission.');
+                }
+              }}
+              className="modern-button border-replit-border hover:bg-replit-elevated text-replit-text-secondary hover:text-replit-text"
+            >
+              <Camera size={16} />
+            </Button>
+            
+            {/* Preview Button */}
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                const url = prompt("Enter preview URL:", previewUrl);
+                if (url) {
+                  setPreviewUrl(url);
+                  window.open(url, '_blank');
+                }
+              }}
+              className="modern-button border-replit-border hover:bg-replit-elevated text-replit-text-secondary hover:text-replit-text"
+            >
+              <Globe size={16} />
+            </Button>
+            
+            {/* Agent Windows */}
+            <AgentWindows 
+              projectId={currentProject}
+              workingDirectory={workingDirectory}
+              previewUrl={previewUrl}
+            />
+            
+            <Button className="modern-button bg-replit-blue hover:bg-replit-blue-secondary text-white px-4 py-2 shadow-lg hover:shadow-xl">
+              <Play size={16} className="mr-2" />
+              Run Project
+            </Button>
+          </div>
+          <div className="flex items-center space-x-2">
             <SettingsDialog />
-            <Button variant="ghost" size="sm">
-              <UserCircle size={16} className="text-replit-text-secondary" />
+            <Button variant="ghost" size="sm" className="modern-button hover:bg-replit-elevated rounded-lg">
+              <UserCircle size={20} className="text-replit-text-secondary" />
             </Button>
           </div>
         </div>
@@ -254,33 +250,33 @@ export default function Dashboard() {
           {/* AI & Documentation Panel with Tabs */}
           <ResizablePanel defaultSize={30} minSize={25} maxSize={40}>
             <Tabs defaultValue="ai-chat" className="h-full flex flex-col">
-              <TabsList className="replit-panel border-b border-replit-border rounded-none h-10 w-full justify-start">
-                <TabsTrigger value="ai-chat" className="flex items-center gap-2 text-xs">
-                  <MessageSquare className="w-3 h-3" />
+              <TabsList className="bg-replit-panel/90 backdrop-blur-lg border-b border-replit-border rounded-none h-12 w-full justify-start shadow-sm">
+                <TabsTrigger value="ai-chat" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
+                  <MessageSquare className="w-4 h-4" />
                   AI Chat
                 </TabsTrigger>
-                <TabsTrigger value="git" className="flex items-center gap-2 text-xs">
-                  <GitBranch className="w-3 h-3" />
+                <TabsTrigger value="git" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
+                  <GitBranch className="w-4 h-4" />
                   Git
                 </TabsTrigger>
-                <TabsTrigger value="console" className="flex items-center gap-2 text-xs">
-                  <Terminal className="w-3 h-3" />
+                <TabsTrigger value="console" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
+                  <Terminal className="w-4 h-4" />
                   Console
                 </TabsTrigger>
-                <TabsTrigger value="preview" className="flex items-center gap-2 text-xs">
-                  <Monitor className="w-3 h-3" />
+                <TabsTrigger value="preview" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
+                  <Monitor className="w-4 h-4" />
                   Preview
                 </TabsTrigger>
-                <TabsTrigger value="prompts" className="flex items-center gap-2 text-xs">
-                  <Brain className="w-3 h-3" />
+                <TabsTrigger value="prompts" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
+                  <Brain className="w-4 h-4" />
                   Prompts
                 </TabsTrigger>
-                <TabsTrigger value="docs" className="flex items-center gap-2 text-xs">
-                  <FileText className="w-3 h-3" />
+                <TabsTrigger value="docs" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
+                  <FileText className="w-4 h-4" />
                   Docs
                 </TabsTrigger>
-                <TabsTrigger value="extraction" className="flex items-center gap-2 text-xs">
-                  <Upload className="w-3 h-3" />
+                <TabsTrigger value="extraction" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
+                  <Upload className="w-4 h-4" />
                   Extraction
                 </TabsTrigger>
               </TabsList>
@@ -317,33 +313,33 @@ export default function Dashboard() {
         </ResizablePanelGroup>
       </div>
 
-      {/* Status Bar */}
-      <div className="replit-panel border-t border-replit-border px-4 py-1 flex items-center justify-between text-xs">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-1">
-            <i className="fab fa-git-alt text-orange-400"></i>
+      {/* Modern Status Bar */}
+      <div className="bg-replit-panel/90 backdrop-blur-lg border-t border-replit-border px-6 py-2 flex items-center justify-between text-xs shadow-lg">
+        <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-2">
+            <GitBranch size={14} className="text-orange-400" />
             <span className="text-replit-text-secondary">main</span>
             <span className="text-replit-success">✓</span>
           </div>
-          <div className="flex items-center space-x-1">
-            <Database size={12} className="text-blue-400" />
+          <div className="flex items-center space-x-2">
+            <Database size={14} className="text-blue-400" />
             <span className="text-replit-text-secondary">Project loaded</span>
           </div>
-          <div className="flex items-center space-x-1">
-            <i className="fas fa-clock text-purple-400"></i>
+          <div className="flex items-center space-x-2">
+            <Terminal size={14} className="text-purple-400" />
             <span className="text-replit-text-secondary">Last run: 2m ago</span>
           </div>
         </div>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-1">
-            <div className="w-2 h-2 bg-replit-success rounded-full"></div>
+        <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-replit-success rounded-full animate-pulse shadow-lg shadow-green-400/50"></div>
             <span className="text-replit-text-secondary">AI: Online</span>
           </div>
-          <div className="flex items-center space-x-1">
-            <i className="fas fa-memory text-yellow-400"></i>
+          <div className="flex items-center space-x-2">
+            <Monitor size={14} className="text-yellow-400" />
             <span className="text-replit-text-secondary">Memory: 2.1GB</span>
           </div>
-          <div className="text-replit-text-secondary">Ln 10, Col 45</div>
+          <div className="text-replit-text-secondary font-mono">Ln 10, Col 45</div>
         </div>
       </div>
     </div>

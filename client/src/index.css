@@ -24,16 +24,16 @@
   --ring: hsl(215, 20.2%, 65.1%);
   --radius: 0.5rem;
 
-  /* Replit-specific colors */
-  --replit-dark: hsl(210, 30%, 8%);
-  --replit-panel: hsl(217, 19%, 12%);
-  --replit-elevated: hsl(215, 16%, 17%);
-  --replit-border: hsl(215, 20%, 19%);
+  /* Modern Replit-style colors */
+  --replit-dark: hsl(220, 13%, 13%);
+  --replit-panel: hsl(220, 13%, 18%);
+  --replit-elevated: hsl(220, 13%, 23%);
+  --replit-border: hsl(220, 13%, 28%);
   --replit-blue: hsl(207, 90%, 54%);
   --replit-blue-secondary: hsl(215, 100%, 60%);
   --replit-text: hsl(210, 40%, 98%);
-  --replit-text-secondary: hsl(215, 13%, 65%);
-  --replit-text-muted: hsl(215, 13%, 45%);
+  --replit-text-secondary: hsl(215, 13%, 75%);
+  --replit-text-muted: hsl(215, 13%, 55%);
   --replit-success: hsl(142, 71%, 45%);
   --replit-error: hsl(0, 84%, 60%);
   --replit-warning: hsl(35, 91%, 55%);
@@ -71,6 +71,39 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     overflow: hidden;
   }
+}
+
+/* Modern glass effects and animations */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.modern-button {
+  transition: all 0.2s ease;
+  border-radius: 8px;
+}
+
+.modern-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.resizer {
+  background: var(--replit-border);
+  transition: background 0.2s ease;
+}
+
+.resizer:hover {
+  background: var(--replit-blue);
 }
 
 @layer components {
