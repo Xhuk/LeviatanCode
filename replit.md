@@ -42,6 +42,8 @@ The system is built as a monorepo with a React TypeScript frontend using shadcn/
 - **AI Context Integration**: AI chat system now reads insightsproject.ia files to provide contextual assistance with project history and analysis
 - **Analysis Caching**: Analysis results are cached for 24 hours in insightsproject.ia files to avoid redundant processing while maintaining fresh insights
 - **WebSocket Progress Tracking**: Real-time progress updates for analysis including when existing insights are loaded and when new insights are saved
+- **Seeded Comprehensive Analyzer**: Created comprehensive Python analyzer in /scripts folder that runs complete project analysis and generates insightsproject.ia files with all required data
+- **Fixed Path Resolution**: All analysis outputs (insightsproject.ia, Python scripts, README files) now correctly target specific project subdirectories instead of parent directories
 
 # User Preferences
 

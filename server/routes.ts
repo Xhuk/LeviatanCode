@@ -1417,72 +1417,151 @@ if __name__ == "__main__":
         totalAnalyzed: fileCount
       });
       
-      // Always create the Python analysis file
-      if (analysisResult.pythonScript) {
+      // Use the seeded comprehensive analyzer from /scripts folder
+      try {
+        // Use the same project directory logic as insights file
+        let scriptDir = workingDirectory || process.cwd();
+        const specificProjectDir = path.join(scriptDir, projectId);
         
-        try {
-          // Use the same project directory logic as insights file
-          let scriptDir = workingDirectory || process.cwd();
-          const specificProjectDir = path.join(scriptDir, projectId);
+        if (fs.existsSync(specificProjectDir)) {
+          scriptDir = specificProjectDir;
+          console.log(`🎯 Using specific project directory for analysis: ${scriptDir}`);
+        }
+        
+        // Check if comprehensive analyzer exists in scripts folder
+        const scriptsFolder = path.join(process.cwd(), 'scripts');
+        const comprehensiveAnalyzerPath = path.join(scriptsFolder, 'comprehensive_analyzer.py');
+        
+        if (fs.existsSync(comprehensiveAnalyzerPath)) {
+          console.log(`📋 Found comprehensive analyzer at: ${comprehensiveAnalyzerPath}`);
           
-          if (fs.existsSync(specificProjectDir)) {
-            scriptDir = specificProjectDir;
-            console.log(`🎯 Using specific project directory for Python script: ${scriptDir}`);
-          }
+          // Create a simple runner script in the project directory
+          const runnerScript = `#!/usr/bin/env python3
+"""
+LeviatanCode Project Analysis Runner
+Runs the comprehensive analyzer from the scripts folder for project: ${projectId}
+"""
+
+import os
+import sys
+import subprocess
+from pathlib import Path
+
+def main():
+    """Run the comprehensive analyzer for this project."""
+    project_dir = Path("${scriptDir.replace(/\\/g, '/')}")
+    scripts_dir = Path("${scriptsFolder.replace(/\\/g, '/')}")
+    analyzer_script = scripts_dir / "comprehensive_analyzer.py"
+    
+    print(f"🚀 Running comprehensive analysis for: ${projectId}")
+    print(f"📁 Project directory: {project_dir}")
+    print(f"📋 Using seeded analyzer: {analyzer_script}")
+    print()
+    
+    if not analyzer_script.exists():
+        print("❌ Error: Comprehensive analyzer not found in scripts folder")
+        sys.exit(1)
+    
+    try:
+        cmd = [sys.executable, str(analyzer_script), str(project_dir)]
+        
+        # Add API key if available
+        if os.getenv('GEMINI_API_KEY'):
+            cmd.extend(['--api-key', os.getenv('GEMINI_API_KEY')])
+        
+        print("🔄 Executing comprehensive analysis...")
+        result = subprocess.run(cmd, text=True, cwd=str(scripts_dir))
+        
+        if result.returncode == 0:
+            print("✅ Comprehensive analysis completed successfully!")
+            insights_file = project_dir / "insightsproject.ia"
+            if insights_file.exists():
+                print(f"📄 Analysis results: {insights_file}")
+            else:
+                print("⚠️  Warning: insightsproject.ia file not created")
+        else:
+            print(f"❌ Analysis failed with exit code: {result.returncode}")
+            
+    except Exception as e:
+        print(f"❌ Error running analysis: {e}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
+`;
           
-          const scriptFileName = `${projectId}_analyzer.py`;
-          const scriptPath = path.join(scriptDir, scriptFileName);
+          const runnerFileName = `${projectId}_run_analysis.py`;
+          const runnerPath = path.join(scriptDir, runnerFileName);
           
-          fs.writeFileSync(scriptPath, analysisResult.pythonScript, 'utf8');
-          console.log(`💾 Python analysis script saved to: ${scriptPath}`);
+          fs.writeFileSync(runnerPath, runnerScript, 'utf8');
+          console.log(`💾 Analysis runner created: ${runnerPath}`);
           
           // Send script creation update via WebSocket
           broadcastAnalysisUpdate(projectId, {
             status: 'script_created',
-            message: `Python analysis script saved to: ${scriptFileName}`,
-            scriptPath: scriptPath
+            message: `Analysis runner created: ${runnerFileName}`,
+            scriptPath: runnerPath
           });
           
-          // Also create a readme with usage instructions
-          const readmeContent = `# Project Analysis Script
+          // Create README with instructions
+          const readmeContent = `# LeviatanCode Project Analysis
 
-## Usage
+## Quick Start
+Run the comprehensive analysis:
 \`\`\`bash
-python ${scriptFileName} [project_path] --api-key YOUR_GEMINI_API_KEY
+python ${runnerFileName}
 \`\`\`
 
+## With AI Analysis
+Set your Gemini API key and run:
+\`\`\`bash
+set GEMINI_API_KEY=your_api_key_here
+python ${runnerFileName}
+\`\`\`
+
+## Output
+- \`insightsproject.ia\` - Complete project analysis for AI consumption
+- Console output with detailed analysis progress
+
 ## Features
-- Detects 20+ programming languages and frameworks
-- Creates detailed file trees with metadata
-- Analyzes dependencies from package managers
-- Integrates with Gemini AI for comprehensive insights
-- Generates JSON data and markdown reports
+- ✅ Comprehensive file scanning (${projectId})
+- ✅ Technology and framework detection
+- ✅ Dependency analysis (all package managers)
+- ✅ Project type classification
+- ✅ Git repository analysis
+- ✅ Code quality metrics
+- ✅ AI-powered insights (with API key)
+- ✅ Complete insightsproject.ia generation
 
-## Output Files
-- \`${projectId}_analysis.json\` - Complete project data
-- \`${projectId}_analysis_report.md\` - Human-readable report
-- Console logs with real-time analysis progress
+## About
+This analysis uses the comprehensive analyzer from the /scripts folder,
+designed specifically for LeviatanCode development environment analysis.
 
-## Requirements
-- Python 3.7+
-- requests library: \`pip install requests\`
-- Optional: Gemini API key for AI insights
-
-Generated by LeviatanCode AI Document Analysis
+Generated for project: ${projectId}
+Analysis target: ${scriptDir}
 `;
           
           const readmePath = path.join(scriptDir, `${projectId}_analysis_README.md`);
           fs.writeFileSync(readmePath, readmeContent, 'utf8');
-          console.log(`📄 Analysis README saved to: ${readmePath}`);
+          console.log(`📄 Analysis README saved: ${readmePath}`);
           
           analysisResult.filesCreated = {
-            script: scriptPath,
-            readme: readmePath
+            runner: runnerPath,
+            readme: readmePath,
+            comprehensiveAnalyzer: comprehensiveAnalyzerPath
           };
           
-        } catch (writeError) {
-          console.error(`❌ Failed to save Python script: ${writeError.message}`);
+          // Update the analysis result to indicate we're using the seeded analyzer
+          analysisResult.usingSeededAnalyzer = true;
+          analysisResult.analyzerLocation = comprehensiveAnalyzerPath;
+          
+        } else {
+          console.log(`⚠️  Comprehensive analyzer not found at: ${comprehensiveAnalyzerPath}`);
+          console.log(`📝 Falling back to basic analysis (seeded analyzer not available)`);
         }
+        
+      } catch (writeError) {
+        console.error(`❌ Failed to create analysis runner: ${writeError.message}`);
       }
       
       // Create or update insightsproject.ia file with analysis results
