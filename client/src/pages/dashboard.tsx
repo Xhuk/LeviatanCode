@@ -314,7 +314,7 @@ const DatabaseConsole = () => {
           <textarea
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full h-24 p-3 bg-replit-elevated border border-replit-border rounded-lg text-replit-text font-mono text-sm resize-none"
+            className="w-full h-24 p-3 bg-gray-800 dark:bg-gray-900 border border-replit-border rounded-lg text-gray-100 dark:text-gray-200 font-mono text-sm resize-none placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-replit-blue focus:border-replit-blue transition-colors"
             placeholder="Enter your SQL query here..."
           />
           <div className="flex space-x-2">
@@ -342,7 +342,7 @@ const DatabaseConsole = () => {
                 <thead className="bg-replit-elevated">
                   <tr>
                     {Object.keys(results[0] || {}).map((key) => (
-                      <th key={key} className="px-4 py-2 text-left text-replit-text-secondary font-medium">
+                      <th key={key} className="px-4 py-2 text-left text-gray-400 dark:text-gray-500 font-medium uppercase text-xs tracking-wide">
                         {key}
                       </th>
                     ))}
@@ -352,7 +352,7 @@ const DatabaseConsole = () => {
                   {results.map((row, index) => (
                     <tr key={index} className="border-t border-replit-border hover:bg-replit-elevated/50">
                       {Object.values(row).map((value: any, cellIndex) => (
-                        <td key={cellIndex} className="px-4 py-2 text-replit-text">
+                        <td key={cellIndex} className="px-4 py-2 text-gray-200 dark:text-gray-300 font-mono">
                           {String(value)}
                         </td>
                       ))}
