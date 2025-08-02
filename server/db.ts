@@ -8,7 +8,7 @@ const { Pool } = pg;
 dotenv.config();
 
 const databaseUrl = process.env.DATABASE_URL;
-console.log('🔍 Database URL configured:', databaseUrl ? `${databaseUrl.substring(0, 30)}...` : 'NOT SET');
+console.log('🔍 Database URL configured:', databaseUrl ? `${databaseUrl.substring(0, 50)}...` : 'NOT SET');
 
 if (!databaseUrl) {
   console.warn("⚠️  DATABASE_URL environment variable is not set");
