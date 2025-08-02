@@ -46,6 +46,9 @@ The system is built as a monorepo with a React TypeScript frontend using shadcn/
 - **Fixed Path Resolution**: All analysis outputs (insightsproject.ia, Python scripts, README files) now correctly target specific project subdirectories instead of parent directories
 - **Comprehensive Metadata System**: Created complete metadata folder mirroring app architecture with detailed .md analysis files for each of 315 project components
 - **Automated Metadata Generator**: Built Python script that creates file-by-file analysis with dependency maps, object intent analysis, and complete metadata for AI debugging assistance
+- **Flask Analyzer API**: Created comprehensive Python Flask web application serving single RESTful /analyze endpoint for AI-powered project analysis
+- **Advanced Analysis Engine**: Built sophisticated project analyzer supporting 15+ programming languages, 20+ frameworks, and comprehensive code quality assessment
+- **Dual-Service Architecture**: Integrated Flask analyzer (port 5001) with main LeviatanCode app (port 5000) for enhanced analysis capabilities
 
 # User Preferences
 
