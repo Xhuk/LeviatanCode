@@ -153,9 +153,20 @@ class MiddlewareMonitor {
 
   private async startFlaskAnalyzer(): Promise<boolean> {
     try {
-      // Try to start Flask analyzer using Python
-      const command = 'cd flask_analyzer && python app.py';
       console.log('🔄 Starting Flask Analyzer service...');
+      
+      // First, ensure dependencies are installed
+      const installCommand = 'cd flask_analyzer && pip install -r requirements.txt --quiet';
+      
+      try {
+        await execAsync(installCommand);
+        console.log('📦 Flask dependencies installed');
+      } catch (installError) {
+        console.warn('Warning: Could not install dependencies:', installError);
+      }
+
+      // Start the Flask analyzer using Python
+      const command = 'cd flask_analyzer && python run_server.py &';
       
       // Start the process in the background
       exec(command, (error, stdout, stderr) => {
@@ -174,7 +185,7 @@ class MiddlewareMonitor {
       // Wait a moment and check if it's running
       setTimeout(async () => {
         await this.checkFlaskAnalyzerStatus();
-      }, 3000);
+      }, 5000); // Increased wait time
 
       return true;
     } catch (error) {
@@ -204,8 +215,15 @@ class MiddlewareMonitor {
 
   private async stopFlaskAnalyzer(): Promise<boolean> {
     try {
-      // Kill Flask analyzer process
-      const { stdout } = await execAsync('pkill -f "python.*app.py" || true');
+      // Kill Flask analyzer process (Windows and Unix compatible)
+      let killCommand = 'pkill -f "python.*app.py" || true';
+      
+      // Check if running on Windows
+      if (process.platform === 'win32') {
+        killCommand = 'taskkill /F /IM python.exe || true';
+      }
+      
+      await execAsync(killCommand);
       console.log('🛑 Flask Analyzer service stopped');
       
       const metric = this.metrics.get('Flask Analyzer');
