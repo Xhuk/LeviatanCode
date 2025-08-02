@@ -176,7 +176,7 @@ export function FileExplorer({ workingDirectory, selectedProject, activeFile, on
   };
 
   return (
-    <div className="w-full replit-panel border-r border-replit-border flex flex-col h-full">
+    <div className="w-full h-full flex flex-col">
       {/* Header */}
       <div className="border-b border-replit-border p-3">
         <div className="flex items-center justify-between mb-2">

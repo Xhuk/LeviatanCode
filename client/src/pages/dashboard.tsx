@@ -1441,6 +1441,10 @@ export default function Dashboard() {
   const [isExplorerCollapsed, setIsExplorerCollapsed] = useState(false);
   const [isAgentMenuCollapsed, setIsAgentMenuCollapsed] = useState(false);
   const [isAiChatCollapsed, setIsAiChatCollapsed] = useState(false);
+  const [agentMenuWidth, setAgentMenuWidth] = useState(256);
+  const [explorerWidth, setExplorerWidth] = useState(256);
+  const [aiChatWidth, setAiChatWidth] = useState(320);
+  const [isDragging, setIsDragging] = useState<string | null>(null);
   const [activeFile, setActiveFile] = useState<string | null>(null);
   const [activeFileName, setActiveFileName] = useState<string | null>(null);
   const [gitStatus, setGitStatus] = useState<string>("Not configured");
@@ -1589,8 +1593,53 @@ export default function Dashboard() {
     }
   }, [foldersData]);
 
+  // Handle mouse events for dragging
+  const handleMouseDown = (e: React.MouseEvent, panelType: string) => {
+    e.preventDefault();
+    setIsDragging(panelType);
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging) return;
+    
+    const containerRect = document.querySelector('.dashboard-container')?.getBoundingClientRect();
+    if (!containerRect) return;
+    
+    const mouseX = e.clientX - containerRect.left;
+    
+    if (isDragging === 'agent-menu') {
+      const newWidth = Math.max(200, Math.min(400, mouseX));
+      setAgentMenuWidth(newWidth);
+    } else if (isDragging === 'explorer') {
+      const agentMenuCurrentWidth = isAgentMenuCollapsed ? 48 : agentMenuWidth;
+      const newWidth = Math.max(200, Math.min(400, mouseX - agentMenuCurrentWidth));
+      setExplorerWidth(newWidth);
+    } else if (isDragging === 'ai-chat') {
+      const agentMenuCurrentWidth = isAgentMenuCollapsed ? 48 : agentMenuWidth;
+      const explorerCurrentWidth = isExplorerCollapsed ? 48 : explorerWidth;
+      const newWidth = Math.max(280, Math.min(500, mouseX - agentMenuCurrentWidth - explorerCurrentWidth));
+      setAiChatWidth(newWidth);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(null);
+  };
+
+  // Add mouse event listeners
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, agentMenuWidth, explorerWidth, aiChatWidth, isAgentMenuCollapsed, isExplorerCollapsed]);
+
   return (
-    <div className="h-screen bg-replit-dark text-replit-text flex flex-col overflow-hidden">
+    <div className="h-screen bg-replit-dark text-replit-text flex flex-col overflow-hidden dashboard-container">
       {/* Configuration Checker - appears on startup */}
       <ConfigurationChecker currentProject={currentProject} />
       
@@ -1735,7 +1784,10 @@ export default function Dashboard() {
       {/* Main Layout */}
       <div className="flex-1 flex overflow-hidden">
         {/* Agent Tools Menu */}
-        <div className={`${isAgentMenuCollapsed ? 'w-12' : 'w-64'} bg-replit-panel border-r border-replit-border transition-all duration-300 flex flex-col`}>
+        <div 
+          className="bg-replit-panel border-r border-replit-border flex flex-col relative group"
+          style={{ width: isAgentMenuCollapsed ? '48px' : `${agentMenuWidth}px` }}
+        >
           <div className="p-3 border-b border-replit-border flex items-center justify-between">
             {!isAgentMenuCollapsed && (
               <h3 className="font-semibold text-replit-text text-sm">Agent Tools</h3>
@@ -1873,18 +1925,42 @@ export default function Dashboard() {
               </div>
             )}
           </div>
+          
+          {/* Drag Handle for Agent Menu */}
+          {!isAgentMenuCollapsed && (
+            <div 
+              className="absolute right-0 top-0 w-1 h-full cursor-col-resize bg-transparent hover:bg-replit-blue/30 transition-colors"
+              onMouseDown={(e) => handleMouseDown(e, 'agent-menu')}
+            />
+          )}
         </div>
 
         {/* File Explorer */}
-        <FileExplorer 
-          isCollapsed={isExplorerCollapsed}
-          onToggle={() => setIsExplorerCollapsed(!isExplorerCollapsed)}
-          onFileSelect={handleFileSelect}
-          currentProject={currentProject}
-        />
+        <div 
+          className="bg-replit-panel border-r border-replit-border flex flex-col relative group"
+          style={{ width: isExplorerCollapsed ? '48px' : `${explorerWidth}px` }}
+        >
+          <FileExplorer 
+            isCollapsed={isExplorerCollapsed}
+            onToggle={() => setIsExplorerCollapsed(!isExplorerCollapsed)}
+            onFileSelect={handleFileSelect}
+            currentProject={currentProject}
+          />
+          
+          {/* Drag Handle for File Explorer */}
+          {!isExplorerCollapsed && (
+            <div 
+              className="absolute right-0 top-0 w-1 h-full cursor-col-resize bg-transparent hover:bg-replit-blue/30 transition-colors"
+              onMouseDown={(e) => handleMouseDown(e, 'explorer')}
+            />
+          )}
+        </div>
         
         {/* AI Chat Panel */}
-        <div className={`${isAiChatCollapsed ? 'w-12' : 'w-80'} bg-replit-panel border-r border-replit-border transition-all duration-300 flex flex-col`}>
+        <div 
+          className="bg-replit-panel border-r border-replit-border flex flex-col relative group"
+          style={{ width: isAiChatCollapsed ? '48px' : `${aiChatWidth}px` }}
+        >
           <div className="p-3 border-b border-replit-border flex items-center justify-between">
             {!isAiChatCollapsed && (
               <h3 className="font-semibold text-replit-text text-sm flex items-center gap-2">
@@ -1910,6 +1986,14 @@ export default function Dashboard() {
               <AiChatPanel projectId={currentProject} />
             )}
           </div>
+          
+          {/* Drag Handle for AI Chat */}
+          {!isAiChatCollapsed && (
+            <div 
+              className="absolute right-0 top-0 w-1 h-full cursor-col-resize bg-transparent hover:bg-replit-blue/30 transition-colors"
+              onMouseDown={(e) => handleMouseDown(e, 'ai-chat')}
+            />
+          )}
         </div>
         
         {/* Main Editor Area */}
