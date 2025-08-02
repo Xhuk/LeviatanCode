@@ -1,0 +1,72 @@
+Logger client connected
+📡 Subscribed to analysis updates for project: demo-project-1
+[INFO] CSP disabled for development mode
+4:14:45 PM [express] GET /api/settings/workspace-folders 304 in 3ms :: {"folders":[{"name":"cadence"…
+[INFO] CSP disabled for development mode
+4:14:53 PM [express] GET /api/middleware/status 200 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+🔄 Starting Flask Analyzer service...
+📦 Installing Flask dependencies...
+Warning: Could not setup virtual environment, trying system Python: Error: Command failed: cd flask_analyzer && flask_analyzer\venv\Scripts\pip install flask flask-cors requests werkzeug --quiet
+The system cannot find the path specified.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at ChildProcess.exithandler (node:child_process:414:12)
+    at ChildProcess.emit (node:events:518:28)
+    at maybeClose (node:internal/child_process:1101:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:304:5) {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'cd flask_analyzer && flask_analyzer\\venv\\Scripts\\pip install flask flask-cors requests werkzeug --quiet',
+  stdout: '',
+  stderr: 'The system cannot find the path specified.\r\n'
+}
+📦 Installing minimal Flask dependencies with system Python...
+✅ Minimal Flask dependencies installed with system Python
+🚀 Starting Flask server with command: cd flask_analyzer && start_flask.bat
+4:14:58 PM [express] POST /api/middleware/start 200 in 1147ms :: {"success":true,"message":"Middlewa…
+4:14:58 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+Flask stdout: Starting Flask Analyzer for Windows...
+
+Flask stdout: Installing Flask dependencies...
+
+Flask stdout: Checking virtual environment...
+
+Flask stdout: Using virtual environment
+
+Flask stderr: INFO:app:Starting LeviatanCode Flask Analyzer API
+
+Flask stderr: INFO:app:Server running on: http://localhost:5001
+INFO:app:Debug mode: True
+INFO:app:OpenAI API configured: True
+INFO:app:Gemini API configured: True
+INFO:app:Ready to analyze projects!
+
+Flask stdout:  * Serving Flask app 'app'
+
+Flask stdout:  * Debug mode: on
+
+Flask stderr: INFO:werkzeug:WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://10.119.2.198:5001
+
+Flask stderr: INFO:werkzeug:Press CTRL+C to quit
+
+Flask stderr: INFO:werkzeug: * Restarting with stat
+
+Flask stderr: INFO:app:Starting LeviatanCode Flask Analyzer API
+INFO:app:Server running on: http://localhost:5001
+
+Flask stderr: INFO:app:Debug mode: True
+INFO:app:OpenAI API configured: True
+INFO:app:Gemini API configured: True
+INFO:app:Ready to analyze projects!
+
+Flask stderr: WARNING:werkzeug: * Debugger is active!
+
+Flask stderr: INFO:werkzeug: * Debugger PIN: 379-983-750
+
+4:15:03 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+Flask stderr: INFO:werkzeug:127.0.0.1 - - [02/Aug/2025 16:15:06] "GET /health HTTP/1.1" 200 -
