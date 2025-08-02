@@ -127,18 +127,19 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
           Import Project
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto sm:top-[10vh]">
+      <DialogContent className="max-w-2xl w-full h-fit max-h-[85vh] top-[8vh] transform-none overflow-hidden">
         <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 rounded-lg opacity-75 blur-sm animate-pulse -z-10"></div>
         <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 rounded-lg animate-gradient-x -z-10"></div>
-        <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <FolderOpen className="h-5 w-5" />
-            <span>Import Project for AI Analysis</span>
-          </DialogTitle>
-          <DialogDescription>
-            Import your existing project and let AI analyze it to determine how to run and debug it.
-          </DialogDescription>
-        </DialogHeader>
+        <div className="max-h-[75vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <FolderOpen className="h-5 w-5" />
+              <span>Import Project for AI Analysis</span>
+            </DialogTitle>
+            <DialogDescription>
+              Import your existing project and let AI analyze it to determine how to run and debug it.
+            </DialogDescription>
+          </DialogHeader>
 
         {importMutation.isPending ? (
           <div className="space-y-6 py-6">
@@ -326,6 +327,7 @@ export function ProjectImportDialog({ onProjectImported }: ProjectImportDialogPr
             </Tabs>
           </div>
         )}
+        </div>
       </DialogContent>
     </Dialog>
   );
