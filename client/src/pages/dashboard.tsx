@@ -307,7 +307,6 @@ const FileEditor = ({ activeFile, fileName }: { activeFile: string | null; fileN
               indentation: true
             },
             suggest: {
-              enabled: true
             },
             quickSuggestions: {
               other: true,
@@ -336,7 +335,7 @@ const FileEditor = ({ activeFile, fileName }: { activeFile: string | null; fileN
             colorDecorators: true,
             codeLens: true,
             lightbulb: {
-              enabled: true
+              enabled: "On"
             }
           }}
           loading={<div className="flex items-center justify-center h-full text-replit-text">Loading editor...</div>}
