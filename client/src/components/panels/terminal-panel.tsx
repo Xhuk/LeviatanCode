@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Terminal, Bug, TrendingUp, Play, Square, MemoryStick, Cpu } from "lucide-react";
+import { Terminal, Bug, Play, Square, MemoryStick, Cpu } from "lucide-react";
 
 interface TerminalPanelProps {
   projectId: string;
@@ -14,7 +14,7 @@ interface TerminalLine {
 }
 
 export function TerminalPanel({ projectId }: TerminalPanelProps) {
-  const [activeTab, setActiveTab] = useState<'terminal' | 'console' | 'metrics'>('terminal');
+  const [activeTab, setActiveTab] = useState<'terminal' | 'console'>('terminal');
   const [terminalLines, setTerminalLines] = useState<TerminalLine[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const terminalRef = useRef<HTMLDivElement>(null);
@@ -131,48 +131,7 @@ export function TerminalPanel({ projectId }: TerminalPanelProps) {
     </div>
   );
 
-  const renderMetrics = () => (
-    <div className="flex-1 p-3 overflow-y-auto">
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
-          <div className="replit-elevated p-3 rounded">
-            <div className="text-xs text-replit-text-secondary mb-1">Profiles Scraped</div>
-            <div className="text-lg font-semibold text-replit-success">127</div>
-          </div>
-          <div className="replit-elevated p-3 rounded">
-            <div className="text-xs text-replit-text-secondary mb-1">Success Rate</div>
-            <div className="text-lg font-semibold text-replit-success">95.3%</div>
-          </div>
-          <div className="replit-elevated p-3 rounded">
-            <div className="text-xs text-replit-text-secondary mb-1">Avg Response</div>
-            <div className="text-lg font-semibold text-replit-blue">1.2s</div>
-          </div>
-          <div className="replit-elevated p-3 rounded">
-            <div className="text-xs text-replit-text-secondary mb-1">Data Quality</div>
-            <div className="text-lg font-semibold text-replit-warning">Good</div>
-          </div>
-        </div>
-        
-        <div className="replit-elevated p-3 rounded">
-          <div className="text-xs text-replit-text-secondary mb-2">Recent Activity</div>
-          <div className="space-y-1 text-xs">
-            <div className="flex justify-between">
-              <span>LinkedIn Scraper</span>
-              <span className="text-replit-success">Completed</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Data Analysis</span>
-              <span className="text-replit-blue">Running</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Twitter API</span>
-              <span className="text-replit-text-muted">Pending</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+
 
   return (
     <div className="w-full replit-panel border-r border-replit-border flex flex-col h-full">
@@ -193,20 +152,13 @@ export function TerminalPanel({ projectId }: TerminalPanelProps) {
             <Bug size={14} className="mr-2" />
             Console
           </div>
-          <div 
-            className={`panel-tab ${activeTab === 'metrics' ? 'active' : ''}`}
-            onClick={() => setActiveTab('metrics')}
-          >
-            <TrendingUp size={14} className="mr-2" />
-            Metrics
-          </div>
+
         </div>
       </div>
       
       {/* Tab content */}
       {activeTab === 'terminal' && renderTerminal()}
       {activeTab === 'console' && renderConsole()}
-      {activeTab === 'metrics' && renderMetrics()}
       
       {/* Terminal controls and status */}
       <div className="border-t border-replit-border p-2">
