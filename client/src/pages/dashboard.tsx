@@ -1273,7 +1273,7 @@ const FileEditor = ({ activeFile, fileName }: { activeFile: string | null; fileN
             colorDecorators: true,
             codeLens: true,
             lightbulb: {
-              enabled: "on"
+              enabled: true
             }
           }}
           loading={<div className="flex items-center justify-center h-full text-replit-text">Loading editor...</div>}
@@ -1610,7 +1610,16 @@ export default function Dashboard() {
       const agentMenuCurrentWidth = isAgentMenuCollapsed ? 48 : 256;
       const newWidth = Math.max(200, Math.min(400, mouseX - agentMenuCurrentWidth));
       setExplorerWidth(newWidth);
+    } else if (isDragging === 'explorer-left') {
+      const agentMenuCurrentWidth = isAgentMenuCollapsed ? 48 : 256;
+      const newWidth = Math.max(200, Math.min(400, mouseX - agentMenuCurrentWidth));
+      setExplorerWidth(newWidth);
     } else if (isDragging === 'ai-chat') {
+      const agentMenuCurrentWidth = isAgentMenuCollapsed ? 48 : 256;
+      const explorerCurrentWidth = isExplorerCollapsed ? 48 : explorerWidth;
+      const newWidth = Math.max(280, Math.min(500, mouseX - agentMenuCurrentWidth - explorerCurrentWidth));
+      setAiChatWidth(newWidth);
+    } else if (isDragging === 'ai-chat-left') {
       const agentMenuCurrentWidth = isAgentMenuCollapsed ? 48 : 256;
       const explorerCurrentWidth = isExplorerCollapsed ? 48 : explorerWidth;
       const newWidth = Math.max(280, Math.min(500, mouseX - agentMenuCurrentWidth - explorerCurrentWidth));
@@ -1926,6 +1935,14 @@ export default function Dashboard() {
           className="bg-replit-panel border-r border-replit-border flex flex-col relative group"
           style={{ width: isExplorerCollapsed ? '48px' : `${explorerWidth}px` }}
         >
+          {/* Left Drag Handle for File Explorer */}
+          {!isExplorerCollapsed && (
+            <div 
+              className="absolute left-0 top-0 w-1 h-full cursor-col-resize bg-transparent hover:bg-replit-blue/30 transition-colors z-10"
+              onMouseDown={(e) => handleMouseDown(e, 'explorer-left')}
+            />
+          )}
+          
           <FileExplorer 
             isCollapsed={isExplorerCollapsed}
             onToggle={() => setIsExplorerCollapsed(!isExplorerCollapsed)}
@@ -1933,7 +1950,7 @@ export default function Dashboard() {
             currentProject={currentProject}
           />
           
-          {/* Drag Handle for File Explorer */}
+          {/* Right Drag Handle for File Explorer */}
           {!isExplorerCollapsed && (
             <div 
               className="absolute right-0 top-0 w-1 h-full cursor-col-resize bg-transparent hover:bg-replit-blue/30 transition-colors"
@@ -1947,6 +1964,14 @@ export default function Dashboard() {
           className="bg-replit-panel border-r border-replit-border flex flex-col relative group"
           style={{ width: isAiChatCollapsed ? '48px' : `${aiChatWidth}px` }}
         >
+          {/* Left Drag Handle for AI Chat (shared with editor) */}
+          {!isAiChatCollapsed && (
+            <div 
+              className="absolute left-0 top-0 w-1 h-full cursor-col-resize bg-transparent hover:bg-replit-blue/30 transition-colors z-10"
+              onMouseDown={(e) => handleMouseDown(e, 'ai-chat-left')}
+            />
+          )}
+          
           <div className="p-3 border-b border-replit-border flex items-center justify-between">
             {!isAiChatCollapsed && (
               <h3 className="font-semibold text-replit-text text-sm flex items-center gap-2">
@@ -1972,18 +1997,15 @@ export default function Dashboard() {
               <AiChatPanel projectId={currentProject} />
             )}
           </div>
-          
-          {/* Drag Handle for AI Chat */}
-          {!isAiChatCollapsed && (
-            <div 
-              className="absolute right-0 top-0 w-1 h-full cursor-col-resize bg-transparent hover:bg-replit-blue/30 transition-colors"
-              onMouseDown={(e) => handleMouseDown(e, 'ai-chat')}
-            />
-          )}
         </div>
         
         {/* Main Editor Area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col relative">
+          {/* Left Drag Handle for Editor (shared with AI Chat) */}
+          <div 
+            className="absolute left-0 top-0 w-1 h-full cursor-col-resize bg-transparent hover:bg-replit-blue/30 transition-colors z-20"
+            onMouseDown={(e) => handleMouseDown(e, 'ai-chat-left')}
+          />
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
             <TabsList className="bg-replit-panel/90 backdrop-blur-lg border-b border-replit-border rounded-none h-12 w-full justify-start shadow-sm">
               <TabsTrigger value="editor" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
