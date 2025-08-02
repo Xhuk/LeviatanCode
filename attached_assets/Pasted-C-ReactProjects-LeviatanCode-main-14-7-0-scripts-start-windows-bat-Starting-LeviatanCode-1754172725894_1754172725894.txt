@@ -1,0 +1,95 @@
+C:\ReactProjects\LeviatanCode [main ≡ +14 ~7 -0 !]> scripts\start-windows.bat
+Starting LeviatanCode on Windows...
+[dotenv@17.2.1] injecting env (1) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+[INFO] Environment: development
+[INFO] All middleware loaded successfully with monitoring
+4:10:10 PM [express] serving on port 5005
+[INFO] CSP disabled for development mode
+4:10:10 PM [express] GET /api/configuration/verify/demo-project-1 304 in 9ms :: [{"category":"worksp…
+4:10:14 PM [express] GET /api/middleware/status 200 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+4:10:19 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+4:10:24 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+4:10:29 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+4:10:34 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+4:10:39 PM [express] GET /api/middleware/status 304 in 0ms :: {"globallyEnabled":true,"total":5,"act…
+[INFO] CSP disabled for development mode
+4:10:40 PM [express] GET /api/configuration/verify/demo-project-1 304 in 4ms :: [{"category":"worksp…
+4:10:44 PM [express] GET /api/middleware/status 200 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+🔄 Starting Flask Analyzer service...
+📦 Installing Flask dependencies...
+Warning: Could not setup virtual environment, trying system Python: Error: Command failed: cd flask_analyzer && flask_analyzer\venv\Scripts\pip install flask flask-cors requests werkzeug --quiet
+The system cannot find the path specified.
+
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at ChildProcess.exithandler (node:child_process:414:12)
+    at ChildProcess.emit (node:events:518:28)
+    at maybeClose (node:internal/child_process:1101:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:304:5) {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'cd flask_analyzer && flask_analyzer\\venv\\Scripts\\pip install flask flask-cors requests werkzeug --quiet',
+  stdout: '',
+  stderr: 'The system cannot find the path specified.\r\n'
+}
+📦 Installing minimal Flask dependencies with system Python...
+✅ Minimal Flask dependencies installed with system Python
+🚀 Starting Flask server with command: cd flask_analyzer && start_flask.bat
+4:10:47 PM [express] POST /api/middleware/start 200 in 1176ms :: {"success":true,"message":"Middlewa…
+4:10:47 PM [express] GET /api/middleware/status 304 in 0ms :: {"globallyEnabled":true,"total":5,"act…
+Flask stdout: Starting Flask Analyzer for Windows...
+
+Flask stdout: Installing Flask dependencies...
+
+Flask stdout: Checking virtual environment...
+
+4:10:52 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+Flask stdout: Using virtual environment
+
+Flask stderr: INFO:app:Starting LeviatanCode Flask Analyzer API
+
+Flask stderr: INFO:app:Server running on: http://localhost:5001
+INFO:app:Debug mode: True
+INFO:app:OpenAI API configured: True
+INFO:app:Gemini API configured: True
+INFO:app:Ready to analyze projects!
+
+Flask stdout:  * Serving Flask app 'app'
+
+Flask stdout:  * Debug mode: on
+
+Flask stderr: INFO:werkzeug:WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://10.119.2.198:5001
+
+Flask stderr: INFO:werkzeug:Press CTRL+C to quit
+
+Flask stderr: INFO:werkzeug: * Restarting with stat
+
+Flask stderr: INFO:app:Starting LeviatanCode Flask Analyzer API
+
+Flask stderr: INFO:app:Server running on: http://localhost:5001
+INFO:app:Debug mode: True
+INFO:app:OpenAI API configured: True
+INFO:app:Gemini API configured: True
+INFO:app:Ready to analyze projects!
+
+Flask stderr: WARNING:werkzeug: * Debugger is active!
+
+Flask stderr: INFO:werkzeug: * Debugger PIN: 379-983-750
+
+4:10:57 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+4:11:02 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+4:11:07 PM [express] GET /api/middleware/status 304 in 0ms :: {"globallyEnabled":true,"total":5,"act…
+Flask stderr: INFO:werkzeug:127.0.0.1 - - [02/Aug/2025 16:11:10] "GET /health HTTP/1.1" 200 -
+
+[INFO] CSP disabled for development mode
+Flask stderr: INFO:werkzeug:127.0.0.1 - - [02/Aug/2025 16:11:10] "GET /health HTTP/1.1" 200 -
+
+4:11:10 PM [express] GET /api/configuration/verify/demo-project-1 200 in 6ms :: [{"category":"worksp…
+4:11:12 PM [express] GET /api/middleware/status 200 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+4:11:17 PM [express] GET /api/middleware/status 304 in 0ms :: {"globallyEnabled":true,"total":5,"act…
+4:11:22 PM [express] GET /api/middleware/status 304 in 0ms :: {"globallyEnabled":true,"total":5,"act…
+Flask stderr: INFO:werkzeug:127.0.0.1 - - [02/Aug/2025 16:11:40] "GET /health HTTP/1.1" 200 -
