@@ -127,20 +127,41 @@ export function AiDocumentAnalysisDialog({
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-3">
-                  <label className="flex items-center space-x-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={generateScript}
-                      onChange={(e) => setGenerateScript(e.target.checked)}
-                      className="rounded"
-                    />
-                    <div>
-                      <div className="font-medium">Generate Python Analysis Script</div>
-                      <div className="text-sm text-muted-foreground">
-                        Create a Python script to digest documents and extract structured insights for sharing
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs">✓</span>
+                      </div>
+                      <div>
+                        <div className="font-medium">Python Analysis Script</div>
+                        <div className="text-sm text-muted-foreground">
+                          Automatically creates a comprehensive Python script for project analysis with Gemini AI integration
+                        </div>
                       </div>
                     </div>
-                  </label>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs">✓</span>
+                      </div>
+                      <div>
+                        <div className="font-medium">File System Analysis</div>
+                        <div className="text-sm text-muted-foreground">
+                          Scans project files, detects technologies, and creates detailed file trees
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs">✓</span>
+                      </div>
+                      <div>
+                        <div className="font-medium">Auto-Save to Working Directory</div>
+                        <div className="text-sm text-muted-foreground">
+                          Script and documentation automatically saved to your working directory
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
