@@ -6,6 +6,18 @@ import { setupVite, serveStatic, log } from "./vite";
 // Load environment variables first
 dotenv.config();
 
+// Override PORT for Windows development - force 5005 for local Windows development
+if (process.platform === 'win32' || process.env.NODE_ENV === 'development') {
+  // Check if running locally (not in Replit) by checking for Windows platform or local dev indicators
+  const isLocalDevelopment = process.platform === 'win32' || 
+    (!process.env.REPLIT && !process.env.REPLIT_ID && !process.env.REPL_ID);
+  
+  if (isLocalDevelopment) {
+    process.env.PORT = '5005';
+    console.log('[INFO] Windows/Local development detected - using port 5005');
+  }
+}
+
 // Import middleware (using dynamic imports for CommonJS modules)
 
 const app = express();
