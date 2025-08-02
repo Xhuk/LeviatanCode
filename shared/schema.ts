@@ -6,7 +6,8 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  passwordHash: text("password_hash").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const projects = pgTable("projects", {
@@ -38,10 +39,17 @@ export const projectExecutions = pgTable("project_executions", {
 export const aiChats = pgTable("ai_chats", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   projectId: varchar("project_id").notNull(),
-  messages: jsonb("messages").notNull().default([]),
-  model: text("model").notNull().default("gpt-4o"),
+  title: text("title").notNull().default("New Chat"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const messages = pgTable("messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  chatId: varchar("chat_id").notNull(),
+  role: text("role").notNull(), // 'user' or 'assistant'
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const documentation = pgTable("documentation", {

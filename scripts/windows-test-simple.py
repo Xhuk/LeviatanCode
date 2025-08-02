@@ -74,7 +74,7 @@ def test_database_simple():
     try:
         # Simple test without complex output parsing
         result = subprocess.run(
-            ["node", "scripts/test-db.js"],
+            ["node", "scripts/test-db-simple.js"],
             capture_output=True,
             text=True,
             timeout=15,

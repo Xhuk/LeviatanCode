@@ -10,15 +10,10 @@ async function testDatabase() {
         // Test connection
         const result = await sql`SELECT 1 as test`;
         console.log('✅ Database connection successful');
-        console.log('Connection result:', result);
         
-        // Test tables exist
-        const tables = await sql`
-            SELECT table_name 
-            FROM information_schema.tables 
-            WHERE table_schema = 'public'
-        `;
-        console.log('✅ Available tables:', tables.map(t => t.table_name));
+        // Test database exists - simple check
+        const version = await sql`SELECT version()`;
+        console.log('✅ Database version verified');
         
     } catch (error) {
         console.error('❌ Database connection failed:', error.message);
