@@ -13,8 +13,8 @@ if (!process.env.NODE_ENV) {
 
 // Port configuration - use Replit's PORT environment variable
 if (!process.env.PORT) {
-  process.env.PORT = '5000';
-  console.log('[INFO] No PORT specified - defaulting to 5000');
+  process.env.PORT = '5005';
+  console.log('[INFO] No PORT specified - defaulting to 5005');
 }
 
 console.log(`[INFO] Environment: ${process.env.NODE_ENV}`);
@@ -77,8 +77,8 @@ app.use((req, res, next) => {
     app.use(sessionModule.default);
     
     console.log("[INFO] All middleware loaded successfully");
-  } catch (error) {
-    console.warn("Some middleware failed to load:", error.message);
+  } catch (error: any) {
+    console.warn("Some middleware failed to load:", error?.message || error);
     console.log("Continuing with basic setup...");
   }
 
@@ -102,8 +102,8 @@ app.use((req, res, next) => {
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Default to 5000 for Replit, fallback based on environment
-  const port = parseInt(process.env.PORT || '5000', 10);
+  // Default to 5005 for Windows Replit environment, fallback based on environment
+  const port = parseInt(process.env.PORT || '5005', 10);
   
   // Server configuration for Replit
   server.listen(port, '0.0.0.0', () => {

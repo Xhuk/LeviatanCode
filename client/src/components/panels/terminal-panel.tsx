@@ -41,14 +41,15 @@ export function TerminalPanel({ projectId }: TerminalPanelProps) {
   // Execute command mutation
   const executeCommandMutation = useMutation({
     mutationFn: async (command: string) => {
-      return apiRequest(`/api/terminal/execute`, {
+      const response = await apiRequest(`/api/terminal/execute`, {
         method: 'POST',
         body: JSON.stringify({ command, projectId }),
         headers: { 'Content-Type': 'application/json' }
       });
+      return response;
     },
-    onSuccess: (data, command) => {
-      addTerminalLine(data.output || '', data.exitCode === 0 ? 'success' : 'error');
+    onSuccess: (data: any, command) => {
+      addTerminalLine(data?.output || 'Command executed successfully', data?.exitCode === 0 ? 'success' : 'error');
       setIsRunning(false);
     },
     onError: (error: any) => {
