@@ -3000,6 +3000,40 @@ Please provide a JSON response with this exact structure:
   });
 
   // Database API endpoints
+  // GET endpoint for frontend compatibility
+  app.get("/api/database/test-connection", async (req, res) => {
+    try {
+      if (!process.env.DATABASE_URL) {
+        return res.json({ 
+          success: false, 
+          message: "DATABASE_URL environment variable is not configured" 
+        });
+      }
+
+      const { testDatabaseConnection } = await import("./db");
+      const isConnected = await testDatabaseConnection();
+      
+      if (isConnected) {
+        res.json({ 
+          success: true, 
+          message: "Database connection successful",
+          database: "Supabase PostgreSQL"
+        });
+      } else {
+        res.json({ 
+          success: false, 
+          message: "Database connection failed - check your Supabase configuration" 
+        });
+      }
+    } catch (error) {
+      console.error('Database connection test error:', error);
+      res.json({ 
+        success: false, 
+        message: (error as Error).message || "Connection test failed" 
+      });
+    }
+  });
+
   app.post("/api/database/test-connection", async (req, res) => {
     try {
       if (!process.env.DATABASE_URL) {
