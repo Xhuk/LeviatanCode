@@ -14,6 +14,17 @@ import threading
 from pathlib import Path
 from dotenv import load_dotenv
 
+def obfuscate_value(value, show_fraction=3):
+    """Obfuscate sensitive values by showing only first 1/3"""
+    if not value or len(value) < 6:
+        return value  # Don't obfuscate short values
+    
+    show_chars = len(value) // show_fraction
+    if show_chars < 3:
+        show_chars = 3
+    
+    return value[:show_chars] + "..." + ("*" * (len(value) - show_chars))
+
 def load_environment():
     """Load environment variables from .env file"""
     project_root = Path(__file__).parent.parent
@@ -32,10 +43,44 @@ def load_environment():
     os.environ.setdefault('PORT', '5005')
     os.environ.setdefault('FLASK_PORT', '5001')
     
-    print(f"NODE_ENV: {os.environ.get('NODE_ENV')}")
-    print(f"PORT: {os.environ.get('PORT')}")
-    print(f"FLASK_PORT: {os.environ.get('FLASK_PORT')}")
+    # Print environment variables with obfuscation for sensitive ones
+    print("\n📋 Environment Variables:")
+    print("-" * 40)
     
+    # Non-sensitive variables (show full value)
+    non_sensitive = ['NODE_ENV', 'PORT', 'FLASK_PORT']
+    for var in non_sensitive:
+        value = os.environ.get(var, 'Not set')
+        print(f"{var}: {value}")
+    
+    # Sensitive variables (show obfuscated)
+    sensitive_vars = [
+        'DATABASE_URL', 'SESSION_SECRET', 'OPENAI_API_KEY', 'GEMINI_API_KEY',
+        'SUPABASE_URL', 'SUPABASE_ANON_KEY', 'JWT_SECRET', 'API_KEY'
+    ]
+    
+    for var in sensitive_vars:
+        value = os.environ.get(var)
+        if value:
+            obfuscated = obfuscate_value(value)
+            print(f"{var}: {obfuscated}")
+        else:
+            print(f"{var}: Not set")
+    
+    # Check for other .env variables that might be sensitive
+    env_vars = {k: v for k, v in os.environ.items() 
+                if not k.startswith('_') and k not in non_sensitive + sensitive_vars}
+    
+    if env_vars:
+        print("\n📋 Additional Environment Variables:")
+        for var, value in sorted(env_vars.items()):
+            if any(keyword in var.upper() for keyword in ['KEY', 'SECRET', 'TOKEN', 'PASSWORD', 'URL']):
+                obfuscated = obfuscate_value(value) if value else 'Not set'
+                print(f"{var}: {obfuscated}")
+            else:
+                print(f"{var}: {value}")
+    
+    print("-" * 40)
     return project_root
 
 def check_dependencies():

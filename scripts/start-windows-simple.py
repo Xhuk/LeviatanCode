@@ -11,6 +11,13 @@ import requests
 from pathlib import Path
 from dotenv import load_dotenv
 
+def obfuscate_value(value, show_fraction=3):
+    """Obfuscate sensitive values by showing only first 1/3"""
+    if not value or len(value) < 6:
+        return value
+    show_chars = max(3, len(value) // show_fraction)
+    return value[:show_chars] + "..." + ("*" * (len(value) - show_chars))
+
 # Load .env file
 project_root = Path(__file__).parent.parent
 env_file = project_root / '.env'
@@ -28,9 +35,20 @@ os.environ.setdefault('FLASK_PORT', '5001')
 
 print("=" * 50)
 print("🚀 Starting LeviatanCode...")
+print("\n📋 Environment Variables:")
 print(f"NODE_ENV: {os.environ.get('NODE_ENV')}")
 print(f"PORT: {os.environ.get('PORT')}")
 print(f"FLASK_PORT: {os.environ.get('FLASK_PORT')}")
+
+# Show obfuscated sensitive variables
+sensitive_vars = ['DATABASE_URL', 'SESSION_SECRET', 'OPENAI_API_KEY', 'GEMINI_API_KEY']
+for var in sensitive_vars:
+    value = os.environ.get(var)
+    if value:
+        print(f"{var}: {obfuscate_value(value)}")
+    else:
+        print(f"{var}: Not set")
+
 print("=" * 50)
 
 # Change to project root
