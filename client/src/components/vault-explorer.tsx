@@ -50,6 +50,8 @@ export function VaultExplorer({ workspace }: VaultExplorerProps) {
   const [masterPassword, setMasterPassword] = useState("");
   const [isVaultUnlocked, setIsVaultUnlocked] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [passwordAttempts, setPasswordAttempts] = useState(0);
+  const [showPasswordError, setShowPasswordError] = useState(false);
   const { toast } = useToast();
 
   // New secret form
@@ -81,6 +83,14 @@ export function VaultExplorer({ workspace }: VaultExplorerProps) {
       console.error("Failed to check vault status:", error);
       setShowMasterPasswordDialog(true);
     }
+    setLoading(false);
+  };
+
+  const retryVaultAccess = () => {
+    setPasswordAttempts(0);
+    setShowPasswordError(false);
+    setMasterPassword("");
+    setShowMasterPasswordDialog(true);
   };
 
   const unlockVault = async () => {
@@ -97,26 +107,50 @@ export function VaultExplorer({ workspace }: VaultExplorerProps) {
         setIsVaultUnlocked(true);
         setShowMasterPasswordDialog(false);
         setMasterPassword("");
+        setPasswordAttempts(0);
+        setShowPasswordError(false);
         loadSecrets();
         toast({
           title: "Success",
           description: "Vault unlocked successfully",
         });
       } else {
-        const error = await response.json();
-        toast({
-          title: "Error",
-          description: error.message || "Failed to unlock vault",
-          variant: "destructive",
-        });
+        // Increment password attempts on failure
+        const newAttempts = passwordAttempts + 1;
+        setPasswordAttempts(newAttempts);
+        setMasterPassword(""); // Clear password field
+        
+        if (newAttempts >= 3) {
+          // After 3 attempts, close vault screen and reset for retry
+          setShowMasterPasswordDialog(false);
+          setPasswordAttempts(0);
+          setShowPasswordError(false);
+          toast({
+            title: "Access Denied", 
+            description: "Too many failed attempts. Please try again later.",
+            variant: "destructive",
+          });
+        } else {
+          // Don't show error immediately, allow multiple iterations
+          setShowPasswordError(false);
+        }
       }
     } catch (error) {
       console.error("Failed to unlock vault:", error);
-      toast({
-        title: "Error",
-        description: "Failed to unlock vault",
-        variant: "destructive",
-      });
+      const newAttempts = passwordAttempts + 1;
+      setPasswordAttempts(newAttempts);
+      setMasterPassword("");
+      
+      if (newAttempts >= 3) {
+        setShowMasterPasswordDialog(false);
+        setPasswordAttempts(0);
+        setShowPasswordError(false);
+        toast({
+          title: "Access Denied",
+          description: "Too many failed attempts. Please try again later.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -273,6 +307,36 @@ export function VaultExplorer({ workspace }: VaultExplorerProps) {
           <p className="text-sm text-muted-foreground">
             No workspace selected. Please select a workspace from the dropdown above.
           </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!isVaultUnlocked && !showMasterPasswordDialog) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Key className="h-5 w-5" />
+            Vault Explorer
+          </CardTitle>
+          <CardDescription>
+            Secure credential management for workspace: <strong>{workspace}</strong>
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-center py-8">
+          <div className="space-y-4">
+            <Key className="h-12 w-12 mx-auto text-muted-foreground" />
+            <div>
+              <h3 className="text-lg font-medium">Vault Locked</h3>
+              <p className="text-sm text-muted-foreground">
+                The encrypted vault is currently locked. Click below to access your secure credentials.
+              </p>
+            </div>
+            <Button onClick={retryVaultAccess}>
+              Unlock Vault
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
@@ -449,6 +513,11 @@ export function VaultExplorer({ workspace }: VaultExplorerProps) {
               </DialogTitle>
               <DialogDescription>
                 Enter the master password to unlock the encrypted vault for workspace: <strong>{workspace}</strong>
+                {passwordAttempts > 0 && passwordAttempts < 3 && (
+                  <div className="mt-2 text-yellow-600 dark:text-yellow-400 text-sm">
+                    {3 - passwordAttempts} attempt{3 - passwordAttempts !== 1 ? 's' : ''} remaining
+                  </div>
+                )}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -473,6 +542,8 @@ export function VaultExplorer({ workspace }: VaultExplorerProps) {
                   onClick={() => {
                     setShowMasterPasswordDialog(false);
                     setMasterPassword("");
+                    setPasswordAttempts(0);
+                    setShowPasswordError(false);
                   }}
                 >
                   Cancel
