@@ -1,0 +1,242 @@
+#!/usr/bin/env python3
+"""
+Install LeviatanCode Secrets Manager
+Creates desktop shortcut and Windows integration
+"""
+
+import os
+import sys
+import subprocess
+from pathlib import Path
+import shutil
+
+def install_dependencies():
+    """Install required Python packages"""
+    print("Installing Python dependencies...")
+    packages = ['cryptography', 'tkinter']
+    
+    for package in packages:
+        try:
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', package])
+            print(f"✅ Installed {package}")
+        except subprocess.CalledProcessError:
+            print(f"⚠️  Failed to install {package}, it might already be installed")
+
+def create_desktop_shortcut():
+    """Create desktop shortcut for Windows"""
+    try:
+        desktop = Path.home() / "Desktop"
+        project_root = Path(__file__).parent.parent
+        secrets_manager = project_root / "secrets_manager.py"
+        
+        # Create batch file for easy launching
+        batch_content = f"""@echo off
+cd /d "{project_root}"
+python secrets_manager.py
+pause"""
+        
+        batch_file = project_root / "run_secrets_manager.bat"
+        with open(batch_file, 'w') as f:
+            f.write(batch_content)
+        
+        # Create desktop shortcut (Windows .lnk file would require additional libraries)
+        # Instead, create a simple batch file on desktop
+        shortcut_file = desktop / "LeviatanCode Secrets Manager.bat"
+        with open(shortcut_file, 'w') as f:
+            f.write(batch_content)
+        
+        print(f"✅ Created desktop shortcut: {shortcut_file}")
+        
+    except Exception as e:
+        print(f"⚠️  Could not create desktop shortcut: {e}")
+
+def create_startup_script():
+    """Create enhanced startup script that uses secrets manager"""
+    project_root = Path(__file__).parent.parent
+    startup_script = project_root / "scripts" / "start-with-secrets-manager.py"
+    
+    content = '''#!/usr/bin/env python3
+"""
+LeviatanCode Startup with Secrets Manager Integration
+Loads secrets from encrypted vault instead of .env file
+"""
+
+import os
+import sys
+import json
+import time
+import subprocess
+import requests
+import winreg
+from pathlib import Path
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import base64
+
+def derive_key(password: str, salt: bytes) -> bytes:
+    """Derive encryption key from password"""
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=salt,
+        iterations=100000,
+    )
+    key = base64.urlsafe_b64encode(kdf.derive(password.encode()))
+    return key
+
+def load_secrets_from_vault():
+    """Load secrets from encrypted vault"""
+    app_dir = Path.home() / ".leviatancode"
+    secrets_file = app_dir / "secrets.encrypted"
+    
+    if not secrets_file.exists():
+        print("❌ No secrets vault found. Please run Secrets Manager first.")
+        return False
+    
+    # Try to get master password from environment or prompt
+    master_password = os.environ.get('LEVIATAN_MASTER_PASSWORD')
+    if not master_password:
+        master_password = input("Enter master password for secrets vault: ")
+    
+    try:
+        salt = b'leviatancode_salt_2025'
+        key = derive_key(master_password, salt)
+        cipher_suite = Fernet(key)
+        
+        with open(secrets_file, 'rb') as f:
+            encrypted_data = f.read()
+        
+        decrypted_data = cipher_suite.decrypt(encrypted_data)
+        data = json.loads(decrypted_data.decode())
+        
+        secrets = data.get('secrets', {})
+        
+        # Set environment variables
+        for key, secret_data in secrets.items():
+            os.environ[key] = secret_data.get('value', '')
+        
+        print(f"✅ Loaded {len(secrets)} secrets from vault")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Failed to load secrets from vault: {e}")
+        return False
+
+def load_from_registry():
+    """Load environment variables from Windows registry"""
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment") as reg_key:
+            i = 0
+            while True:
+                try:
+                    name, value, _ = winreg.EnumValue(reg_key, i)
+                    os.environ[name] = value
+                    i += 1
+                except WindowsError:
+                    break
+        print("✅ Loaded environment variables from Windows registry")
+        return True
+    except Exception as e:
+        print(f"⚠️  Could not load from registry: {e}")
+        return False
+
+def main():
+    """Main startup sequence"""
+    print("🚀 Starting LeviatanCode with Secrets Manager...")
+    print("=" * 60)
+    
+    project_root = Path(__file__).parent.parent
+    os.chdir(project_root)
+    
+    # Try loading secrets in order of preference
+    secrets_loaded = False
+    
+    # 1. Try encrypted vault
+    if load_secrets_from_vault():
+        secrets_loaded = True
+    # 2. Try Windows registry
+    elif load_from_registry():
+        secrets_loaded = True
+    # 3. Fallback to .env file
+    else:
+        env_file = project_root / '.env'
+        if env_file.exists():
+            from dotenv import load_dotenv
+            load_dotenv(env_file)
+            print("✅ Loaded from .env file (fallback)")
+            secrets_loaded = True
+    
+    if not secrets_loaded:
+        print("❌ No secrets loaded. Please set up Secrets Manager or .env file.")
+        return 1
+    
+    # Set defaults
+    os.environ.setdefault('NODE_ENV', 'development')
+    os.environ.setdefault('PORT', '5005')
+    os.environ.setdefault('FLASK_PORT', '5001')
+    
+    # Start Flask
+    print("\\n[1/3] Starting Flask Analyzer...")
+    flask_proc = subprocess.Popen([
+        sys.executable, '-m', 'flask_analyzer.run_server'
+    ], env=os.environ)
+    
+    # Wait for Flask
+    flask_port = os.environ.get('FLASK_PORT', '5001')
+    health_url = f"http://127.0.0.1:{flask_port}/health"
+    
+    print(f"[2/3] Waiting for Flask at {health_url}...")
+    for attempt in range(1, 31):
+        try:
+            response = requests.get(health_url, timeout=3)
+            if response.status_code == 200:
+                print("✅ Flask is ready!")
+                break
+        except:
+            pass
+        
+        if attempt == 30:
+            print("❌ Flask failed to start")
+            flask_proc.terminate()
+            return 1
+        
+        print(f"Attempt {attempt}/30: Flask not ready, waiting...")
+        time.sleep(2)
+    
+    # Start main application
+    print("\\n[3/3] Starting main application...")
+    try:
+        subprocess.run(['npx', 'tsx', 'server/index.ts'], env=os.environ)
+    except KeyboardInterrupt:
+        print("\\n🔄 Shutting down...")
+    finally:
+        flask_proc.terminate()
+        print("✅ Stopped")
+
+if __name__ == '__main__':
+    sys.exit(main())
+'''
+    
+    with open(startup_script, 'w') as f:
+        f.write(content)
+    
+    print(f"✅ Created startup script: {startup_script}")
+
+def main():
+    """Main installation process"""
+    print("🔐 Installing LeviatanCode Secrets Manager")
+    print("=" * 50)
+    
+    install_dependencies()
+    create_desktop_shortcut() 
+    create_startup_script()
+    
+    print("\\n✅ Installation complete!")
+    print("\\nNext steps:")
+    print("1. Run 'python secrets_manager.py' to set up your secrets")
+    print("2. Use 'python scripts/start-with-secrets-manager.py' to start with vault")
+    print("3. Desktop shortcut created for easy access")
+
+if __name__ == '__main__':
+    main()
