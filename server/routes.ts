@@ -2865,6 +2865,13 @@ Please provide a JSON response with this exact structure:
         return res.status(400).json({ message: "Master password is required" });
       }
 
+      // Debug logging for password comparison
+      const crypto = require('crypto');
+      const inputPasswordHash = crypto.createHash('sha256').update(masterPassword).digest('hex');
+      console.log(`🔐 Vault unlock attempt:`);
+      console.log(`   📝 Input password length: ${masterPassword.length} chars`);
+      console.log(`   🔢 Input password hash (SHA256): ${inputPasswordHash.substring(0, 16)}...`);
+
       // Try to unlock the vault using the Python secrets manager
       const { spawn } = await import('child_process');
       const path = await import('path');
@@ -2891,18 +2898,27 @@ Please provide a JSON response with this exact structure:
       });
 
       pythonProcess.on('close', (code: number) => {
+        console.log(`🔐 Python vault unlock process completed:`);
+        console.log(`   📊 Exit code: ${code}`);
+        console.log(`   📤 Python stdout: ${output.substring(0, 200)}${output.length > 200 ? '...' : ''}`);
+        console.log(`   📥 Python stderr: ${errorOutput.substring(0, 200)}${errorOutput.length > 200 ? '...' : ''}`);
+        
         if (code === 0 && output.includes('✅ Loaded')) {
+          console.log(`   ✅ Vault unlock successful - Password accepted`);
           vaultUnlocked = true;
           // Extract loaded secrets from the output for display purposes
           try {
             const secretCount = output.match(/✅ Loaded (\d+) secrets/)?.[1] || '0';
             vaultSecrets = { count: parseInt(secretCount) };
+            console.log(`   📊 Loaded ${secretCount} secrets from vault`);
           } catch (e) {
             console.error('Failed to parse secrets:', e);
           }
           
           res.json({ success: true, message: "Vault unlocked successfully" });
         } else {
+          console.log(`   ❌ Vault unlock failed - Password rejected or vault error`);
+          console.log(`   🔍 Looking for success pattern '✅ Loaded' in output: ${output.includes('✅ Loaded')}`);
           res.status(401).json({ message: "Invalid master password or vault access failed" });
         }
       });

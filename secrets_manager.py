@@ -503,18 +503,31 @@ def handle_vault_api_commands():
             master_password = input("Enter master password: ")
             
         try:
+            # Debug password verification
+            import hashlib
+            password_hash = hashlib.sha256(master_password.encode()).hexdigest()
+            print(f"DEBUG: Input password length: {len(master_password)}", file=sys.stderr)
+            print(f"DEBUG: Input password hash (SHA256): {password_hash[:16]}...", file=sys.stderr)
+            
             salt = b'leviatancode_salt_2025'
             key = derive_key(master_password, salt)
             cipher_suite = Fernet(key)
             
+            print(f"DEBUG: Derived key (first 16 chars): {key.decode()[:16]}...", file=sys.stderr)
+            print(f"DEBUG: Attempting to decrypt vault file...", file=sys.stderr)
+            
             with open(secrets_file, 'rb') as f:
                 encrypted_data = f.read()
+            
+            print(f"DEBUG: Encrypted file size: {len(encrypted_data)} bytes", file=sys.stderr)
             
             decrypted_data = cipher_suite.decrypt(encrypted_data)
             data = json.loads(decrypted_data.decode())
             
+            print(f"DEBUG: Decryption successful! Found {len(data.get('secrets', {}))} secrets", file=sys.stderr)
             print(json.dumps(data))
         except Exception as e:
+            print(f"DEBUG: Decryption failed - {str(e)}", file=sys.stderr)
             print(json.dumps({"error": str(e)}))
             
     elif '--get-secret' in sys.argv:
