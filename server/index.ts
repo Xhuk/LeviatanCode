@@ -95,10 +95,12 @@ app.use((req, res, next) => {
     console.log("Continuing with basic setup...");
   }
 
-  // Test database connection before starting server
+  // Test database connection and initialize storage
   console.log('🔍 Testing database connection...');
   const dbConnected = await testDatabaseConnection();
-  if (!dbConnected) {
+  if (dbConnected) {
+    console.log('✅ Database storage initialized');
+  } else {
     console.warn('⚠️  Database connection failed - continuing with limited functionality');
   }
 

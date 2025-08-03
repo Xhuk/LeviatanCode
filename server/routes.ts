@@ -1,32 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import { MemStorage } from "./storage";
+import { storagePromise } from "./storage";
+import type { IStorage } from "./storage";
 
-// Initialize storage instance with database support
-let storage: any;
-
-async function initializeStorage() {
-  try {
-    if (process.env.DATABASE_URL) {
-      console.log('🗄️  Attempting to use database storage (Supabase)...');
-      const { DatabaseStorage } = await import("./storage-db");
-      storage = new DatabaseStorage();
-      console.log('✅ Database storage initialized');
-      return true;
-    } else {
-      console.log('💾 No DATABASE_URL - using memory storage');
-      storage = new MemStorage();
-      return false;
-    }
-  } catch (error) {
-    console.warn('⚠️  Database storage failed, using memory fallback:', (error as Error).message);
-    storage = new MemStorage();
-    return false;
-  }
-}
-
-// Initialize storage later in registerRoutes function
+// Storage will be initialized asynchronously
+let storage: IStorage;
 import settingsRoutes from "./routes/settings";
 import loggerRoutes, { LoggerService } from "./routes/logger";
 import { aiService } from "./services/ai";
@@ -58,8 +37,8 @@ import {
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Initialize storage with database support
-  await initializeStorage();
+  // Initialize storage asynchronously
+  storage = await storagePromise;
   
   const httpServer = createServer(app);
   

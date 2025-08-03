@@ -17,6 +17,7 @@ import {
   type FileSystemItem
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { sql } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -435,4 +436,234 @@ export class MemStorage implements IStorage {
   }
 }
 
+import { db } from "./db";
+import { 
+  users, 
+  projects, 
+  projectExecutions, 
+  aiChats, 
+  messages,
+  documentation, 
+  promptTemplates, 
+  vaultSecrets,
+  configurations
+} from "@shared/schema";
+import { eq, and } from "drizzle-orm";
+
+export class DbStorage implements IStorage {
+  // Users
+  async getUser(id: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.id, id));
+    return result[0];
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.username, username));
+    return result[0];
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const result = await db.insert(users).values(insertUser).returning();
+    return result[0];
+  }
+
+  // Projects
+  async getProject(id: string): Promise<Project | undefined> {
+    const result = await db.select().from(projects).where(eq(projects.id, id));
+    return result[0];
+  }
+
+  async getProjectsByUser(userId: string): Promise<Project[]> {
+    return await db.select().from(projects).where(eq(projects.userId, userId));
+  }
+
+  async createProject(insertProject: InsertProject): Promise<Project> {
+    const result = await db.insert(projects).values(insertProject).returning();
+    return result[0];
+  }
+
+  async updateProject(id: string, updates: Partial<Project>): Promise<Project> {
+    const result = await db
+      .update(projects)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(projects.id, id))
+      .returning();
+    
+    if (!result[0]) throw new Error("Project not found");
+    return result[0];
+  }
+
+  async deleteProject(id: string): Promise<void> {
+    await db.delete(projects).where(eq(projects.id, id));
+  }
+
+  // Project Executions
+  async getProjectExecution(id: string): Promise<ProjectExecution | undefined> {
+    const result = await db.select().from(projectExecutions).where(eq(projectExecutions.id, id));
+    return result[0];
+  }
+
+  async getProjectExecutionsByProject(projectId: string): Promise<ProjectExecution[]> {
+    return await db.select().from(projectExecutions).where(eq(projectExecutions.projectId, projectId));
+  }
+
+  async createProjectExecution(insertExecution: InsertProjectExecution): Promise<ProjectExecution> {
+    const result = await db.insert(projectExecutions).values(insertExecution).returning();
+    return result[0];
+  }
+
+  async updateProjectExecution(id: string, updates: Partial<ProjectExecution>): Promise<ProjectExecution> {
+    const result = await db
+      .update(projectExecutions)
+      .set(updates)
+      .where(eq(projectExecutions.id, id))
+      .returning();
+    
+    if (!result[0]) throw new Error("Project execution not found");
+    return result[0];
+  }
+
+  // AI Chats
+  async getAiChat(id: string): Promise<AiChat | undefined> {
+    const result = await db.select().from(aiChats).where(eq(aiChats.id, id));
+    return result[0];
+  }
+
+  async getAiChatsByProject(projectId: string): Promise<AiChat[]> {
+    return await db.select().from(aiChats).where(eq(aiChats.projectId, projectId));
+  }
+
+  async createAiChat(insertChat: InsertAiChat): Promise<AiChat> {
+    const result = await db.insert(aiChats).values(insertChat).returning();
+    return result[0];
+  }
+
+  async updateAiChat(id: string, updates: Partial<AiChat>): Promise<AiChat> {
+    const result = await db
+      .update(aiChats)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(aiChats.id, id))
+      .returning();
+    
+    if (!result[0]) throw new Error("AI chat not found");
+    return result[0];
+  }
+
+  // Documentation
+  async getDocumentation(projectId: string): Promise<Documentation[]> {
+    return await db.select().from(documentation).where(eq(documentation.projectId, projectId));
+  }
+
+  async createDocumentation(insertDoc: InsertDocumentation): Promise<Documentation> {
+    const result = await db.insert(documentation).values(insertDoc).returning();
+    return result[0];
+  }
+
+  async updateDocumentation(id: string, updates: Partial<Documentation>): Promise<Documentation> {
+    const result = await db
+      .update(documentation)
+      .set({ ...updates, lastUpdated: new Date() })
+      .where(eq(documentation.id, id))
+      .returning();
+    
+    if (!result[0]) throw new Error("Documentation not found");
+    return result[0];
+  }
+
+  // Prompt Templates
+  async getPromptTemplates(projectId: string): Promise<PromptTemplate[]> {
+    return await db.select().from(promptTemplates).where(eq(promptTemplates.projectId, projectId));
+  }
+
+  async getPromptTemplate(id: string): Promise<PromptTemplate | undefined> {
+    const result = await db.select().from(promptTemplates).where(eq(promptTemplates.id, id));
+    return result[0];
+  }
+
+  async createPromptTemplate(insertTemplate: InsertPromptTemplate): Promise<PromptTemplate> {
+    const result = await db.insert(promptTemplates).values(insertTemplate).returning();
+    return result[0];
+  }
+
+  async updatePromptTemplate(id: string, updates: Partial<PromptTemplate>): Promise<PromptTemplate> {
+    const result = await db
+      .update(promptTemplates)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(promptTemplates.id, id))
+      .returning();
+    
+    if (!result[0]) throw new Error("Prompt template not found");
+    return result[0];
+  }
+
+  async deletePromptTemplate(id: string): Promise<void> {
+    await db.delete(promptTemplates).where(eq(promptTemplates.id, id));
+  }
+
+  async incrementPromptUsage(id: string): Promise<void> {
+    await db
+      .update(promptTemplates)
+      .set({ 
+        usageCount: sql`${promptTemplates.usageCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(promptTemplates.id, id));
+  }
+
+  // Vault Secrets
+  async getVaultSecrets(workspace: string): Promise<VaultSecret[]> {
+    return await db.select().from(vaultSecrets).where(eq(vaultSecrets.workspace, workspace));
+  }
+
+  async getVaultSecret(workspace: string, id: string): Promise<VaultSecret | undefined> {
+    const result = await db
+      .select()
+      .from(vaultSecrets)
+      .where(and(eq(vaultSecrets.workspace, workspace), eq(vaultSecrets.id, id)));
+    return result[0];
+  }
+
+  async createVaultSecret(insertSecret: InsertVaultSecret): Promise<VaultSecret> {
+    const result = await db.insert(vaultSecrets).values(insertSecret).returning();
+    return result[0];
+  }
+
+  async updateVaultSecret(workspace: string, id: string, updates: Partial<VaultSecret>): Promise<VaultSecret | undefined> {
+    const result = await db
+      .update(vaultSecrets)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(vaultSecrets.workspace, workspace), eq(vaultSecrets.id, id)))
+      .returning();
+    
+    return result[0];
+  }
+
+  async deleteVaultSecret(workspace: string, id: string): Promise<boolean> {
+    const result = await db
+      .delete(vaultSecrets)
+      .where(and(eq(vaultSecrets.workspace, workspace), eq(vaultSecrets.id, id)))
+      .returning();
+    
+    return result.length > 0;
+  }
+}
+
+// Initialize storage based on database availability
+async function createStorage(): Promise<IStorage> {
+  try {
+    const { testDatabaseConnection } = await import("./db");
+    await testDatabaseConnection();
+    console.log("🗄️  Attempting to use database storage (Supabase)...");
+    return new DbStorage();
+  } catch (error) {
+    console.warn("⚠️  Database connection failed, using memory storage:", error);
+    console.log("🧠 Using memory storage (fallback)");
+    return new MemStorage();
+  }
+}
+
+// Export storage promise - will be resolved when needed
+export const storagePromise = createStorage();
+
+// Legacy export for immediate use (will be memory storage initially)
 export const storage = new MemStorage();
