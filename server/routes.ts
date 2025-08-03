@@ -2838,7 +2838,10 @@ Please provide a JSON response with this exact structure:
     }
   });
 
-  // Vault management endpoints
+  // Vault management endpoints with Python secrets manager integration
+  let vaultUnlocked = false;
+  let vaultSecrets: any = {};
+
   // Simple encryption helper (in production, use proper encryption)
   const simpleEncrypt = (text: string): string => {
     return Buffer.from(text).toString('base64');
@@ -2848,19 +2851,155 @@ Please provide a JSON response with this exact structure:
     return Buffer.from(encrypted, 'base64').toString('utf8');
   };
 
+  // Check vault status
+  app.get("/api/vault/status", (req, res) => {
+    res.json({ unlocked: vaultUnlocked });
+  });
+
+  // Unlock vault with master password
+  app.post("/api/vault/unlock", async (req, res) => {
+    try {
+      const { masterPassword } = req.body;
+      
+      if (!masterPassword) {
+        return res.status(400).json({ message: "Master password is required" });
+      }
+
+      // Try to unlock the vault using the Python secrets manager
+      const { spawn } = require('child_process');
+      const path = require('path');
+      
+      const pythonScript = path.join(process.cwd(), 'scripts', 'start-with-secrets-manager.py');
+      
+      // Create a temporary environment with the master password
+      const env = { ...process.env, LEVIATAN_MASTER_PASSWORD: masterPassword };
+      
+      const pythonProcess = spawn('python3', [pythonScript, '--test-unlock'], { 
+        env,
+        stdio: ['pipe', 'pipe', 'pipe']
+      });
+
+      let output = '';
+      let errorOutput = '';
+
+      pythonProcess.stdout.on('data', (data: Buffer) => {
+        output += data.toString();
+      });
+
+      pythonProcess.stderr.on('data', (data: Buffer) => {
+        errorOutput += data.toString();
+      });
+
+      pythonProcess.on('close', (code: number) => {
+        if (code === 0 && output.includes('✅ Loaded')) {
+          vaultUnlocked = true;
+          // Extract loaded secrets from the output for display purposes
+          try {
+            const secretCount = output.match(/✅ Loaded (\d+) secrets/)?.[1] || '0';
+            vaultSecrets = { count: parseInt(secretCount) };
+          } catch (e) {
+            console.error('Failed to parse secrets:', e);
+          }
+          
+          res.json({ success: true, message: "Vault unlocked successfully" });
+        } else {
+          res.status(401).json({ message: "Invalid master password or vault access failed" });
+        }
+      });
+
+      pythonProcess.on('error', (error: Error) => {
+        console.error('Python process error:', error);
+        res.status(500).json({ message: "Failed to access vault" });
+      });
+
+    } catch (error) {
+      console.error("Vault unlock error:", error);
+      res.status(500).json({ message: "Failed to unlock vault" });
+    }
+  });
+
   // Get all secrets for a workspace
   app.get("/api/vault/:workspace/secrets", async (req, res) => {
     try {
       const { workspace } = req.params;
-      const secrets = await storage.getVaultSecrets(workspace);
       
-      // Return secrets without decrypted values for security
-      const safeSSecrets = secrets.map(secret => ({
-        ...secret,
-        value: '••••••••••••••••••••••••••••••••••••••••••••••••••••••••'
-      }));
+      if (!vaultUnlocked) {
+        return res.status(401).json({ message: "Vault is locked. Please unlock first." });
+      }
+
+      // Try to get secrets from Python vault first, fallback to database
+      try {
+        const { spawn } = require('child_process');
+        const path = require('path');
+        
+        const pythonScript = path.join(process.cwd(), 'secrets_manager.py');
+        
+        const pythonProcess = spawn('python3', [pythonScript, '--list-secrets'], { 
+          stdio: ['pipe', 'pipe', 'pipe']
+        });
+
+        let output = '';
+        let errorOutput = '';
+
+        pythonProcess.stdout.on('data', (data: Buffer) => {
+          output += data.toString();
+        });
+
+        pythonProcess.stderr.on('data', (data: Buffer) => {
+          errorOutput += data.toString();
+        });
+
+        pythonProcess.on('close', async (code: number) => {
+          if (code === 0) {
+            try {
+              // Parse the output to get secrets list
+              const secretsData = JSON.parse(output);
+              const workspaceSecrets = secretsData.secrets || {};
+              
+              // Convert to our format
+              const secrets = Object.entries(workspaceSecrets).map(([key, data]: [string, any]) => ({
+                id: key,
+                workspace,
+                name: key,
+                value: '••••••••••••••••••••••••••••••••••••••••••••••••••••••••',
+                encryptedValue: '',
+                description: data.description || `Secret for ${key}`,
+                category: data.category || 'general',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+              }));
+              
+              res.json(secrets);
+            } catch (parseError) {
+              // Fallback to database
+              const secrets = await storage.getVaultSecrets(workspace);
+              const safeSSecrets = secrets.map(secret => ({
+                ...secret,
+                value: '••••••••••••••••••••••••••••••••••••••••••••••••••••••••'
+              }));
+              res.json(safeSSecrets);
+            }
+          } else {
+            // Fallback to database
+            const secrets = await storage.getVaultSecrets(workspace);
+            const safeSSecrets = secrets.map(secret => ({
+              ...secret,
+              value: '••••••••••••••••••••••••••••••••••••••••••••••••••••••••'
+            }));
+            res.json(safeSSecrets);
+          }
+        });
+
+      } catch (pythonError) {
+        // Fallback to database
+        const secrets = await storage.getVaultSecrets(workspace);
+        const safeSSecrets = secrets.map(secret => ({
+          ...secret,
+          value: '••••••••••••••••••••••••••••••••••••••••••••••••••••••••'
+        }));
+        res.json(safeSSecrets);
+      }
       
-      res.json(safeSSecrets);
     } catch (error) {
       console.error("Failed to get vault secrets:", error);
       res.status(500).json({ message: "Failed to get vault secrets" });
@@ -2871,14 +3010,68 @@ Please provide a JSON response with this exact structure:
   app.get("/api/vault/:workspace/secrets/:secretId/decrypt", async (req, res) => {
     try {
       const { workspace, secretId } = req.params;
-      const secret = await storage.getVaultSecret(workspace, secretId);
       
-      if (!secret) {
-        return res.status(404).json({ message: "Secret not found" });
+      if (!vaultUnlocked) {
+        return res.status(401).json({ message: "Vault is locked. Please unlock first." });
+      }
+
+      // Try to get secret from Python vault first, fallback to database
+      try {
+        const { spawn } = require('child_process');
+        const path = require('path');
+        
+        const pythonScript = path.join(process.cwd(), 'secrets_manager.py');
+        
+        const pythonProcess = spawn('python3', [pythonScript, '--get-secret', secretId], { 
+          stdio: ['pipe', 'pipe', 'pipe']
+        });
+
+        let output = '';
+        let errorOutput = '';
+
+        pythonProcess.stdout.on('data', (data: Buffer) => {
+          output += data.toString();
+        });
+
+        pythonProcess.stderr.on('data', (data: Buffer) => {
+          errorOutput += data.toString();
+        });
+
+        pythonProcess.on('close', async (code: number) => {
+          if (code === 0) {
+            try {
+              const secretData = JSON.parse(output);
+              res.json({ value: secretData.value });
+            } catch (parseError) {
+              // Fallback to database
+              const secret = await storage.getVaultSecret(workspace, secretId);
+              if (!secret) {
+                return res.status(404).json({ message: "Secret not found" });
+              }
+              const decryptedValue = simpleDecrypt(secret.encryptedValue);
+              res.json({ value: decryptedValue });
+            }
+          } else {
+            // Fallback to database
+            const secret = await storage.getVaultSecret(workspace, secretId);
+            if (!secret) {
+              return res.status(404).json({ message: "Secret not found" });
+            }
+            const decryptedValue = simpleDecrypt(secret.encryptedValue);
+            res.json({ value: decryptedValue });
+          }
+        });
+
+      } catch (pythonError) {
+        // Fallback to database
+        const secret = await storage.getVaultSecret(workspace, secretId);
+        if (!secret) {
+          return res.status(404).json({ message: "Secret not found" });
+        }
+        const decryptedValue = simpleDecrypt(secret.encryptedValue);
+        res.json({ value: decryptedValue });
       }
       
-      const decryptedValue = simpleDecrypt(secret.encryptedValue);
-      res.json({ value: decryptedValue });
     } catch (error) {
       console.error("Failed to decrypt secret:", error);
       res.status(500).json({ message: "Failed to decrypt secret" });
@@ -2889,19 +3082,87 @@ Please provide a JSON response with this exact structure:
   app.post("/api/vault/:workspace/secrets", async (req, res) => {
     try {
       const { workspace } = req.params;
-      const validatedData = insertVaultSecretSchema.parse({
-        ...req.body,
-        workspace,
-        encryptedValue: simpleEncrypt(req.body.value)
-      });
       
-      const secret = await storage.createVaultSecret(validatedData);
+      if (!vaultUnlocked) {
+        return res.status(401).json({ message: "Vault is locked. Please unlock first." });
+      }
+
+      // Try to add to Python vault first, fallback to database
+      try {
+        const { spawn } = require('child_process');
+        const path = require('path');
+        
+        const pythonScript = path.join(process.cwd(), 'secrets_manager.py');
+        
+        const pythonProcess = spawn('python3', [
+          pythonScript, 
+          '--add-secret',
+          req.body.name,
+          req.body.value,
+          req.body.category || 'general',
+          req.body.description || ''
+        ], { 
+          stdio: ['pipe', 'pipe', 'pipe']
+        });
+
+        let output = '';
+        let errorOutput = '';
+
+        pythonProcess.stdout.on('data', (data: Buffer) => {
+          output += data.toString();
+        });
+
+        pythonProcess.stderr.on('data', (data: Buffer) => {
+          errorOutput += data.toString();
+        });
+
+        pythonProcess.on('close', async (code: number) => {
+          if (code === 0) {
+            // Success - return the created secret
+            res.json({
+              id: req.body.name,
+              workspace,
+              name: req.body.name,
+              value: '••••••••••••••••••••••••••••••••••••••••••••••••••••••••',
+              encryptedValue: '',
+              description: req.body.description || '',
+              category: req.body.category || 'general',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            });
+          } else {
+            // Fallback to database
+            const validatedData = insertVaultSecretSchema.parse({
+              ...req.body,
+              workspace,
+              encryptedValue: simpleEncrypt(req.body.value)
+            });
+            
+            const secret = await storage.createVaultSecret(validatedData);
+            
+            res.json({
+              ...secret,
+              value: '••••••••••••••••••••••••••••••••••••••••••••••••••••••••'
+            });
+          }
+        });
+
+      } catch (pythonError) {
+        // Fallback to database
+        const validatedData = insertVaultSecretSchema.parse({
+          ...req.body,
+          workspace,
+          encryptedValue: simpleEncrypt(req.body.value)
+        });
+        
+        const secret = await storage.createVaultSecret(validatedData);
+        
+        res.json({
+          ...secret,
+          value: '••••••••••••••••••••••••••••••••••••••••••••••••••••••••'
+        });
+      }
       
-      // Return without decrypted value
-      res.json({
-        ...secret,
-        value: '••••••••••••••••••••••••••••••••••••••••••••••••••••••••'
-      });
     } catch (error) {
       console.error("Failed to create vault secret:", error);
       res.status(500).json({ message: "Failed to create vault secret" });

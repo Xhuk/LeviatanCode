@@ -46,6 +46,9 @@ export function VaultExplorer({ workspace }: VaultExplorerProps) {
   const [visibleSecrets, setVisibleSecrets] = useState<Set<string>>(new Set());
   const [editingSecret, setEditingSecret] = useState<VaultSecret | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showMasterPasswordDialog, setShowMasterPasswordDialog] = useState(false);
+  const [masterPassword, setMasterPassword] = useState("");
+  const [isVaultUnlocked, setIsVaultUnlocked] = useState(false);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -58,8 +61,64 @@ export function VaultExplorer({ workspace }: VaultExplorerProps) {
   });
 
   useEffect(() => {
-    loadSecrets();
+    // Check if vault is unlocked and load secrets
+    checkVaultStatus();
   }, [workspace]);
+
+  const checkVaultStatus = async () => {
+    try {
+      const response = await fetch('/api/vault/status');
+      if (response.ok) {
+        const data = await response.json();
+        setIsVaultUnlocked(data.unlocked);
+        if (data.unlocked) {
+          loadSecrets();
+        } else {
+          setShowMasterPasswordDialog(true);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to check vault status:", error);
+      setShowMasterPasswordDialog(true);
+    }
+  };
+
+  const unlockVault = async () => {
+    try {
+      const response = await fetch('/api/vault/unlock', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ masterPassword }),
+      });
+
+      if (response.ok) {
+        setIsVaultUnlocked(true);
+        setShowMasterPasswordDialog(false);
+        setMasterPassword("");
+        loadSecrets();
+        toast({
+          title: "Success",
+          description: "Vault unlocked successfully",
+        });
+      } else {
+        const error = await response.json();
+        toast({
+          title: "Error",
+          description: error.message || "Failed to unlock vault",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to unlock vault:", error);
+      toast({
+        title: "Error",
+        description: "Failed to unlock vault",
+        variant: "destructive",
+      });
+    }
+  };
 
   const loadSecrets = async () => {
     if (!workspace) return;
@@ -379,6 +438,52 @@ export function VaultExplorer({ workspace }: VaultExplorerProps) {
             </ScrollArea>
           )}
         </CardContent>
+
+        {/* Master Password Dialog */}
+        <Dialog open={showMasterPasswordDialog} onOpenChange={setShowMasterPasswordDialog}>
+          <DialogContent className="sm:max-w-[400px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Key className="h-5 w-5" />
+                Unlock Vault
+              </DialogTitle>
+              <DialogDescription>
+                Enter the master password to unlock the encrypted vault for workspace: <strong>{workspace}</strong>
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="master-password">Master Password</Label>
+                <Input
+                  id="master-password"
+                  type="password"
+                  placeholder="Enter master password..."
+                  value={masterPassword}
+                  onChange={(e) => setMasterPassword(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      unlockVault();
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowMasterPasswordDialog(false);
+                    setMasterPassword("");
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={unlockVault} disabled={!masterPassword}>
+                  Unlock Vault
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </Card>
     </div>
   );

@@ -480,5 +480,148 @@ def main():
     app = SecretsManager()
     app.run()
 
+def handle_vault_api_commands():
+    """Handle API commands for frontend integration"""
+    import sys
+    import json
+    
+    if '--list-secrets' in sys.argv:
+        # List all secrets
+        app_dir = Path.home() / ".leviatancode"
+        secrets_file = app_dir / "secrets.encrypted"
+        
+        if not secrets_file.exists():
+            print(json.dumps({"secrets": {}}))
+            return
+            
+        master_password = os.environ.get('LEVIATAN_MASTER_PASSWORD')
+        if not master_password:
+            master_password = input("Enter master password: ")
+            
+        try:
+            salt = b'leviatancode_salt_2025'
+            key = derive_key(master_password, salt)
+            cipher_suite = Fernet(key)
+            
+            with open(secrets_file, 'rb') as f:
+                encrypted_data = f.read()
+            
+            decrypted_data = cipher_suite.decrypt(encrypted_data)
+            data = json.loads(decrypted_data.decode())
+            
+            print(json.dumps(data))
+        except Exception as e:
+            print(json.dumps({"error": str(e)}))
+            
+    elif '--get-secret' in sys.argv:
+        # Get specific secret value
+        if len(sys.argv) < 3:
+            print(json.dumps({"error": "Secret name required"}))
+            return
+            
+        secret_name = sys.argv[2]
+        
+        app_dir = Path.home() / ".leviatancode"
+        secrets_file = app_dir / "secrets.encrypted"
+        
+        if not secrets_file.exists():
+            print(json.dumps({"error": "No secrets file found"}))
+            return
+            
+        master_password = os.environ.get('LEVIATAN_MASTER_PASSWORD')
+        if not master_password:
+            master_password = input("Enter master password: ")
+            
+        try:
+            salt = b'leviatancode_salt_2025'
+            key = derive_key(master_password, salt)
+            cipher_suite = Fernet(key)
+            
+            with open(secrets_file, 'rb') as f:
+                encrypted_data = f.read()
+            
+            decrypted_data = cipher_suite.decrypt(encrypted_data)
+            data = json.loads(decrypted_data.decode())
+            
+            secrets = data.get('secrets', {})
+            if secret_name in secrets:
+                print(json.dumps({"value": secrets[secret_name]['value']}))
+            else:
+                print(json.dumps({"error": "Secret not found"}))
+                
+        except Exception as e:
+            print(json.dumps({"error": str(e)}))
+            
+    elif '--add-secret' in sys.argv:
+        # Add new secret
+        if len(sys.argv) < 5:
+            print(json.dumps({"error": "Usage: --add-secret <name> <value> <category> [description]"}))
+            return
+            
+        secret_name = sys.argv[2]
+        secret_value = sys.argv[3]
+        secret_category = sys.argv[4]
+        secret_description = sys.argv[5] if len(sys.argv) > 5 else ""
+        
+        app_dir = Path.home() / ".leviatancode"
+        secrets_file = app_dir / "secrets.encrypted"
+        
+        # Load existing data or create new
+        data = {"secrets": {}}
+        if secrets_file.exists():
+            master_password = os.environ.get('LEVIATAN_MASTER_PASSWORD')
+            if not master_password:
+                master_password = input("Enter master password: ")
+                
+            try:
+                salt = b'leviatancode_salt_2025'
+                key = derive_key(master_password, salt)
+                cipher_suite = Fernet(key)
+                
+                with open(secrets_file, 'rb') as f:
+                    encrypted_data = f.read()
+                
+                decrypted_data = cipher_suite.decrypt(encrypted_data)
+                data = json.loads(decrypted_data.decode())
+                
+            except Exception as e:
+                print(json.dumps({"error": f"Failed to load existing secrets: {e}"}))
+                return
+        else:
+            master_password = os.environ.get('LEVIATAN_MASTER_PASSWORD')
+            if not master_password:
+                master_password = input("Enter master password for new vault: ")
+        
+        # Add the new secret
+        data['secrets'][secret_name] = {
+            'value': secret_value,
+            'category': secret_category,
+            'description': secret_description,
+            'modified': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        
+        # Save back to file
+        try:
+            salt = b'leviatancode_salt_2025'
+            key = derive_key(master_password, salt)
+            cipher_suite = Fernet(key)
+            
+            app_dir.mkdir(exist_ok=True)
+            encrypted_data = cipher_suite.encrypt(json.dumps(data).encode())
+            
+            with open(secrets_file, 'wb') as f:
+                f.write(encrypted_data)
+                
+            print(json.dumps({"success": True}))
+            
+        except Exception as e:
+            print(json.dumps({"error": f"Failed to save secret: {e}"}))
+
 if __name__ == '__main__':
-    main()
+    import sys
+    
+    # Check for API commands first
+    if len(sys.argv) > 1 and ('--list-secrets' in sys.argv or '--get-secret' in sys.argv or '--add-secret' in sys.argv):
+        handle_vault_api_commands()
+    else:
+        main()

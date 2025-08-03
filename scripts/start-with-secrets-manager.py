@@ -191,5 +191,54 @@ def main():
         flask_proc.terminate()
         print("✅ Stopped")
 
+def handle_vault_commands():
+    """Handle vault-specific commands for frontend integration"""
+    import sys
+    
+    if '--test-unlock' in sys.argv:
+        # Test vault unlock for frontend integration
+        if load_secrets_from_vault():
+            print("✅ Vault unlock test successful")
+            sys.exit(0)
+        else:
+            print("❌ Vault unlock test failed")
+            sys.exit(1)
+    elif '--list-secrets' in sys.argv:
+        # List secrets for frontend integration
+        if load_secrets_from_vault():
+            # Load secrets file and output JSON
+            app_dir = Path.home() / ".leviatancode"
+            secrets_file = app_dir / "secrets.encrypted"
+            if secrets_file.exists():
+                master_password = os.environ.get('LEVIATAN_MASTER_PASSWORD')
+                if not master_password:
+                    master_password = input("Enter master password for secrets vault: ")
+                
+                try:
+                    salt = b'leviatancode_salt_2025'
+                    key = derive_key(master_password, salt)
+                    cipher_suite = Fernet(key)
+                    
+                    with open(secrets_file, 'rb') as f:
+                        encrypted_data = f.read()
+                    
+                    decrypted_data = cipher_suite.decrypt(encrypted_data)
+                    data = json.loads(decrypted_data.decode())
+                    
+                    print(json.dumps(data))
+                    sys.exit(0)
+                except Exception as e:
+                    print(json.dumps({"error": str(e)}))
+                    sys.exit(1)
+        print(json.dumps({"secrets": {}}))
+        sys.exit(0)
+
 if __name__ == '__main__':
+    import sys
+    
+    # Check for vault commands first
+    if len(sys.argv) > 1 and ('--test-unlock' in sys.argv or '--list-secrets' in sys.argv):
+        handle_vault_commands()
+    
+    # Normal startup
     sys.exit(main())
