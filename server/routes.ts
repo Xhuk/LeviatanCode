@@ -168,14 +168,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check database connection
       try {
-        await storage.getProjects();
-        configChecks.push({
-          category: 'database',
-          name: 'Database Connection',
-          status: 'ok',
-          message: 'Database connection successful',
-          canUpdateFromFrontend: false
-        });
+        const { testDatabaseConnection } = await import("./db");
+        const isConnected = await testDatabaseConnection();
+        
+        if (isConnected) {
+          configChecks.push({
+            category: 'database',
+            name: 'Database Connection',
+            status: 'ok',
+            message: 'Database connection successful',
+            canUpdateFromFrontend: false
+          });
+        } else {
+          configChecks.push({
+            category: 'database',
+            name: 'Database Connection',
+            status: 'error',
+            message: 'Database connection failed',
+            canUpdateFromFrontend: false
+          });
+        }
       } catch (error) {
         configChecks.push({
           category: 'database',
