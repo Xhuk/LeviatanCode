@@ -22,6 +22,17 @@ except ImportError:
     winreg = None
 from datetime import datetime
 
+def derive_key(password: str, salt: bytes) -> bytes:
+    """Derive encryption key from password"""
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=salt,
+        iterations=100000,
+    )
+    key = base64.urlsafe_b64encode(kdf.derive(password.encode()))
+    return key
+
 class SecretsManager:
     def __init__(self):
         self.root = tk.Tk()
@@ -48,14 +59,7 @@ class SecretsManager:
     
     def derive_key(self, password: str, salt: bytes) -> bytes:
         """Derive encryption key from password"""
-        kdf = PBKDF2HMAC(
-            algorithm=hashes.SHA256(),
-            length=32,
-            salt=salt,
-            iterations=100000,
-        )
-        key = base64.urlsafe_b64encode(kdf.derive(password.encode()))
-        return key
+        return derive_key(password, salt)
     
     def setup_ui(self):
         """Setup the GUI interface"""

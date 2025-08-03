@@ -2866,8 +2866,8 @@ Please provide a JSON response with this exact structure:
       }
 
       // Try to unlock the vault using the Python secrets manager
-      const { spawn } = require('child_process');
-      const path = require('path');
+      const { spawn } = await import('child_process');
+      const path = await import('path');
       
       const pythonScript = path.join(process.cwd(), 'scripts', 'start-with-secrets-manager.py');
       
@@ -2929,8 +2929,8 @@ Please provide a JSON response with this exact structure:
 
       // Try to get secrets from Python vault first, fallback to database
       try {
-        const { spawn } = require('child_process');
-        const path = require('path');
+        const { spawn } = await import('child_process');
+        const path = await import('path');
         
         const pythonScript = path.join(process.cwd(), 'secrets_manager.py');
         
@@ -3017,8 +3017,8 @@ Please provide a JSON response with this exact structure:
 
       // Try to get secret from Python vault first, fallback to database
       try {
-        const { spawn } = require('child_process');
-        const path = require('path');
+        const { spawn } = await import('child_process');
+        const path = await import('path');
         
         const pythonScript = path.join(process.cwd(), 'secrets_manager.py');
         
@@ -3089,8 +3089,8 @@ Please provide a JSON response with this exact structure:
 
       // Try to add to Python vault first, fallback to database
       try {
-        const { spawn } = require('child_process');
-        const path = require('path');
+        const { spawn } = await import('child_process');
+        const path = await import('path');
         
         const pythonScript = path.join(process.cwd(), 'secrets_manager.py');
         
