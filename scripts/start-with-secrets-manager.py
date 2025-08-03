@@ -167,9 +167,26 @@ def main():
     # Start main application
     print("\n[3/3] Starting main application...")
     try:
-        subprocess.run(['npx', 'tsx', 'server/index.ts'], env=os.environ)
+        # Try Windows-compatible commands first
+        if os.name == 'nt':  # Windows
+            # Try npm run dev first (most reliable on Windows)
+            try:
+                subprocess.run(['npm', 'run', 'dev'], env=os.environ, cwd=project_root)
+            except FileNotFoundError:
+                # Fallback to npx if npm is not found
+                try:
+                    subprocess.run(['npx.cmd', 'tsx', 'server/index.ts'], env=os.environ, cwd=project_root)
+                except FileNotFoundError:
+                    # Last resort: try npx without .cmd
+                    subprocess.run(['npx', 'tsx', 'server/index.ts'], env=os.environ, cwd=project_root)
+        else:
+            # Unix/Linux systems
+            subprocess.run(['npx', 'tsx', 'server/index.ts'], env=os.environ, cwd=project_root)
     except KeyboardInterrupt:
         print("\n🔄 Shutting down...")
+    except FileNotFoundError as e:
+        print(f"❌ Command not found: {e}")
+        print("💡 Try running 'npm run dev' manually in the project directory")
     finally:
         flask_proc.terminate()
         print("✅ Stopped")
