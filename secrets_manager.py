@@ -16,7 +16,10 @@ from pathlib import Path
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-import winreg
+try:
+    import winreg
+except ImportError:
+    winreg = None
 from datetime import datetime
 
 class SecretsManager:
@@ -28,7 +31,7 @@ class SecretsManager:
         
         # Data storage
         self.secrets = {}
-        self.master_password = None
+        self.master_password = ""
         self.cipher_suite = None
         
         # Paths
@@ -158,7 +161,7 @@ class SecretsManager:
         password_entry.pack(pady=5, padx=20, fill=tk.X)
         password_entry.focus()
         
-        result = {'password': None}
+        result = {'password': ""}
         
         def on_ok():
             result['password'] = password_var.get()
@@ -197,16 +200,20 @@ class SecretsManager:
             return
         
         try:
-            self.setup_encryption(self.master_password)
+            if self.master_password:
+                self.setup_encryption(self.master_password)
+            else:
+                return
             
             with open(self.secrets_file, 'rb') as f:
                 encrypted_data = f.read()
             
-            decrypted_data = self.cipher_suite.decrypt(encrypted_data)
-            self.secrets = json.loads(decrypted_data.decode())
-            
-            self.refresh_tree()
-            self.status_var.set(f"Loaded {len(self.secrets)} secrets")
+            if self.cipher_suite:
+                decrypted_data = self.cipher_suite.decrypt(encrypted_data)
+                self.secrets = json.loads(decrypted_data.decode())
+                
+                self.refresh_tree()
+                self.status_var.set(f"Loaded {len(self.secrets)} secrets")
             
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load secrets: {e}")
@@ -216,7 +223,10 @@ class SecretsManager:
         if not self.cipher_suite:
             if not self.authenticate():
                 return False
-            self.setup_encryption(self.master_password)
+            if self.master_password:
+                self.setup_encryption(self.master_password)
+            else:
+                return False
         
         try:
             # Add metadata
@@ -230,13 +240,14 @@ class SecretsManager:
             }
             
             json_data = json.dumps(data_to_save, indent=2)
-            encrypted_data = self.cipher_suite.encrypt(json_data.encode())
-            
-            with open(self.secrets_file, 'wb') as f:
-                f.write(encrypted_data)
-            
-            self.status_var.set("Secrets saved successfully")
-            return True
+            if self.cipher_suite:
+                encrypted_data = self.cipher_suite.encrypt(json_data.encode())
+                
+                with open(self.secrets_file, 'wb') as f:
+                    f.write(encrypted_data)
+                
+                self.status_var.set("Secrets saved successfully")
+                return True
             
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save secrets: {e}")
@@ -412,6 +423,10 @@ class SecretsManager:
         if not messagebox.askyesno("Confirm", "This will set environment variables in Windows system. Continue?"):
             return
         
+        if not winreg:
+            messagebox.showerror("Error", "Windows registry access not available on this system")
+            return
+        
         try:
             success_count = 0
             for key, data in self.secrets.items():
@@ -449,7 +464,7 @@ class SecretsManager:
             }
             
             with open(backup_file, 'w') as f:
-                json.dumps(backup_data, f, indent=2)
+                json.dump(backup_data, f, indent=2)
             
             messagebox.showinfo("Success", f"Backup created: {backup_file}")
             

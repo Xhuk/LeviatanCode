@@ -14,7 +14,8 @@ Setup preference: Python scripts for better accuracy and reliability
 Deployment target: Local Windows development with option for Windows Server production
 Architecture preference: Dual-service setup with main app + Flask analyzer for comprehensive analysis
 Theme implementation: Comprehensive light/dark mode for entire application (completed January 2025)
-Startup scripts: Enhanced Python scripts with .env loading and security obfuscation (January 2025)
+Startup scripts: Enhanced Python scripts with encrypted vault as primary config source (January 2025)
+Secrets management: Encrypted vault with master password protection replaces .env files for secure local storage
 
 # System Architecture
 

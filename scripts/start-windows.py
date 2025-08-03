@@ -26,19 +26,29 @@ def obfuscate_value(value, show_fraction=3):
     return value[:show_chars] + "..." + ("*" * (len(value) - show_chars))
 
 def load_environment():
-    """Load environment variables from .env file"""
+    """Load environment variables - prioritizing vault over .env"""
     project_root = Path(__file__).parent.parent
-    env_file = project_root / '.env'
     
+    print("🔐 Checking for encrypted secrets vault...")
+    # Try to use vault first
+    vault_script = project_root / 'scripts' / 'start-with-secrets-manager.py'
+    if vault_script.exists():
+        print("✅ Found vault startup script - consider using that instead!")
+        print("   Run: python scripts/start-with-secrets-manager.py")
+        print("   This script will continue with .env fallback...")
+    
+    # Fallback to .env file
+    env_file = project_root / '.env'
     if env_file.exists():
-        print(f"Loading environment from: {env_file}")
+        print(f"⚠️  Using .env file as fallback: {env_file}")
+        print("   Consider migrating to encrypted vault for better security")
         load_dotenv(env_file)
         print("✅ Environment variables loaded from .env")
     else:
-        print(f"⚠️  Warning: .env file not found at {env_file}")
-        print("Using default values...")
+        print(f"❌ No configuration found - neither vault nor .env file")
+        print("   Run 'python scripts/migrate-to-vault.py' to set up secure storage")
     
-    # Set default values if not in .env
+    # Set default values
     os.environ.setdefault('NODE_ENV', 'development')
     os.environ.setdefault('PORT', '5005')
     os.environ.setdefault('FLASK_PORT', '5001')

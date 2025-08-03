@@ -10,7 +10,10 @@ import json
 import time
 import subprocess
 import requests
-import winreg
+try:
+    import winreg
+except ImportError:
+    winreg = None
 from pathlib import Path
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
@@ -68,18 +71,24 @@ def load_secrets_from_vault():
 
 def load_from_registry():
     """Load environment variables from Windows registry"""
+    if not winreg:
+        print("⚠️  Windows registry access not available")
+        return False
+    
     try:
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment") as reg_key:
             i = 0
+            count = 0
             while True:
                 try:
                     name, value, _ = winreg.EnumValue(reg_key, i)
                     os.environ[name] = value
+                    count += 1
                     i += 1
                 except WindowsError:
                     break
-        print("✅ Loaded environment variables from Windows registry")
-        return True
+        print(f"✅ Loaded {count} environment variables from Windows registry")
+        return count > 0
     except Exception as e:
         print(f"⚠️  Could not load from registry: {e}")
         return False
@@ -92,23 +101,31 @@ def main():
     project_root = Path(__file__).parent.parent
     os.chdir(project_root)
     
-    # Try loading secrets in order of preference
+    # Try loading secrets - VAULT FIRST (as requested)
     secrets_loaded = False
     
-    # 1. Try encrypted vault
+    print("🔐 Primary method: Encrypted Secrets Vault")
+    # 1. Try encrypted vault (PRIMARY METHOD)
     if load_secrets_from_vault():
         secrets_loaded = True
-    # 2. Try Windows registry
-    elif load_from_registry():
-        secrets_loaded = True
-    # 3. Fallback to .env file
+        print("✅ Using encrypted vault as primary configuration source")
     else:
-        env_file = project_root / '.env'
-        if env_file.exists():
-            from dotenv import load_dotenv
-            load_dotenv(env_file)
-            print("✅ Loaded from .env file (fallback)")
+        print("⚠️  Vault not available, trying fallback methods...")
+        # 2. Try Windows registry
+        if load_from_registry():
             secrets_loaded = True
+            print("✅ Using Windows registry as fallback")
+        # 3. Last resort: .env file
+        else:
+            env_file = project_root / '.env'
+            if env_file.exists():
+                try:
+                    from dotenv import load_dotenv
+                    load_dotenv(env_file)
+                    print("⚠️  Using .env file as last resort - consider migrating to vault")
+                    secrets_loaded = True
+                except ImportError:
+                    print("❌ python-dotenv not available")
     
     if not secrets_loaded:
         print("❌ No secrets loaded. Please set up Secrets Manager or .env file.")
