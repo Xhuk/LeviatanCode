@@ -16,6 +16,7 @@ Architecture preference: Dual-service setup with main app + Flask analyzer for c
 Theme implementation: Comprehensive light/dark mode for entire application (completed January 2025)
 Startup scripts: Enhanced Python scripts with encrypted vault as primary config source (January 2025)
 Secrets management: Encrypted vault with master password protection replaces .env files for secure local storage
+AI Integration: Dual AI system with Ollama Llama3 worker integration for development tasks (January 2025)
 
 # System Architecture
 
@@ -75,6 +76,7 @@ Secrets management: Encrypted vault with master password protection replaces .en
 - **Google Gemini**: Alternative AI model for diversified responses.
 - **AI Features**: Chat interface, code suggestions, documentation generation, data analysis.
 - **Flask Analyzer**: Fully operational Python Flask web application (port 5001) serving RESTful `/analyze` endpoint for AI-powered project analysis, supporting 15+ programming languages and 20+ frameworks. Features automatic startup with main application, health check coordination, graceful shutdown integration, and complete Middleware Monitor management with Windows compatibility.
+- **Ollama Integration**: Background worker service automatically manages Ollama AI service and Llama3 model for local AI processing. Provides intelligent task routing with ChatGPT handling architectural guidance while Ollama processes development tasks like debugging, coding, and implementation. Features automatic model downloading, health monitoring, and graceful shutdown integration.
 
 ## Database and Infrastructure
 - **Neon Database**: Serverless PostgreSQL hosting.
