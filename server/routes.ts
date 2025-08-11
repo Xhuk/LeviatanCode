@@ -12,6 +12,8 @@ import { aiService } from "./services/ai";
 import { projectImportService } from "./services/project-import";
 import { flaskAnalyzerService } from "./services/flask-analyzer";
 import { InsightsFileService } from "./services/insights-file";
+import { contextService } from "./contextService";
+import { ContextMiddleware } from "./contextMiddleware";
 import multer from "multer";
 import { z } from "zod";
 import yauzl from "yauzl";
@@ -3565,6 +3567,106 @@ Please provide a JSON response with this exact structure:
       tools: Object.keys(agentTools)
     });
   });
+
+  // Apply context middleware to track actions
+  app.use('/api', ContextMiddleware.initializeContext);
+
+  // Context Tracking API Routes
+  
+  // Get current project context and state
+  app.get('/api/context/:projectId', async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      const context = await contextService.analyzeProjectContext(projectId);
+      res.json(context);
+    } catch (error) {
+      console.error('Failed to get context:', error);
+      res.status(500).json({ error: 'Failed to retrieve context' });
+    }
+  });
+
+  // Get action history for a project
+  app.get('/api/context/:projectId/history', async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      const limit = parseInt(req.query.limit as string) || 50;
+      const history = await contextService.getActionHistory(projectId, limit);
+      res.json(history);
+    } catch (error) {
+      console.error('Failed to get action history:', error);
+      res.status(500).json({ error: 'Failed to retrieve action history' });
+    }
+  });
+
+  // Get session history
+  app.get('/api/context/session/:sessionId/history', async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const history = await contextService.getSessionHistory(sessionId);
+      res.json(history);
+    } catch (error) {
+      console.error('Failed to get session history:', error);
+      res.status(500).json({ error: 'Failed to retrieve session history' });
+    }
+  });
+
+  // Manually log an action (for client-side actions)
+  app.post('/api/context/log-action', async (req, res) => {
+    try {
+      const { sessionId, projectId, userId, actionType, description, data, filePath } = req.body;
+      
+      await contextService.logAction({
+        sessionId: sessionId || req.contextSession || 'unknown',
+        projectId: projectId || req.projectId || 'demo-project-1',
+        userId: userId || req.userId || 'demo-user',
+        type: actionType,
+        description,
+        data,
+        filePath,
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Failed to log action:', error);
+      res.status(500).json({ error: 'Failed to log action' });
+    }
+  });
+
+  // Start a new session with goal
+  app.post('/api/context/start-session', async (req, res) => {
+    try {
+      const { projectId, userId, goal } = req.body;
+      const sessionId = await contextService.startSession(
+        projectId || 'demo-project-1',
+        userId || 'demo-user',
+        goal
+      );
+      res.json({ sessionId, success: true });
+    } catch (error) {
+      console.error('Failed to start session:', error);
+      res.status(500).json({ error: 'Failed to start session' });
+    }
+  });
+
+  // End current session
+  app.post('/api/context/end-session', async (req, res) => {
+    try {
+      const { sessionId, achievements } = req.body;
+      await contextService.endSession(sessionId, achievements);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Failed to end session:', error);
+      res.status(500).json({ error: 'Failed to end session' });
+    }
+  });
+
+  // Apply specific tracking middleware to key routes
+  app.use('/api/projects/:id/files', ContextMiddleware.trackFileEdit);
+  app.use('/api/agent', ContextMiddleware.trackAgentExecution);
+  app.use('/api/projects/:id/ai-chats', ContextMiddleware.trackAIInteraction);
+  app.use('/api/terminal/execute', ContextMiddleware.trackCommandExecution);
+  app.use('/api/workspace/:id/git', ContextMiddleware.trackGitOperation);
+  app.use('/api/settings', ContextMiddleware.trackConfiguration);
 
   return httpServer;
 }

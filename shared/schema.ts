@@ -87,6 +87,47 @@ export const vaultSecrets = pgTable("vault_secrets", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Context Tracking Tables
+export const actionLogs = pgTable("action_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").notNull(),
+  projectId: varchar("project_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  actionType: text("action_type").notNull(), // Enum-like field
+  actionDescription: text("action_description").notNull(),
+  actionData: jsonb("action_data").default({}),
+  filePath: text("file_path"),
+  beforeState: jsonb("before_state"),
+  afterState: jsonb("after_state"),
+  success: boolean("success").notNull().default(true),
+  errorMessage: text("error_message"),
+  duration: integer("duration"), // milliseconds
+  timestamp: timestamp("timestamp").notNull().defaultNow(),
+});
+
+export const contextStates = pgTable("context_states", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().unique(),
+  currentState: text("current_state").notNull(),
+  previousState: text("previous_state"),
+  stateData: jsonb("state_data").default({}),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const sessionContexts = pgTable("session_contexts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id").notNull().unique(),
+  projectId: varchar("project_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  sessionGoal: text("session_goal"),
+  totalActions: integer("total_actions").notNull().default(0),
+  achievements: jsonb("achievements").default([]),
+  isActive: boolean("is_active").notNull().default(true),
+  startTime: timestamp("start_time").notNull().defaultNow(),
+  endTime: timestamp("end_time"),
+});
+
 // Project Documentation Interface
 export interface ProjectDocumentation {
   overview: string;
@@ -155,6 +196,38 @@ export const insertVaultSecretSchema = createInsertSchema(vaultSecrets).pick({
   category: true,
 });
 
+export const insertActionLogSchema = createInsertSchema(actionLogs).pick({
+  sessionId: true,
+  projectId: true,
+  userId: true,
+  actionType: true,
+  actionDescription: true,
+  actionData: true,
+  filePath: true,
+  beforeState: true,
+  afterState: true,
+  success: true,
+  errorMessage: true,
+  duration: true,
+});
+
+export const insertContextStateSchema = createInsertSchema(contextStates).pick({
+  projectId: true,
+  currentState: true,
+  previousState: true,
+  stateData: true,
+});
+
+export const insertSessionContextSchema = createInsertSchema(sessionContexts).pick({
+  sessionId: true,
+  projectId: true,
+  userId: true,
+  sessionGoal: true,
+  totalActions: true,
+  achievements: true,
+  isActive: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -176,6 +249,15 @@ export type PromptTemplate = typeof promptTemplates.$inferSelect;
 
 export type InsertVaultSecret = z.infer<typeof insertVaultSecretSchema>;
 export type VaultSecret = typeof vaultSecrets.$inferSelect;
+
+export type InsertActionLog = z.infer<typeof insertActionLogSchema>;
+export type ActionLog = typeof actionLogs.$inferSelect;
+
+export type InsertContextState = z.infer<typeof insertContextStateSchema>;
+export type ContextStateRecord = typeof contextStates.$inferSelect;
+
+export type InsertSessionContext = z.infer<typeof insertSessionContextSchema>;
+export type SessionContext = typeof sessionContexts.$inferSelect;
 
 // Message types for AI chat
 export interface ChatMessage {

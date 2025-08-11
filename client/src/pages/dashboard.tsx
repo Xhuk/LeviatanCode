@@ -56,6 +56,7 @@ import { VaultExplorer } from "@/components/vault-explorer";
 import { LeviatanSettings } from "@/components/leviatan-settings";
 import { AiChatPanel } from "@/components/panels/ai-chat-panel";
 import { DeveloperAgent } from "@/components/developer-agent";
+import { ContextPanel } from "@/components/context-panel";
 
 
 // Logger component with WebSocket integration
@@ -2218,6 +2219,10 @@ export default function Dashboard() {
                 <GitCommit className="w-4 h-4" />
                 Git Log
               </TabsTrigger>
+              <TabsTrigger value="context" className="flex items-center gap-2 text-sm modern-button data-[state=active]:bg-replit-blue data-[state=active]:text-white">
+                <Activity className="w-4 h-4" />
+                Context
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="editor" className="flex-1 m-0">
@@ -2234,6 +2239,10 @@ export default function Dashboard() {
             
             <TabsContent value="git-log" className="flex-1 m-0">
               <GitLogPanel />
+            </TabsContent>
+            
+            <TabsContent value="context" className="flex-1 m-0">
+              <ContextPanel projectId={currentProject} />
             </TabsContent>
             
             {/* Agent Tool Tabs - Only show when activeTab matches */}
