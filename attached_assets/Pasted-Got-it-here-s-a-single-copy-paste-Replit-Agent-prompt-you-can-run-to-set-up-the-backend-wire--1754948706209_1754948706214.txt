@@ -1,0 +1,357 @@
+Got it — here’s a single copy-paste **Replit Agent prompt** you can run to set up the backend, wire it to your existing Vite chat UI, and verify everything end-to-end.
+
+---
+
+# Replit Agent Prompt (copy this)
+
+**Context**
+
+* I have a Vite app with an **IA chat window** already calling:
+
+  * `GET /api/projects/:projectId/ai-chats`
+  * `POST /api/projects/:projectId/ai-chats`
+  * `POST /api/ai-chats/:chatId/messages`
+  * `POST /api/ai-chats/:chatId/stream` (SSE)
+* I want to add a **Developer Agent** that can read/write files, create folders, move files, and run shell commands safely (sandboxed to the project).
+* I will use **OpenAI** in production (key is already in `.env`) and optionally **Ollama** locally via an OpenAI-compatible base URL.
+
+**Goal**
+
+Create a minimal **Node/Express** server that:
+
+1. Implements the 4 chat routes my UI already expects (non-stream + SSE stream).
+2. Adds `/api/agent` for tool-calling with tools: `readFile`, `writeFile`, `mkdir`, `move`, `run`.
+3. Proxies `/api/*` from Vite dev server to the Express server.
+4. Works with OpenAI by default and can switch to Ollama by changing env vars.
+5. Includes a verification checklist and quick tests.
+
+**Constraints**
+
+* Keep the server in a folder named `dev-agent-server` at the repo root.
+* TypeScript ESM. Use `express`, `dotenv`, and the official `openai` SDK.
+* Sandboxed filesystem access via `AGENT_ROOT` env; forbid path escapes.
+* Don’t expose my API key to the browser; only the server calls OpenAI.
+
+**Tasks**
+
+1. **Create project files** under `dev-agent-server/` exactly as follows:
+
+**`dev-agent-server/package.json`**
+
+```json
+{
+  "name": "dev-agent-server",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsup src/index.ts --format esm --dts --clean"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "openai": "^4.58.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.15.7",
+    "tsup": "^8.3.0",
+    "typescript": "^5.5.4"
+  }
+}
+```
+
+**`dev-agent-server/tsconfig.json`**
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "types": ["node"],
+    "outDir": "dist"
+  },
+  "include": ["src"]
+}
+```
+
+**`dev-agent-server/.env.example`**
+
+```
+OPENAI_API_KEY=your-key-here
+# Optional: OpenAI-compatible server (e.g., Ollama)
+# OPENAI_BASE_URL=http://localhost:11434/v1
+MODEL=gpt-4o-mini
+# Limit agent access to the project directory
+AGENT_ROOT=../
+PORT=8787
+```
+
+**`dev-agent-server/src/index.ts`**
+
+```ts
+import 'dotenv/config'
+import express from 'express'
+import { readFile, writeFile, mkdir, rename } from 'node:fs/promises'
+import path from 'node:path'
+import { spawn } from 'node:child_process'
+import OpenAI from 'openai'
+
+const app = express()
+app.use(express.json({ limit: '2mb' }))
+
+const PORT = Number(process.env.PORT || 8787)
+const ROOT = path.resolve(process.env.AGENT_ROOT ?? process.cwd())
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: process.env.OPENAI_BASE_URL, // e.g. Ollama http://localhost:11434/v1
+})
+
+type Msg = { id: string; role: 'user'|'assistant'|'system'; content: string }
+const projectChats = new Map<string, Msg[]>()
+const chatById = new Map<string, Msg[]>()
+const uuid = () => Math.random().toString(36).slice(2) + Date.now().toString(36)
+
+function safe(p: string) {
+  const full = path.resolve(ROOT, p)
+  if (!full.startsWith(ROOT)) throw new Error('Path outside sandbox')
+  return full
+}
+
+async function complete(messages: {role:'user'|'assistant'|'system', content:string}[], model?: string) {
+  const m = model || process.env.MODEL || 'gpt-4o-mini'
+  const r = await openai.chat.completions.create({ model: m, messages })
+  return r.choices[0].message.content || ''
+}
+
+async function* streamChunks(messages: any[], model?: string) {
+  const m = model || process.env.MODEL || 'gpt-4o-mini'
+  const stream = await openai.chat.completions.create({ model: m, messages, stream: true })
+  for await (const part of stream) {
+    const delta = part.choices?.[0]?.delta?.content
+    if (delta) yield delta
+  }
+}
+
+/* -------- Chat API expected by the UI -------- */
+app.get('/api/projects/:projectId/ai-chats', (req, res) => {
+  const key = req.params.projectId
+  const history = projectChats.get(key) ?? []
+  res.json(history.map(({id, role, content}) => ({ id, role, content })))
+})
+
+app.post('/api/projects/:projectId/ai-chats', async (req, res) => {
+  const key = req.params.projectId
+  const { message, model } = req.body as { message: string, model?: string }
+  if (!message) return res.status(400).json({ error: 'message is required' })
+
+  const history = projectChats.get(key) ?? []
+  history.push({ id: uuid(), role: 'user', content: message })
+  projectChats.set(key, history)
+
+  try {
+    const assistant = await complete(history.map(({role, content}) => ({ role, content })), model)
+    history.push({ id: uuid(), role: 'assistant', content: assistant })
+    res.json({ ok: true })
+  } catch (e:any) {
+    res.status(500).json({ error: e.message ?? String(e) })
+  }
+})
+
+app.post('/api/ai-chats/:chatId/messages', async (req, res) => {
+  const cid = req.params.chatId
+  const { message, model } = req.body as { message: string, model?: string }
+  if (!message) return res.status(400).json({ error: 'message is required' })
+
+  const history = chatById.get(cid) ?? []
+  history.push({ id: uuid(), role: 'user', content: message })
+  chatById.set(cid, history)
+
+  try {
+    const assistant = await complete(history.map(({role, content}) => ({ role, content })), model)
+    history.push({ id: uuid(), role: 'assistant', content: assistant })
+    res.json({ ok: true })
+  } catch (e:any) {
+    res.status(500).json({ error: e.message ?? String(e) })
+  }
+})
+
+app.post('/api/ai-chats/:chatId/stream', async (req, res) => {
+  const cid = req.params.chatId
+  const { message, model } = req.body as { message: string, model?: string }
+
+  res.setHeader('Content-Type', 'text/event-stream')
+  res.setHeader('Cache-Control', 'no-cache')
+  res.setHeader('Connection', 'keep-alive')
+
+  try {
+    const history = chatById.get(cid) ?? []
+    history.push({ id: uuid(), role: 'user', content: message })
+
+    let streamed = ''
+    for await (const chunk of streamChunks(history.map(({role, content}) => ({ role, content })), model)) {
+      streamed += chunk
+      res.write(`data: ${JSON.stringify({ chunk })}\n\n`)
+    }
+    history.push({ id: uuid(), role: 'assistant', content: streamed })
+    chatById.set(cid, history)
+
+    res.write(`data: ${JSON.stringify({ done: true })}\n\n`)
+    res.end()
+  } catch (e:any) {
+    res.write(`data: ${JSON.stringify({ error: e.message ?? String(e) })}\n\n`)
+    res.end()
+  }
+})
+
+/* -------- Developer Agent (tool-calling) -------- */
+const tools = {
+  readFile: async ({ filepath }: { filepath: string }) => {
+    return await readFile(safe(filepath), 'utf8')
+  },
+  writeFile: async ({ filepath, content }: { filepath: string, content: string }) => {
+    const full = safe(filepath)
+    await mkdir(path.dirname(full), { recursive: true })
+    await writeFile(full, content, 'utf8')
+    return 'ok'
+  },
+  mkdir: async ({ dirpath }: { dirpath: string }) => {
+    await mkdir(safe(dirpath), { recursive: true })
+    return 'ok'
+  },
+  move: async ({ from, to }: { from: string, to: string }) => {
+    await rename(safe(from), safe(to)); return 'ok'
+  },
+  run: async ({ cmd, args = [] }: { cmd: string, args?: string[] }) =>
+    new Promise((resolve) => {
+      const child = spawn(cmd, args, { cwd: ROOT, shell: true })
+      let out = ''; let err = ''
+      child.stdout.on('data', d => out += d)
+      child.stderr.on('data', d => err += d)
+      child.on('close', code => resolve({ code, out, err }))
+    }),
+}
+
+app.post('/api/agent', async (req, res) => {
+  const { messages, model } = req.body as { messages: any[], model?: string }
+  const toolDefs = Object.keys(tools).map(name => ({
+    type: 'function' as const,
+    function: { name, description: `Tool: ${name}`, parameters: { type: 'object', properties: {}, additionalProperties: true } }
+  }))
+
+  let history = messages
+  for (let i = 0; i < 8; i++) {
+    const r = await openai.chat.completions.create({
+      model: model || process.env.MODEL || 'gpt-4o-mini',
+      messages: history,
+      tools: toolDefs,
+    })
+    const msg = r.choices[0].message
+    const call = msg.tool_calls?.[0]
+    if (!call) { res.json(msg); return }
+
+    let result: any
+    try {
+      const args = call.function.arguments ? JSON.parse(call.function.arguments) : {}
+      // @ts-ignore
+      result = await tools[call.function.name](args)
+    } catch (e:any) {
+      result = { error: e.message ?? String(e) }
+    }
+    history = [...history, msg, { role: 'tool', name: call.function.name, content: JSON.stringify(result) as any }]
+  }
+  res.status(400).json({ error: 'too many tool calls' })
+})
+
+app.get('/api/health', (_req, res) => res.json({ ok: true }))
+
+app.listen(PORT, () => {
+  console.log(`Dev Agent server running on :${PORT}, root: ${ROOT}`)
+})
+```
+
+2. **Install & configure** inside `dev-agent-server/`:
+
+* Run: `pnpm i` (or `npm i` / `yarn`)
+* Copy `.env.example` to `.env`
+* Set:
+
+  * `OPENAI_API_KEY=<your key>`
+  * `MODEL=gpt-4o-mini`
+  * `AGENT_ROOT=../` (or absolute path to your project root)
+  * Optional for Ollama: `OPENAI_BASE_URL=http://localhost:11434/v1` and `MODEL=llama3.1`
+
+3. **Proxy**: In the Vite app, ensure `/api` proxies to the server on dev. If missing, create/merge:
+   **`vite.config.ts`** (or merge into existing)
+
+```ts
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: { proxy: { '/api': 'http://localhost:8787' } }
+})
+```
+
+4. **Client helper (optional)**: If I don’t already have one, add:
+   **`src/lib/agent.ts`**
+
+```ts
+export async function agent(messages: any[], model?: string) {
+  const r = await fetch('/api/agent', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ messages, model })
+  })
+  if (!r.ok) throw new Error(await r.text())
+  return r.json()
+}
+```
+
+5. **Run & verify**
+
+* Start backend: `pnpm dev` in `dev-agent-server/`
+* Start Vite app: `pnpm dev` (separate terminal)
+* Open the IA chat in the app and:
+
+  * Send a normal chat prompt → you should get a model reply.
+  * Test streaming path by triggering whatever UI uses `/api/ai-chats/:chatId/stream`.
+* Test Developer Agent (e.g., from a temporary button or console):
+
+```ts
+await agent([
+  { role: 'system', content: 'You are a code agent. Use tools to edit files with minimal diffs.' },
+  { role: 'user', content: 'Create src/utils/date.ts with formatDate(d: Date): string returning YYYY-MM-DD, then import and use it in App.tsx.' }
+])
+```
+
+**Acceptance Criteria**
+
+* ✅ `/api/health` returns `{ ok: true }`
+* ✅ IA chat endpoints return and persist messages for the session
+* ✅ Streaming sends SSE `data:` chunks and ends with `{done:true}`
+* ✅ `/api/agent` performs file edits under `AGENT_ROOT` and returns tool outputs
+* ✅ No path traversal allowed outside `AGENT_ROOT`
+* ✅ API key never appears in browser source/network logs
+
+**If anything fails**
+
+* Show me the exact error logs from the Replit console (both the dev server and Vite).
+* Then fix and re-test until all acceptance criteria pass.
+
+**Extras (if time permits)**
+
+* Add `scripts` to root `package.json` to start both servers with one command (e.g., `concurrently`).
+* Add a small Dev Agent panel UI: textarea (instruction), run button, and a log viewer showing stdout/stderr from the `run` tool.
+* Add a Dockerfile for the server and a short README in the repo root.
+
+---
+
+Paste that into Replit’s agent. If you want, I can also add the small Dev Agent panel UI once the backend is running.

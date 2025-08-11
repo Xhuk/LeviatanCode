@@ -3410,5 +3410,161 @@ Please provide a JSON response with this exact structure:
     }
   });
 
+  // Developer Agent - AI-powered code assistant
+  const { readFile, writeFile, mkdir, rename } = await import('fs/promises');
+  const path = await import('path');
+  const { spawn } = await import('child_process');
+  
+  // Safe file system operations within project bounds
+  function safePath(filepath: string): string {
+    const ROOT = process.cwd();
+    const full = path.resolve(ROOT, filepath);
+    if (!full.startsWith(ROOT)) {
+      throw new Error('Path outside project directory not allowed');
+    }
+    return full;
+  }
+
+  // Developer Agent tools
+  const agentTools = {
+    readFile: async ({ filepath }: { filepath: string }) => {
+      const fullPath = safePath(filepath);
+      return await readFile(fullPath, 'utf8');
+    },
+    writeFile: async ({ filepath, content }: { filepath: string, content: string }) => {
+      const fullPath = safePath(filepath);
+      await mkdir(path.dirname(fullPath), { recursive: true });
+      await writeFile(fullPath, content, 'utf8');
+      return 'File written successfully';
+    },
+    mkdir: async ({ dirpath }: { dirpath: string }) => {
+      const fullPath = safePath(dirpath);
+      await mkdir(fullPath, { recursive: true });
+      return 'Directory created successfully';
+    },
+    move: async ({ from, to }: { from: string, to: string }) => {
+      const fromPath = safePath(from);
+      const toPath = safePath(to);
+      await rename(fromPath, toPath);
+      return 'File moved successfully';
+    },
+    run: async ({ cmd, args = [] }: { cmd: string, args?: string[] }) => {
+      return new Promise((resolve) => {
+        const child = spawn(cmd, args, { 
+          cwd: process.cwd(), 
+          shell: true,
+          stdio: ['pipe', 'pipe', 'pipe']
+        });
+        
+        let stdout = '';
+        let stderr = '';
+        
+        child.stdout?.on('data', (data) => {
+          stdout += data.toString();
+        });
+        
+        child.stderr?.on('data', (data) => {
+          stderr += data.toString();
+        });
+        
+        child.on('close', (code) => {
+          resolve({ code, stdout, stderr });
+        });
+        
+        child.on('error', (error) => {
+          resolve({ code: -1, stdout: '', stderr: error.message });
+        });
+      });
+    },
+  };
+
+  // Developer Agent endpoint
+  app.post('/api/agent', async (req, res) => {
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(400).json({ error: 'OpenAI API key not configured' });
+      }
+
+      const { messages, model } = req.body as { messages: any[], model?: string };
+      
+      if (!messages || !Array.isArray(messages)) {
+        return res.status(400).json({ error: 'Messages array is required' });
+      }
+
+      const { default: OpenAI } = await import('openai');
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const toolDefs = Object.keys(agentTools).map(name => ({
+        type: 'function' as const,
+        function: { 
+          name, 
+          description: `Tool: ${name}`,
+          parameters: { 
+            type: 'object', 
+            properties: {}, 
+            additionalProperties: true 
+          } 
+        }
+      }));
+
+      let history = messages;
+      
+      // Allow up to 8 tool iterations
+      for (let i = 0; i < 8; i++) {
+        const completion = await openai.chat.completions.create({
+          model: model || 'gpt-4o-mini',
+          messages: history,
+          tools: toolDefs,
+        });
+
+        const message = completion.choices[0].message;
+        const toolCall = message.tool_calls?.[0];
+        
+        if (!toolCall) {
+          // No more tools to call, return final response
+          res.json(message);
+          return;
+        }
+
+        let result: any;
+        try {
+          const args = toolCall.function.arguments ? JSON.parse(toolCall.function.arguments) : {};
+          // @ts-ignore - Dynamic tool execution
+          result = await agentTools[toolCall.function.name as keyof typeof agentTools](args);
+        } catch (error: any) {
+          result = { error: error.message || String(error) };
+        }
+
+        // Add the tool call and result to history
+        history = [
+          ...history, 
+          message, 
+          { 
+            role: 'tool' as const, 
+            name: toolCall.function.name, 
+            content: JSON.stringify(result), 
+            tool_call_id: toolCall.id 
+          }
+        ];
+      }
+      
+      res.status(400).json({ error: 'Too many tool calls - operation exceeded limit' });
+    } catch (error: any) {
+      console.error('Developer Agent error:', error);
+      res.status(500).json({ error: error.message || 'Agent processing failed' });
+    }
+  });
+
+  // Health check for the agent
+  app.get('/api/agent/health', (req, res) => {
+    res.json({ 
+      status: 'healthy', 
+      openaiConfigured: !!process.env.OPENAI_API_KEY,
+      tools: Object.keys(agentTools)
+    });
+  });
+
   return httpServer;
 }

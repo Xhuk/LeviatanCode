@@ -55,6 +55,7 @@ import { AiDocumentAnalysisDialog } from "@/components/ai-document-analysis-dial
 import { VaultExplorer } from "@/components/vault-explorer";
 import { LeviatanSettings } from "@/components/leviatan-settings";
 import { AiChatPanel } from "@/components/panels/ai-chat-panel";
+import { DeveloperAgent } from "@/components/developer-agent";
 
 
 // Logger component with WebSocket integration
@@ -1988,6 +1989,9 @@ export default function Dashboard() {
                 <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "file-analysis" ? "active" : ""}`} onClick={() => setActiveTab("file-analysis")}>
                   <FileText className="w-4 h-4" />
                 </Button>
+                <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "developer-agent" ? "active" : ""}`} onClick={() => setActiveTab("developer-agent")}>
+                  <Code className="w-4 h-4" />
+                </Button>
                 <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "git-management" ? "active" : ""}`} onClick={() => setActiveTab("git-management")}>
                   <GitBranch className="w-4 h-4" />
                 </Button>
@@ -2031,6 +2035,19 @@ export default function Dashboard() {
                   <div className="text-left">
                     <div className="font-medium text-sm">File Analysis</div>
                     <div className="text-xs text-replit-text-secondary">Analyze project structure</div>
+                  </div>
+                </Button>
+
+                <Button 
+                  variant="ghost" 
+                  className={`agent-tool-button w-full justify-start gap-3 p-3 h-auto ${activeTab === "developer-agent" ? "active" : ""}`}
+                  onClick={() => setActiveTab("developer-agent")}
+                  title="AI-powered development assistant"
+                >
+                  <Code className="w-5 h-5" />
+                  <div className="text-left">
+                    <div className="font-medium text-sm">Developer Agent</div>
+                    <div className="text-xs text-replit-text-secondary">AI assistant for code tasks</div>
                   </div>
                 </Button>
 
@@ -2241,6 +2258,14 @@ export default function Dashboard() {
             {activeTab === "file-analysis" && (
               <TabsContent value="file-analysis" className="flex-1 m-0">
                 <FileAnalysis currentProject={currentProject} />
+              </TabsContent>
+            )}
+            
+            {activeTab === "developer-agent" && (
+              <TabsContent value="developer-agent" className="flex-1 m-0">
+                <div className="h-full bg-replit-panel p-4">
+                  <DeveloperAgent />
+                </div>
               </TabsContent>
             )}
             
