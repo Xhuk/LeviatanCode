@@ -24,6 +24,22 @@ interface DocumentAnalysisResult {
   pythonScript?: string;
   recommendations: string[];
   insights: string[];
+  aiAnalysis?: {
+    projectType?: string;
+    architecture?: string;
+    techStack?: string;
+    setup?: string;
+    security?: string;
+    performance?: string;
+    deployment?: string;
+    nextSteps?: string;
+    contextRecommendations?: string;
+  };
+  contextAnalysis?: {
+    currentState?: string;
+    recentActions?: any[];
+    sessionSummary?: string;
+  };
 }
 
 interface AiDocumentAnalysisDialogProps {
@@ -332,6 +348,91 @@ export function AiDocumentAnalysisDialog({
                   </ul>
                 </CardContent>
               </Card>
+
+              {/* AI Analysis */}
+              {analysisResult.aiAnalysis && (
+                <Card className="border-green-200 dark:border-green-800">
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Brain className="h-4 w-4 text-green-500" />
+                      AI Architecture Analysis
+                    </CardTitle>
+                    <CardDescription>
+                      Context-aware project analysis powered by AI
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {analysisResult.aiAnalysis.projectType && (
+                      <div>
+                        <div className="text-sm font-medium text-green-700 dark:text-green-300">Project Type</div>
+                        <div className="text-sm text-muted-foreground">{analysisResult.aiAnalysis.projectType}</div>
+                      </div>
+                    )}
+                    
+                    {analysisResult.aiAnalysis.architecture && (
+                      <div>
+                        <div className="text-sm font-medium text-green-700 dark:text-green-300">Architecture</div>
+                        <div className="text-sm text-muted-foreground">{analysisResult.aiAnalysis.architecture}</div>
+                      </div>
+                    )}
+                    
+                    {analysisResult.aiAnalysis.techStack && (
+                      <div>
+                        <div className="text-sm font-medium text-green-700 dark:text-green-300">Technology Stack</div>
+                        <div className="text-sm text-muted-foreground">{analysisResult.aiAnalysis.techStack}</div>
+                      </div>
+                    )}
+                    
+                    {analysisResult.aiAnalysis.setup && (
+                      <div>
+                        <div className="text-sm font-medium text-green-700 dark:text-green-300">Setup Requirements</div>
+                        <div className="text-sm text-muted-foreground">{analysisResult.aiAnalysis.setup}</div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Context Analysis */}
+              {analysisResult.contextAnalysis && (
+                <Card className="border-blue-200 dark:border-blue-800">
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Database className="h-4 w-4 text-blue-500" />
+                      Project Context
+                    </CardTitle>
+                    <CardDescription>
+                      Current project state and recent activity
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <div className="text-sm font-medium text-blue-700 dark:text-blue-300">Current State</div>
+                      <div className="text-sm text-muted-foreground">{analysisResult.contextAnalysis.currentState || 'Unknown'}</div>
+                    </div>
+                    
+                    {analysisResult.contextAnalysis.recentActions && analysisResult.contextAnalysis.recentActions.length > 0 && (
+                      <div>
+                        <div className="text-sm font-medium text-blue-700 dark:text-blue-300">Recent Actions</div>
+                        <div className="space-y-1">
+                          {analysisResult.contextAnalysis.recentActions.slice(0, 3).map((action: any, index: number) => (
+                            <div key={index} className="text-xs bg-blue-50 dark:bg-blue-950/30 p-2 rounded">
+                              {action.actionType || 'Unknown action'}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {analysisResult.contextAnalysis.sessionSummary && (
+                      <div>
+                        <div className="text-sm font-medium text-blue-700 dark:text-blue-300">Session Summary</div>
+                        <div className="text-sm text-muted-foreground">{analysisResult.contextAnalysis.sessionSummary}</div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Insights */}
               <Card>

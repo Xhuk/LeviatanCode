@@ -1132,15 +1132,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI Document Analysis endpoint
-  app.post("/api/projects/:projectId/analyze-documents", async (req, res) => {
+  app.post("/api/projects/:projectId/analyze-documents", ContextMiddleware.trackAIInteraction, async (req, res) => {
     try {
       const { projectId } = req.params;
       const { workingDirectory, generateScript, analysisType } = req.body;
       
-      console.log(`🧠 Starting AI document analysis for project: ${projectId}`);
+      console.log(`🧠 Starting comprehensive AI document analysis for project: ${projectId}`);
       console.log(`📁 Working directory: ${workingDirectory || 'current'}`);
       console.log(`🐍 Generate Python script: ${generateScript ? 'Yes' : 'No'}`);
-      console.log(`🤖 AI Interaction Status: ACTIVE - Analyzing project structure and generating insights...`);
+      console.log(`🤖 AI Interaction Status: ACTIVE - Analyzing project structure and generating insights with context...`);
+      
+      // Get current project context for enhanced analysis
+      let projectContext = null;
+      try {
+        projectContext = await contextService.analyzeProjectContext(projectId);
+        console.log(`📊 Project context retrieved: ${projectContext?.currentState || 'unknown'} state`);
+      } catch (contextError) {
+        console.log(`⚠️ Could not retrieve project context: ${contextError.message}`);
+      }
       
       // Send initial analysis started update via WebSocket
       broadcastAnalysisUpdate(projectId, {
@@ -1477,21 +1486,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Enhanced AI Analysis with Context Integration
+      let aiAnalysis = null;
+      try {
+        if (Object.keys(projectFiles).length > 0) {
+          console.log(`🧠 Performing AI analysis with context integration...`);
+          
+          // Prepare comprehensive context for AI analysis
+          const contextInfo = projectContext ? {
+            currentState: projectContext.currentState,
+            recentActions: projectContext.recentActions?.slice(0, 5) || [],
+            sessionSummary: projectContext.sessionSummary
+          } : { currentState: 'unknown', recentActions: [], sessionSummary: 'No context available' };
+          
+          const projectStructure = Object.keys(projectFiles).slice(0, 20).map(filePath => {
+            const file = projectFiles[filePath];
+            return {
+              path: filePath,
+              size: file.size || 0,
+              preview: file.content ? file.content.substring(0, 200) + '...' : 'No content'
+            };
+          });
+          
+          const aiPrompt = `Analyze this software project comprehensively:
+
+PROJECT CONTEXT:
+- Project ID: ${projectId}
+- Working Directory: ${workingDirectory || 'current'}
+- Current State: ${contextInfo.currentState}
+- Recent Actions: ${contextInfo.recentActions.map(a => a.actionType || 'unknown').join(', ') || 'None'}
+- Session Summary: ${contextInfo.sessionSummary}
+
+PROJECT STRUCTURE:
+- Total Files: ${Object.keys(projectFiles).length}
+- File Types: ${Array.from(new Set(fileExtensions)).join(', ')}
+- Detected Technologies: ${detectedTechnologies.join(', ') || 'None detected'}
+
+SAMPLE FILES:
+${projectStructure.map(f => `- ${f.path} (${f.size} bytes): ${f.preview}`).join('\n')}
+
+ANALYSIS REQUEST:
+Please provide a comprehensive analysis including:
+1. Project type and architecture assessment
+2. Technology stack evaluation and compatibility
+3. Development setup recommendations
+4. Security and best practices review
+5. Performance optimization suggestions
+6. Deployment strategy recommendations
+7. Next steps for development
+8. Context-aware recommendations based on current project state
+
+Format response as JSON with keys: projectType, architecture, techStack, setup, security, performance, deployment, nextSteps, contextRecommendations`;
+
+          console.log(`🤖 Sending AI analysis request...`);
+          
+          // Use AI service to generate comprehensive analysis
+          aiAnalysis = await aiService.generateChatCompletion([
+            { role: "system", content: "You are an expert software architect and project analyst. Provide detailed, actionable insights in the requested JSON format." },
+            { role: "user", content: aiPrompt }
+          ]);
+          
+          console.log(`✅ AI analysis completed successfully`);
+          
+        } else {
+          console.log(`⚠️ Skipping AI analysis - no project files found`);
+        }
+      } catch (aiError) {
+        console.error(`⚠️ AI analysis failed: ${aiError.message}`);
+      }
+      
+      // Enhanced Analysis Result with AI Insights
       const analysisResult: {
         summary: string;
         technologies: string[];
         recommendations: string[];
         insights: string[];
+        aiAnalysis?: any;
+        contextAnalysis?: any;
         pythonScript?: string;
         filesCreated?: {
           script: string;
           readme: string;
         };
       } = {
-        summary: `Analyzed project "${projectId}" with ${fileCount} files. Detected technologies: ${detectedTechnologies.join(', ') || 'None specified'}. The project appears to be a ${detectedTechnologies[0] || 'general-purpose'} application.`,
+        summary: aiAnalysis?.projectType 
+          ? `AI Analysis: ${aiAnalysis.projectType} - ${aiAnalysis.architecture || 'Architecture analysis completed'}. Detected ${detectedTechnologies.length} technologies across ${fileCount} files.`
+          : `Analyzed project "${projectId}" with ${fileCount} files. Detected technologies: ${detectedTechnologies.join(', ') || 'None specified'}. The project appears to be a ${detectedTechnologies[0] || 'general-purpose'} application.`,
         technologies: detectedTechnologies,
-        recommendations: detectedRecommendations,
-        insights: detectedInsights
+        recommendations: aiAnalysis?.contextRecommendations 
+          ? [...detectedRecommendations, ...aiAnalysis.contextRecommendations.split('\n').filter(Boolean)]
+          : detectedRecommendations,
+        insights: aiAnalysis?.nextSteps 
+          ? [...detectedInsights, ...aiAnalysis.nextSteps.split('\n').filter(Boolean)]
+          : detectedInsights,
+        aiAnalysis: aiAnalysis,
+        contextAnalysis: projectContext
       };
 
       // Always generate Python script for project analysis
@@ -2076,7 +2165,34 @@ Analysis target: ${scriptDir}
         console.error(`⚠️  Failed to create insightsproject.ia: ${(insightsError as Error).message}`);
       }
       
-      console.log(`🤖 AI Interaction Status: COMPLETED - Analysis successfully generated and delivered to user`);
+      // Record analysis action in context tracking
+      try {
+        await contextService.recordAction({
+          projectId,
+          actionType: 'ai_document_analysis',
+          actionData: {
+            fileCount: Object.keys(projectFiles).length,
+            technologies: detectedTechnologies,
+            workingDirectory: workingDirectory || 'current',
+            analysisType: analysisType || 'comprehensive',
+            hasAiAnalysis: !!aiAnalysis,
+            hasContext: !!projectContext
+          },
+          result: {
+            success: true,
+            summary: analysisResult.summary,
+            technologiesFound: detectedTechnologies.length,
+            recommendationsGenerated: analysisResult.recommendations.length,
+            insightsGenerated: analysisResult.insights.length
+          }
+        });
+        
+        console.log(`📊 Context tracking: Recorded AI document analysis action for project ${projectId}`);
+      } catch (contextError) {
+        console.error(`⚠️ Failed to record context: ${contextError.message}`);
+      }
+      
+      console.log(`🤖 AI Interaction Status: COMPLETED - Context-aware analysis successfully generated and delivered to user`);
       res.json(analysisResult);
 
     } catch (error) {
