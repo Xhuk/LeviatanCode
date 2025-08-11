@@ -41,7 +41,7 @@ Secrets management: Encrypted vault with master password protection replaces .en
 - **Core Features**: Intelligent project analysis, automatic setup detection, AI-powered debugging assistance, and comprehensive documentation generation.
 - **System Design**: Monorepo structure, comprehensive agent windows (Terminal, File Analysis, Web Preview, System Monitor, Database Console, Configuration), and a dedicated Git Management System.
 - **Workspace Management**: WORKING_DIRECTORY-based workspace system with per-workspace configuration persistence.
-- **Project Metadata System**: "insightsproject.ia" file system for persistent project context and metadata storage, used by AI for contextual responses.
+- **Project Metadata System**: Enhanced replit.md integration for AI context awareness, with backward compatibility for "insightsproject.ia" file system for persistent project context and metadata storage.
 
 ## Data Storage Solutions
 - **Primary Database**: PostgreSQL with Neon serverless hosting.

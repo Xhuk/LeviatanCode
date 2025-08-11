@@ -38,6 +38,148 @@ import {
   type InsertVaultSecret
 } from "@shared/schema";
 
+// Function to update replit.md with analysis results
+function updateReplitMdWithAnalysis(existingContent: string, analysisData: any): string {
+  const {
+    projectId,
+    technologies,
+    insights,
+    recommendations,
+    aiAnalysis,
+    projectContext,
+    analysisData: fullAnalysisData
+  } = analysisData;
+  
+  const currentDate = new Date().toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+  
+  let updatedContent = existingContent;
+  
+  // If no existing content, create a basic structure
+  if (!existingContent.trim()) {
+    updatedContent = `# Overview
+
+This project has been analyzed by LeviatanCode AI on ${currentDate}.
+
+# Project Analysis
+
+## Detected Technologies
+${technologies.map((tech: string) => `- ${tech}`).join('\n')}
+
+## AI Assessment
+${aiAnalysis?.projectType ? `**Project Type**: ${aiAnalysis.projectType}\n` : ''}${aiAnalysis?.architecture ? `**Architecture**: ${aiAnalysis.architecture}\n` : ''}${aiAnalysis?.techStack ? `**Technology Stack**: ${aiAnalysis.techStack}\n` : ''}
+
+## Key Insights
+${insights.map((insight: string) => `- ${insight}`).join('\n')}
+
+## Recommendations
+${recommendations.map((rec: string) => `- ${rec}`).join('\n')}
+
+## Project Context
+${projectContext?.currentState ? `**Current State**: ${projectContext.currentState}\n` : ''}${projectContext?.sessionSummary ? `**Session Summary**: ${projectContext.sessionSummary}\n` : ''}
+
+# External Dependencies
+
+## Technologies and Frameworks
+${technologies.map((tech: string) => `- **${tech}**: Detected in project analysis`).join('\n')}
+
+---
+*Last updated by LeviatanCode AI on ${currentDate}*
+`;
+  } else {
+    // Update existing content by adding/updating analysis sections
+    
+    // Add or update Project Analysis section
+    const analysisSection = `
+
+# Project Analysis (Updated ${currentDate})
+
+## Detected Technologies
+${technologies.map((tech: string) => `- ${tech}`).join('\n')}
+
+## AI Assessment
+${aiAnalysis?.projectType ? `**Project Type**: ${aiAnalysis.projectType}\n` : ''}${aiAnalysis?.architecture ? `**Architecture**: ${aiAnalysis.architecture}\n` : ''}${aiAnalysis?.techStack ? `**Technology Stack**: ${aiAnalysis.techStack}\n` : ''}${aiAnalysis?.setup ? `**Setup Requirements**: ${aiAnalysis.setup}\n` : ''}
+
+## Key Insights
+${insights.map((insight: string) => `- ${insight}`).join('\n')}
+
+## Recommendations  
+${recommendations.map((rec: string) => `- ${rec}`).join('\n')}
+
+## Project Context
+${projectContext?.currentState ? `**Current State**: ${projectContext.currentState}\n` : ''}${projectContext?.recentActions?.length > 0 ? `**Recent Actions**: ${projectContext.recentActions.slice(0, 3).map((a: any) => a.actionType || 'Unknown').join(', ')}\n` : ''}${projectContext?.sessionSummary ? `**Session Summary**: ${projectContext.sessionSummary}\n` : ''}
+`;
+    
+    // Check if Project Analysis section already exists
+    if (updatedContent.includes('# Project Analysis')) {
+      // Replace existing Project Analysis section
+      updatedContent = updatedContent.replace(
+        /# Project Analysis.*?(?=\n# [^#]|\n## [^#]|$)/s,
+        analysisSection.trim()
+      );
+    } else {
+      // Add new Project Analysis section after Overview if it exists, otherwise at the end
+      if (updatedContent.includes('# Overview')) {
+        updatedContent = updatedContent.replace(
+          /(# Overview.*?)(\n# )/s,
+          `$1${analysisSection}$2`
+        );
+      } else {
+        updatedContent += analysisSection;
+      }
+    }
+    
+    // Update External Dependencies if detected technologies are different
+    if (technologies.length > 0) {
+      const techDependencies = technologies.map((tech: string) => `- **${tech}**: Detected in project analysis on ${currentDate}`).join('\n');
+      
+      if (updatedContent.includes('# External Dependencies')) {
+        // Add technologies to existing External Dependencies section
+        if (!updatedContent.includes('## Technologies and Frameworks')) {
+          const techSection = `
+
+## Technologies and Frameworks
+${techDependencies}
+`;
+          updatedContent = updatedContent.replace(
+            /(# External Dependencies.*?)(\n# |$)/s,
+            `$1${techSection}$2`
+          );
+        }
+      } else {
+        // Add External Dependencies section
+        updatedContent += `
+
+# External Dependencies
+
+## Technologies and Frameworks
+${techDependencies}
+`;
+      }
+    }
+    
+    // Add timestamp footer
+    if (!updatedContent.includes('*Last updated by LeviatanCode AI')) {
+      updatedContent += `
+
+---
+*Last updated by LeviatanCode AI on ${currentDate}*
+`;
+    } else {
+      // Update existing timestamp
+      updatedContent = updatedContent.replace(
+        /\*Last updated by LeviatanCode AI on .*?\*/,
+        `*Last updated by LeviatanCode AI on ${currentDate}*`
+      );
+    }
+  }
+  
+  return updatedContent;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize storage asynchronously
   storage = await storagePromise;
@@ -2128,7 +2270,51 @@ Analysis target: ${scriptDir}
           )
         };
         
-        // Check if insightsproject.ia already exists
+        // Check if replit.md exists and update it with analysis results
+        const replitMdPath = path.join(projectDir, 'replit.md');
+        let replitMdContent = '';
+        let replitMdExists = fs.existsSync(replitMdPath);
+        
+        if (replitMdExists) {
+          // Read existing replit.md
+          replitMdContent = fs.readFileSync(replitMdPath, 'utf8');
+          console.log(`📄 Found existing replit.md file`);
+        } else {
+          // Create basic replit.md structure
+          console.log(`📋 Creating new replit.md file`);
+        }
+        
+        // Update replit.md with analysis insights
+        const updatedReplitMd = updateReplitMdWithAnalysis(replitMdContent, {
+          projectId,
+          technologies: detectedTechnologies,
+          insights: detectedInsights,
+          recommendations: detectedRecommendations,
+          aiAnalysis: aiAnalysis,
+          projectContext: projectContext,
+          analysisData: analysisForInsights
+        });
+        
+        // Save updated replit.md
+        try {
+          fs.writeFileSync(replitMdPath, updatedReplitMd, 'utf8');
+          console.log(`✅ Updated replit.md with analysis results`);
+          
+          // Send replit.md updated notification
+          broadcastAnalysisUpdate(projectId, {
+            status: 'replit_md_updated',
+            message: `Project metadata updated in replit.md`,
+            replitMdPath: replitMdPath
+          });
+          
+          // Include replit.md info in response
+          (analysisResult as any).replitMdUpdated = true;
+          (analysisResult as any).replitMdPath = replitMdPath;
+        } catch (replitMdError) {
+          console.error(`⚠️ Failed to update replit.md: ${replitMdError.message}`);
+        }
+        
+        // Also check for insightsproject.ia compatibility
         const existingInsights = await InsightsFileService.read(projectDir);
         
         let newInsights;
@@ -2137,14 +2323,14 @@ Analysis target: ${scriptDir}
           newInsights = InsightsFileService.updateWithAnalysis(existingInsights, analysisForInsights);
           console.log(`🔄 Updated existing insightsproject.ia file`);
         } else {
-          // Create new insights file
+          // Create new insights file for backward compatibility
           newInsights = InsightsFileService.createFromAnalysis(
             projectId,
             projectId,
             projectDir,
             analysisForInsights
           );
-          console.log(`📋 Created new insightsproject.ia file`);
+          console.log(`📋 Created new insightsproject.ia file for compatibility`);
         }
         
         // Save the insights file
@@ -2153,7 +2339,7 @@ Analysis target: ${scriptDir}
           // Send insights file created update via WebSocket
           broadcastAnalysisUpdate(projectId, {
             status: 'insights_saved',
-            message: `Project insights saved to insightsproject.ia`,
+            message: `Project insights saved to both replit.md and insightsproject.ia`,
             insightsPath: path.join(projectDir, 'insightsproject.ia')
           });
           

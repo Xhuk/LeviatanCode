@@ -40,6 +40,8 @@ interface DocumentAnalysisResult {
     recentActions?: any[];
     sessionSummary?: string;
   };
+  replitMdUpdated?: boolean;
+  replitMdPath?: string;
 }
 
 interface AiDocumentAnalysisDialogProps {
@@ -125,7 +127,7 @@ export function AiDocumentAnalysisDialog({
             <span>AI Document Analysis</span>
           </DialogTitle>
           <DialogDescription>
-            Analyze existing documents when .ia files don't exist. AI can create Python scripts to digest and share insights.
+            AI-powered project analysis compatible with replit.md system. Creates comprehensive project insights, Python analysis scripts, and updates your project metadata for enhanced context awareness.
           </DialogDescription>
         </DialogHeader>
 
@@ -176,9 +178,9 @@ export function AiDocumentAnalysisDialog({
                         <span className="text-white text-xs">✓</span>
                       </div>
                       <div>
-                        <div className="font-medium">Auto-Save to Working Directory</div>
+                        <div className="font-medium">Replit.md Integration</div>
                         <div className="text-sm text-muted-foreground">
-                          Script and documentation automatically saved to your working directory
+                          Updates your replit.md file with project insights for enhanced AI context awareness
                         </div>
                       </div>
                     </div>
@@ -285,6 +287,19 @@ export function AiDocumentAnalysisDialog({
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm leading-relaxed">{analysisResult.summary}</p>
+                  
+                  {/* Replit.md Integration Status */}
+                  {analysisResult.replitMdUpdated && (
+                    <div className="mt-4 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
+                        <CheckCircle className="h-4 w-4" />
+                        <span className="font-medium text-sm">Replit.md Compatible</span>
+                      </div>
+                      <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                        Project analysis has been integrated with your replit.md file for enhanced AI context awareness
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
