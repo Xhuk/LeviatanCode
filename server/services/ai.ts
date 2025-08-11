@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { GoogleGenAI } from "@google/genai";
 import { ChatMessage, AnalysisResult } from "@shared/schema";
 import { storage } from "../storage";
+// Use native fetch in Node.js 18+
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
@@ -13,15 +14,40 @@ const gemini = new GoogleGenAI({
 });
 
 export class AIService {
+  private ollamaConfig = {
+    url: process.env.OLLAMA_URL || 'http://localhost:11434',
+    model: process.env.OLLAMA_MODEL || 'llama3'
+  };
+
   async generateChatResponse(
     messages: ChatMessage[], 
-    model: string = "gpt-4o"
+    model: string = "gpt-4o",
+    aiMode: string = "chatgpt-only"
   ): Promise<string> {
     try {
+      // Route based on AI mode for beta feature
+      if (aiMode === "dual-mode" || aiMode === "ollama-dev") {
+        // Determine if this is a development task vs architectural guidance
+        const lastMessage = messages[messages.length - 1]?.content || "";
+        const isDevelopmentTask = this.isDevelopmentTask(lastMessage);
+        
+        if ((aiMode === "dual-mode" && isDevelopmentTask) || aiMode === "ollama-dev") {
+          try {
+            return await this.generateOllamaResponse(messages, this.ollamaConfig.model);
+          } catch (ollamaError) {
+            console.warn("Ollama failed, falling back to OpenAI:", ollamaError);
+            return await this.generateOpenAIResponse(messages, "gpt-4o");
+          }
+        }
+      }
+
+      // Default behavior: OpenAI for architecture, complex analysis
       if (model.startsWith("gpt")) {
         return await this.generateOpenAIResponse(messages, model);
       } else if (model.startsWith("gemini")) {
         return await this.generateGeminiResponse(messages, model);
+      } else if (model.startsWith("llama") || model.startsWith("codellama")) {
+        return await this.generateOllamaResponse(messages, model);
       } else {
         throw new Error(`Unsupported model: ${model}`);
       }
@@ -29,6 +55,28 @@ export class AIService {
       console.error("AI Service Error:", error);
       throw new Error("Failed to generate AI response");
     }
+  }
+
+  private isDevelopmentTask(content: string): boolean {
+    const devKeywords = [
+      'debug', 'fix', 'code', 'function', 'method', 'class', 'variable',
+      'implement', 'refactor', 'optimize', 'error', 'bug', 'syntax',
+      'test', 'unit test', 'integration', 'console.log', 'print',
+      'import', 'export', 'api', 'endpoint', 'database', 'query',
+      'component', 'hook', 'state', 'props', 'css', 'style'
+    ];
+    
+    const archKeywords = [
+      'architecture', 'design', 'plan', 'strategy', 'approach',
+      'framework', 'structure', 'pattern', 'methodology', 'best practice',
+      'scalability', 'performance', 'security', 'deployment', 'infrastructure'
+    ];
+
+    const lowerContent = content.toLowerCase();
+    const devScore = devKeywords.filter(keyword => lowerContent.includes(keyword)).length;
+    const archScore = archKeywords.filter(keyword => lowerContent.includes(keyword)).length;
+
+    return devScore > archScore;
   }
 
   private async generateOpenAIResponse(
@@ -64,6 +112,66 @@ export class AIService {
     });
 
     return response.text || "I couldn't generate a response.";
+  }
+
+  private async generateOllamaResponse(
+    messages: ChatMessage[],
+    model: string
+  ): Promise<string> {
+    const prompt = messages.map(msg => 
+      `${msg.role === "user" ? "Human" : "Assistant"}: ${msg.content}`
+    ).join("\n\n");
+
+    const response = await fetch(`${this.ollamaConfig.url}/api/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: model,
+        prompt: prompt + "\n\nAssistant:",
+        stream: false,
+        options: {
+          temperature: 0.7,
+          top_p: 0.9,
+          max_tokens: 2000
+        }
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.response || "I couldn't generate a response.";
+  }
+
+  async testOllamaConnection(url: string, model: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const response = await fetch(`${url}/api/tags`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        return { success: false, error: `HTTP ${response.status}: ${response.statusText}` };
+      }
+
+      const data = await response.json();
+      const models = data.models || [];
+      const modelExists = models.some((m: any) => m.name === model || m.name.startsWith(model));
+
+      if (!modelExists) {
+        return { success: false, error: `Model '${model}' not found. Available: ${models.map((m: any) => m.name).join(', ')}` };
+      }
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   }
 
   async analyzeScrapedData(data: any[]): Promise<AnalysisResult> {
@@ -230,7 +338,8 @@ Return only the refined prompt text, ready to use. Include variable placeholders
   async generateChatResponseWithContext(
     messages: ChatMessage[], 
     projectId: string,
-    model: string = "gpt-4o"
+    model: string = "gpt-4o",
+    aiMode: string = "chatgpt-only"
   ): Promise<string> {
     try {
       // Get project data for context
@@ -262,11 +371,11 @@ Return only the refined prompt text, ready to use. Include variable placeholders
         contextualMessages.splice(-1, 0, systemMessage);
       }
 
-      return await this.generateChatResponse(contextualMessages, model);
+      return await this.generateChatResponse(contextualMessages, model, aiMode);
     } catch (error) {
       console.error("AI Service Context Error:", error);
       // Fallback to regular chat response
-      return await this.generateChatResponse(messages, model);
+      return await this.generateChatResponse(messages, model, aiMode);
     }
   }
 

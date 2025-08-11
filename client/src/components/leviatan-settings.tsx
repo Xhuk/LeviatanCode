@@ -39,6 +39,12 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
     flaskAnalyzerPort: '5001',
     mainAppPort: '5000',
     
+    // AI Configuration (Beta)
+    enableOllama: false,
+    ollamaUrl: 'http://localhost:11434',
+    ollamaModel: 'llama3',
+    aiMode: 'chatgpt-only', // 'chatgpt-only' | 'dual-mode' | 'ollama-dev'
+    
     // Environment
     nodeVersion: '20',
     pythonVersion: '3.11',
@@ -52,6 +58,31 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
   });
 
   const [saveStatus, setSaveStatus] = useState<string>('');
+
+  const testOllamaConnection = async () => {
+    try {
+      setSaveStatus('Testing Ollama connection...');
+      const response = await fetch('/api/ai/test-ollama', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          url: settings.ollamaUrl,
+          model: settings.ollamaModel
+        })
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        setSaveStatus('✅ Ollama connection successful!');
+      } else {
+        setSaveStatus(`❌ Ollama connection failed: ${result.error}`);
+      }
+      setTimeout(() => setSaveStatus(''), 5000);
+    } catch (error) {
+      setSaveStatus('❌ Failed to test Ollama connection');
+      setTimeout(() => setSaveStatus(''), 5000);
+    }
+  };
 
   const [systemInfo, setSystemInfo] = useState({
     platform: '',
@@ -198,7 +229,7 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
         </div>
 
         <Tabs defaultValue="editor" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-replit-elevated">
+          <TabsList className="grid w-full grid-cols-6 bg-replit-elevated">
             <TabsTrigger value="editor" className="flex items-center space-x-2">
               <Code className="w-4 h-4" />
               <span>Editor</span>
@@ -214,6 +245,10 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
             <TabsTrigger value="security" className="flex items-center space-x-2">
               <Shield className="w-4 h-4" />
               <span>Security</span>
+            </TabsTrigger>
+            <TabsTrigger value="ai-config" className="flex items-center space-x-2">
+              <Settings className="w-4 h-4" />
+              <span>AI Config</span>
             </TabsTrigger>
             <TabsTrigger value="about" className="flex items-center space-x-2">
               <Info className="w-4 h-4" />
@@ -621,6 +656,116 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* AI Configuration */}
+          <TabsContent value="ai-config" className="space-y-6">
+            <div className="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4 flex items-start space-x-3">
+              <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5" />
+              <div>
+                <div className="text-yellow-400 font-medium">Beta Feature</div>
+                <div className="text-yellow-200 text-sm mt-1">
+                  This is experimental. Current behavior remains unchanged when disabled.
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
+                <h3 className="text-lg font-medium text-replit-text mb-4">AI Mode Configuration</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-replit-text-secondary mb-2">AI Mode</label>
+                    <Select 
+                      value={settings.aiMode} 
+                      onValueChange={(value) => setSettings({...settings, aiMode: value})}
+                    >
+                      <SelectTrigger className="bg-replit-elevated border-replit-border">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="chatgpt-only">ChatGPT Only (Default)</SelectItem>
+                        <SelectItem value="dual-mode">Dual Mode (ChatGPT + Ollama)</SelectItem>
+                        <SelectItem value="ollama-dev">Ollama for Dev Tasks</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <div className="text-xs text-replit-text-secondary mt-2">
+                      • ChatGPT Only: Current behavior (architectural guidance)<br/>
+                      • Dual Mode: ChatGPT for architecture, Ollama for coding tasks<br/>
+                      • Ollama Dev: Ollama handles development, ChatGPT for planning
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
+                <h3 className="text-lg font-medium text-replit-text mb-4">Ollama Configuration</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="enableOllama"
+                      checked={settings.enableOllama}
+                      onChange={(e) => setSettings({...settings, enableOllama: e.target.checked})}
+                      className="rounded border-replit-border bg-replit-elevated focus:ring-replit-blue"
+                    />
+                    <label htmlFor="enableOllama" className="text-sm font-medium text-replit-text">
+                      Enable Ollama Integration
+                    </label>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-replit-text-secondary mb-2">Ollama Server URL</label>
+                    <Input
+                      value={settings.ollamaUrl}
+                      onChange={(e) => setSettings({...settings, ollamaUrl: e.target.value})}
+                      placeholder="http://localhost:11434"
+                      className="bg-replit-elevated border-replit-border"
+                      disabled={!settings.enableOllama}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-replit-text-secondary mb-2">Ollama Model</label>
+                    <Select 
+                      value={settings.ollamaModel} 
+                      onValueChange={(value) => setSettings({...settings, ollamaModel: value})}
+                      disabled={!settings.enableOllama}
+                    >
+                      <SelectTrigger className="bg-replit-elevated border-replit-border">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="llama3">Llama 3</SelectItem>
+                        <SelectItem value="llama3:8b">Llama 3 8B</SelectItem>
+                        <SelectItem value="llama3:70b">Llama 3 70B</SelectItem>
+                        <SelectItem value="codellama">Code Llama</SelectItem>
+                        <SelectItem value="codellama:13b">Code Llama 13B</SelectItem>
+                        <SelectItem value="codellama:34b">Code Llama 34B</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Button
+                    onClick={() => testOllamaConnection()}
+                    disabled={!settings.enableOllama}
+                    className="modern-button bg-replit-blue hover:bg-replit-blue-secondary"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Test Connection
+                  </Button>
+                </div>
+              </div>
+
+              <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
+                <h3 className="text-lg font-medium text-replit-text mb-4">AI Task Distribution</h3>
+                <div className="text-sm text-replit-text-secondary space-y-2">
+                  <div><strong>ChatGPT (GPT-4o):</strong> Architectural guidance, project planning, complex analysis</div>
+                  <div><strong>Ollama Llama3:</strong> Code generation, debugging, refactoring, documentation</div>
+                  <div><strong>Context Sharing:</strong> Both models have access to project context and previous conversations</div>
                 </div>
               </div>
             </div>

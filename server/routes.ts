@@ -645,7 +645,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/ai-chats/:id/messages", async (req, res) => {
     try {
-      const { message, model = "gpt-4o" } = req.body;
+      const { message, model = "gpt-4o", aiMode = "chatgpt-only" } = req.body;
       const chat = await storage.getAiChat(req.params.id);
       
       if (!chat) {
@@ -662,21 +662,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const updatedMessages = [...(chat.messages as ChatMessage[]), userMessage];
       
-      const aiResponse = await aiService.generateChatResponseWithContext(updatedMessages, chat.projectId, model);
+      // Use the dual AI system with AI mode configuration
+      const aiResponse = await aiService.generateChatResponseWithContext(updatedMessages, chat.projectId, model, aiMode);
+      
+      // Determine the actual model used for response based on AI mode
+      let responseModel = model;
+      if (aiMode === "dual-mode" || aiMode === "ollama-dev") {
+        const isDevelopmentTask = message.toLowerCase().includes('debug') || 
+                                  message.toLowerCase().includes('code') ||
+                                  message.toLowerCase().includes('fix') ||
+                                  message.toLowerCase().includes('implement');
+        
+        if ((aiMode === "dual-mode" && isDevelopmentTask) || aiMode === "ollama-dev") {
+          responseModel = "llama3";
+        }
+      }
       
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
         content: aiResponse,
         timestamp: new Date(),
-        model
+        model: responseModel
       };
 
       const finalMessages = [...updatedMessages, aiMessage];
       
       await storage.updateAiChat(req.params.id, { 
         messages: finalMessages,
-        model 
+        model: responseModel
       });
 
       res.json({ message: aiMessage });
@@ -4137,6 +4151,30 @@ Make sure to include realistic, working code for the starter files that follows 
       res.status(500).json({ 
         error: "Project creation failed", 
         details: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
+  // Test Ollama connection endpoint
+  app.post("/api/ai/test-ollama", async (req, res) => {
+    try {
+      const { url, model } = req.body;
+      
+      if (!url || !model) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "URL and model are required" 
+        });
+      }
+
+      const result = await aiService.testOllamaConnection(url, model);
+      res.json(result);
+      
+    } catch (error) {
+      console.error("❌ Error testing Ollama connection:", error);
+      res.json({ 
+        success: false, 
+        error: error instanceof Error ? error.message : "Unknown error" 
       });
     }
   });
