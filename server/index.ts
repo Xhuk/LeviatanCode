@@ -4,6 +4,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { middlewareMonitor, monitoringRoutes } from "./middleware/monitor";
 import { testDatabaseConnection } from "./db";
+import { logger } from "./utils/colorLogger";
 
 // Load environment variables first
 dotenv.config();
@@ -89,19 +90,19 @@ app.use((req, res, next) => {
     // Apply session middleware with monitoring
     app.use(middlewareMonitor.createMonitoredMiddleware('Session', sessionModule.default));
     
-    console.log("[INFO] All middleware loaded successfully with monitoring");
+    logger.middleware("All middleware loaded successfully with monitoring");
   } catch (error: any) {
-    console.warn("Some middleware failed to load:", error?.message || error);
-    console.log("Continuing with basic setup...");
+    logger.middleware("Some middleware failed to load: " + (error?.message || error), "warn");
+    logger.system("Continuing with basic setup...");
   }
 
   // Test database connection and initialize storage
-  console.log('🔍 Testing database connection...');
+  logger.database('Testing database connection...');
   const dbConnected = await testDatabaseConnection();
   if (dbConnected) {
-    console.log('✅ Database storage initialized');
+    logger.database('Database storage initialized');
   } else {
-    console.warn('⚠️  Database connection failed - continuing with limited functionality');
+    logger.database('Database connection failed - continuing with limited functionality', "warn");
   }
 
   const server = await registerRoutes(app);
@@ -132,10 +133,10 @@ app.use((req, res, next) => {
     log(`serving on port ${port}`);
     
     // Auto-start Flask Analyzer with startup delay
-    console.log('[INFO] Auto-starting Flask Analyzer...');
+    logger.flask('Auto-starting Flask Analyzer...');
     try {
       await middlewareMonitor.startMiddleware('Flask Analyzer');
-      console.log('[INFO] Flask Analyzer startup initiated, waiting for service to be ready...');
+      logger.flask('Flask Analyzer startup initiated, waiting for service to be ready...');
       
       // Wait for Flask Analyzer to be fully ready
       let attempts = 0;
@@ -149,7 +150,7 @@ app.use((req, res, next) => {
           });
           
           if (response.ok) {
-            console.log('[INFO] Flask Analyzer is ready and responding');
+            logger.flask('Flask Analyzer is ready and responding');
             break;
           }
         } catch (error) {
@@ -161,12 +162,12 @@ app.use((req, res, next) => {
       }
       
       if (attempts >= maxAttempts) {
-        console.warn('[WARN] Flask Analyzer startup timeout - continuing anyway');
+        logger.flask('Flask Analyzer startup timeout - continuing anyway', "warn");
       } else {
-        console.log('[INFO] Main application startup complete');
+        logger.system('Main application startup complete');
       }
     } catch (error) {
-      console.warn('[WARN] Failed to auto-start Flask Analyzer:', error);
+      logger.flask('Failed to auto-start Flask Analyzer: ' + (error as Error).message, "warn");
     }
   });
 

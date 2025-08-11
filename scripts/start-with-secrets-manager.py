@@ -13,6 +13,61 @@ import requests
 import threading
 import signal
 import atexit
+
+# ANSI color codes for terminal output
+class Colors:
+    RESET = '\033[0m'
+    
+    # Log levels
+    ERROR = '\033[31m'    # Red
+    WARN = '\033[33m'     # Yellow  
+    INFO = '\033[37m'     # White
+    
+    # Services
+    CHATGPT = '\033[32m'  # Green
+    GEMINI = '\033[34m'   # Blue
+    OLLAMA = '\033[35m'   # Magenta
+    FLASK = '\033[36m'    # Cyan
+    SYSTEM = '\033[90m'   # Gray
+
+def colored_log(message: str, service: str = 'system', level: str = 'info'):
+    """Print colored log message with service prefix"""
+    
+    # Service icons and prefixes
+    icons = {
+        'system': '🔧',
+        'ollama': '🦙',
+        'flask': '🐍',
+        'chatgpt': '🤖',
+        'gemini': '✨'
+    }
+    
+    prefixes = {
+        'system': '[System]',
+        'ollama': '[Ollama]', 
+        'flask': '[Flask]',
+        'chatgpt': '[ChatGPT]',
+        'gemini': '[Gemini]'
+    }
+    
+    # Color selection
+    if level == 'error':
+        color = Colors.ERROR
+    elif level == 'warn':
+        color = Colors.WARN
+    elif level == 'info':
+        # Use service color for info level
+        color = getattr(Colors, service.upper(), Colors.INFO)
+    else:
+        color = Colors.INFO
+    
+    # Build log message
+    icon = icons.get(service, '📝')
+    prefix = prefixes.get(service, '[App]')
+    timestamp = time.strftime('%H:%M:%S')
+    
+    log_msg = f"{timestamp} {icon} {prefix} {message}"
+    print(f"{color}{log_msg}{Colors.RESET}")
 try:
     import winreg
 except ImportError:
@@ -28,10 +83,10 @@ active_processes = []
 
 def cleanup_processes():
     """Clean up all spawned processes"""
-    print("\n🔄 Cleaning up processes...")
+    colored_log("Cleaning up processes...", "system")
     for proc_name, proc in active_processes:
         if proc and proc.poll() is None:
-            print(f"  Stopping {proc_name}...")
+            colored_log(f"Stopping {proc_name}...", "system")
             proc.terminate()
             try:
                 proc.wait(timeout=5)
@@ -132,7 +187,7 @@ class OllamaWorker:
     def start_ollama_service(self):
         """Start Ollama service"""
         try:
-            print("🦙 Starting Ollama service...")
+            colored_log("Starting Ollama service...", "ollama")
             
             # Start Ollama serve in background
             if os.name == 'nt':  # Windows
@@ -154,26 +209,26 @@ class OllamaWorker:
                 try:
                     response = requests.get('http://localhost:11434/api/tags', timeout=3)
                     if response.status_code == 200:
-                        print("✅ Ollama service is ready!")
+                        colored_log("Ollama service is ready!", "ollama")
                         return True
                 except requests.RequestException:
                     pass
                 
                 if attempt == max_attempts:
-                    print("❌ Ollama service failed to start")
+                    colored_log("Ollama service failed to start", "ollama", "error")
                     return False
                 
-                print(f"   Waiting for Ollama service... ({attempt}/{max_attempts})")
+                colored_log(f"Waiting for Ollama service... ({attempt}/{max_attempts})", "ollama")
                 time.sleep(2)
                 
         except Exception as e:
-            print(f"❌ Failed to start Ollama service: {e}")
+            colored_log(f"Failed to start Ollama service: {e}", "ollama", "error")
             return False
     
     def pull_llama3_model(self):
         """Pull Llama3 model if not already available"""
         try:
-            print("🦙 Checking Llama3 model availability...")
+            colored_log("Checking Llama3 model availability...", "ollama")
             
             # Check if model exists
             response = requests.get('http://localhost:11434/api/tags', timeout=10)
@@ -182,11 +237,11 @@ class OllamaWorker:
                 llama3_exists = any('llama3' in model.get('name', '') for model in models)
                 
                 if llama3_exists:
-                    print("✅ Llama3 model already available")
+                    colored_log("Llama3 model already available", "ollama")
                     return True
             
-            print("🦙 Pulling Llama3 model (this may take a while)...")
-            print("   Note: This is a one-time download that will be cached for future use")
+            colored_log("Pulling Llama3 model (this may take a while)...", "ollama")
+            colored_log("Note: This is a one-time download that will be cached for future use", "ollama")
             
             # Pull model in background with progress
             pull_process = subprocess.Popen(['ollama', 'pull', 'llama3'], 
@@ -200,24 +255,24 @@ class OllamaWorker:
                 if output == '' and pull_process.poll() is not None:
                     break
                 if output and ('pulling' in output.lower() or 'downloading' in output.lower()):
-                    print(f"   {output.strip()}")
+                    colored_log(f"{output.strip()}", "ollama")
             
             if pull_process.returncode == 0:
-                print("✅ Llama3 model ready!")
+                colored_log("Llama3 model ready!", "ollama")
                 return True
             else:
-                print("❌ Failed to pull Llama3 model")
+                colored_log("Failed to pull Llama3 model", "ollama", "error")
                 return False
                 
         except Exception as e:
-            print(f"❌ Error pulling Llama3 model: {e}")
+            colored_log(f"Error pulling Llama3 model: {e}", "ollama", "error")
             return False
     
     def start(self):
         """Start Ollama worker in background thread"""
         if not self.check_ollama_installed():
-            print("⚠️  Ollama not installed - AI dual mode will use ChatGPT only")
-            print("   To install Ollama: https://ollama.ai/download")
+            colored_log("Ollama not installed - AI dual mode will use ChatGPT only", "ollama", "warn")
+            colored_log("To install Ollama: https://ollama.ai/download", "ollama")
             return False
         
         self.thread = threading.Thread(target=self._worker_thread, daemon=True)
@@ -237,17 +292,17 @@ class OllamaWorker:
                 return
             
             self.is_running = True
-            print("🦙 Ollama worker ready - AI dual mode available")
+            colored_log("Ollama worker ready - AI dual mode available", "ollama")
             
             # Keep thread alive and monitor service
             while self.is_running:
                 time.sleep(30)  # Check every 30 seconds
                 if self.ollama_process and self.ollama_process.poll() is not None:
-                    print("⚠️  Ollama service stopped unexpectedly")
+                    colored_log("Ollama service stopped unexpectedly", "ollama", "warn")
                     break
                     
         except Exception as e:
-            print(f"❌ Ollama worker error: {e}")
+            colored_log(f"Ollama worker error: {e}", "ollama", "error")
     
     def stop(self):
         """Stop Ollama worker"""
@@ -265,7 +320,7 @@ class OllamaWorker:
 
 def main():
     """Main startup sequence"""
-    print("🚀 Starting LeviatanCode with Secrets Manager...")
+    colored_log("Starting LeviatanCode with Secrets Manager...", "system")
     print("=" * 60)
     
     # Register cleanup handlers
@@ -320,9 +375,9 @@ def main():
     print("\n[1/4] Starting Ollama AI Worker...")
     ollama_started = ollama_worker.start()
     if ollama_started:
-        print("✅ Ollama worker started in background")
+        colored_log("Ollama worker started in background", "ollama")
     else:
-        print("⚠️  Ollama worker not available - will use ChatGPT only")
+        colored_log("Ollama worker not available - will use ChatGPT only", "system", "warn")
     
     # Start Flask
     print("\n[2/4] Starting Flask Analyzer...")
@@ -356,9 +411,9 @@ def main():
     # Start main application
     print("\n[4/4] Starting main application...")
     if ollama_started:
-        print("🦙 AI Dual Mode: ChatGPT (architecture) + Ollama Llama3 (development)")
+        colored_log("AI Dual Mode: ChatGPT (architecture) + Ollama Llama3 (development)", "system")
     else:
-        print("🤖 AI Mode: ChatGPT Only")
+        colored_log("AI Mode: ChatGPT Only", "system")
     try:
         # Try Windows-compatible commands first
         if os.name == 'nt':  # Windows
@@ -381,10 +436,10 @@ def main():
         print(f"❌ Command not found: {e}")
         print("💡 Try running 'npm run dev' manually in the project directory")
     finally:
-        print("\n🔄 Shutting down services...")
+        colored_log("Shutting down services...", "system")
         ollama_worker.stop()
         cleanup_processes()
-        print("✅ All services stopped")
+        colored_log("All services stopped", "system")
 
 def handle_vault_commands():
     """Handle vault-specific commands for frontend integration"""

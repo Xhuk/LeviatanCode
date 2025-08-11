@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { GoogleGenAI } from "@google/genai";
 import { ChatMessage, AnalysisResult } from "@shared/schema";
 import { storage } from "../storage";
+import { logger } from "../utils/colorLogger";
 // Use native fetch in Node.js 18+
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
@@ -33,9 +34,11 @@ export class AIService {
         
         if ((aiMode === "dual-mode" && isDevelopmentTask) || aiMode === "ollama-dev") {
           try {
+            logger.ollama("Processing development task with Llama3");
             return await this.generateOllamaResponse(messages, this.ollamaConfig.model);
           } catch (ollamaError) {
-            console.warn("Ollama failed, falling back to OpenAI:", ollamaError);
+            logger.ollama("Request failed, falling back to ChatGPT", "warn");
+            logger.chatgpt("Taking over from Ollama fallback");
             return await this.generateOpenAIResponse(messages, "gpt-4o");
           }
         }
@@ -43,16 +46,19 @@ export class AIService {
 
       // Default behavior: OpenAI for architecture, complex analysis
       if (model.startsWith("gpt")) {
+        logger.chatgpt(`Processing request with ${model}`);
         return await this.generateOpenAIResponse(messages, model);
       } else if (model.startsWith("gemini")) {
+        logger.gemini(`Processing request with ${model}`);
         return await this.generateGeminiResponse(messages, model);
       } else if (model.startsWith("llama") || model.startsWith("codellama")) {
+        logger.ollama(`Processing request with ${model}`);
         return await this.generateOllamaResponse(messages, model);
       } else {
         throw new Error(`Unsupported model: ${model}`);
       }
     } catch (error) {
-      console.error("AI Service Error:", error);
+      logger.error("AI Service Error: " + (error as Error).message, "system");
       throw new Error("Failed to generate AI response");
     }
   }
