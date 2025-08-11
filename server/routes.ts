@@ -14,6 +14,7 @@ import { flaskAnalyzerService } from "./services/flask-analyzer";
 import { InsightsFileService } from "./services/insights-file";
 import { contextService } from "./contextService";
 import { ContextMiddleware } from "./contextMiddleware";
+import { generateFallbackStructure } from "./project-generator";
 import multer from "multer";
 import { z } from "zod";
 import yauzl from "yauzl";
@@ -3969,6 +3970,176 @@ Please provide a JSON response with this exact structure:
   app.use('/api/terminal/execute', ContextMiddleware.trackCommandExecution);
   app.use('/api/workspace/:id/git', ContextMiddleware.trackGitOperation);
   app.use('/api/settings', ContextMiddleware.trackConfiguration);
+
+  // AI-powered project structure generation
+  app.post("/api/projects/generate-structure", async (req, res) => {
+    try {
+      const { name, description, technologies } = req.body;
+      
+      if (!name || !technologies || !Array.isArray(technologies) || technologies.length === 0) {
+        return res.status(400).json({ 
+          error: "Project name and technologies are required" 
+        });
+      }
+
+      console.log(`🚀 Generating project structure for: ${name}`);
+      console.log(`📋 Technologies: ${technologies.join(', ')}`);
+
+      // Create an AI prompt for project structure generation
+      const prompt = `Create a comprehensive project structure for a ${technologies.join(', ')} project named "${name}".
+
+Project Details:
+- Name: ${name}
+- Description: ${description || 'A modern web application'}
+- Technologies: ${technologies.join(', ')}
+
+Generate a complete folder and file structure that includes:
+1. Essential configuration files for the specified technologies
+2. Proper folder organization (src, public, components, etc.)
+3. Package.json with appropriate dependencies
+4. Environment configuration files
+5. Basic starter code and components
+6. README.md with setup instructions
+7. .gitignore file
+8. Any framework-specific files needed
+
+Return ONLY a JSON object with this exact structure:
+{
+  "name": "${name}",
+  "description": "Brief project description",
+  "technologies": ["technology1", "technology2"],
+  "files": [
+    {
+      "path": "folder/filename.ext",
+      "type": "file",
+      "content": "file content here"
+    },
+    {
+      "path": "folder",
+      "type": "folder"
+    }
+  ]
+}
+
+Make sure to include realistic, working code for the starter files that follows best practices for the specified technologies.`;
+
+      // Use AI to generate the project structure
+      let generatedStructure;
+      try {
+        const response = await aiService.generateCompletion([
+          {
+            role: "system",
+            content: "You are an expert software architect who creates well-structured, production-ready project templates. Always return valid JSON."
+          },
+          {
+            role: "user", 
+            content: prompt
+          }
+        ]);
+
+        // Extract JSON from the response
+        const jsonMatch = response.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          generatedStructure = JSON.parse(jsonMatch[0]);
+        } else {
+          throw new Error("No valid JSON found in response");
+        }
+      } catch (parseError) {
+        console.error("Failed to parse AI response:", parseError);
+        // Fallback structure based on technologies
+        generatedStructure = generateFallbackStructure(name, description, technologies);
+      }
+
+      console.log(`✅ Generated structure with ${generatedStructure.files.length} files`);
+      
+      res.json(generatedStructure);
+      
+    } catch (error) {
+      console.error("❌ Error generating project structure:", error);
+      res.status(500).json({ 
+        error: "Structure generation failed", 
+        details: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
+  // Create a new project with the generated structure
+  app.post("/api/projects/create", async (req, res) => {
+    try {
+      const { name, description, technologies, structure } = req.body;
+      
+      if (!name || !structure || !Array.isArray(structure)) {
+        return res.status(400).json({ 
+          error: "Project name and structure are required" 
+        });
+      }
+
+      console.log(`🏗️ Creating project: ${name}`);
+      
+      // Create project directory
+      const projectsDir = path.join(process.cwd(), 'workspaces');
+      if (!fs.existsSync(projectsDir)) {
+        fs.mkdirSync(projectsDir, { recursive: true });
+      }
+      
+      const projectDir = path.join(projectsDir, name);
+      
+      // Check if project already exists
+      if (fs.existsSync(projectDir)) {
+        return res.status(400).json({ 
+          error: `Project '${name}' already exists` 
+        });
+      }
+
+      // Create project directory
+      fs.mkdirSync(projectDir, { recursive: true });
+      
+      // Create folders and files
+      for (const item of structure) {
+        const fullPath = path.join(projectDir, item.path);
+        
+        if (item.type === "folder") {
+          fs.mkdirSync(fullPath, { recursive: true });
+        } else if (item.type === "file") {
+          // Ensure parent directory exists
+          const parentDir = path.dirname(fullPath);
+          fs.mkdirSync(parentDir, { recursive: true });
+          
+          // Write file content
+          const content = item.content || '';
+          fs.writeFileSync(fullPath, content, 'utf8');
+        }
+      }
+
+      // Create project record
+      const projectData = {
+        id: name.toLowerCase().replace(/[^a-z0-9-]/g, '-'),
+        name: name,
+        description: description || `AI-generated ${technologies.join(', ')} project`,
+        technologies: technologies,
+        path: projectDir,
+        createdAt: new Date().toISOString(),
+        userId: 'ai-generated'
+      };
+
+      console.log(`✅ Project '${name}' created successfully with ${structure.length} files`);
+      
+      res.json({
+        success: true,
+        project: projectData,
+        message: `Project '${name}' created successfully`,
+        filesCreated: structure.length,
+        projectPath: projectDir
+      });
+      
+    } catch (error) {
+      console.error("❌ Error creating project:", error);
+      res.status(500).json({ 
+        error: "Project creation failed", 
+        details: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
 
   return httpServer;
 }

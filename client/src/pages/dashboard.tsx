@@ -46,7 +46,9 @@ import {
   Eye,
   EyeOff,
   Copy,
-  Bot
+  Bot,
+  Plus,
+  FolderPlus
 } from "lucide-react";
 import { ProjectImportDialog } from "@/components/project-import-dialog";
 import { SettingsDialog } from "@/components/settings-dialog";
@@ -57,6 +59,7 @@ import { LeviatanSettings } from "@/components/leviatan-settings";
 import { AiChatPanel } from "@/components/panels/ai-chat-panel";
 import { DeveloperAgent } from "@/components/developer-agent";
 import { ContextPanel } from "@/components/context-panel";
+import { NewProjectDialog } from "@/components/new-project-dialog";
 
 
 // Logger component with WebSocket integration
@@ -1644,6 +1647,7 @@ export default function Dashboard() {
     isConnected: false,
     isConfigured: false
   });
+  const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
 
   const handleFileSelect = (filePath: string, fileName: string) => {
     setActiveFile(filePath);
@@ -1878,6 +1882,15 @@ export default function Dashboard() {
               <span className="text-sm text-replit-text-secondary">AI Online</span>
             </div>
           </div>
+          
+          <Button 
+            onClick={() => setShowNewProjectDialog(true)}
+            className="modern-button bg-blue-500 hover:bg-blue-600 text-white"
+            data-testid="button-new-project"
+          >
+            <FolderPlus className="h-4 w-4 mr-2" />
+            New Project
+          </Button>
           
           <ProjectImportDialog onProjectImported={setCurrentProject} />
           <ProjectInsightsSaveButton 
@@ -2335,6 +2348,12 @@ export default function Dashboard() {
           </span>
         </div>
       </div>
+
+      {/* Dialogs */}
+      <NewProjectDialog 
+        open={showNewProjectDialog} 
+        onOpenChange={setShowNewProjectDialog} 
+      />
     </div>
   );
 }

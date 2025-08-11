@@ -278,6 +278,21 @@ export interface FileSystemItem {
   lastModified?: Date;
 }
 
+// Project Template Schema
+export interface ProjectTemplate {
+  name: string;
+  description: string;
+  technologies: string[];
+  structure: ProjectFileStructure[];
+}
+
+export interface ProjectFileStructure {
+  path: string;
+  type: "file" | "folder";
+  content?: string;
+  template?: boolean;
+}
+
 export interface ScrapingConfig {
   selector?: string;
   headers?: Record<string, string>;
