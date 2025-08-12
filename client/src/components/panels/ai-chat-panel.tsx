@@ -5,8 +5,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { Send, Bot, User, Zap, DollarSign } from "lucide-react";
+import { Send, Bot, User, Zap, DollarSign, AlertTriangle } from "lucide-react";
 import { aiRouter } from "@/services/aiRouterPro";
+import { OllamaCrashConfirmDialog } from "@/components/dialogs/OllamaCrashConfirmDialog";
 
 interface AiChatPanelProps {
   projectId: string;
@@ -25,6 +26,9 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [smartRoutingEnabled, setSmartRoutingEnabled] = useState(true);
   const [lastRouting, setLastRouting] = useState<any>(null);
+  const [showOllamaCrashDialog, setShowOllamaCrashDialog] = useState(false);
+  const [pendingMessage, setPendingMessage] = useState("");
+  const [crashDialogData, setCrashDialogData] = useState<any>(null);
   const queryClient = useQueryClient();
 
   const { data: chatsData = [], isLoading, error } = useQuery<AiMessage[]>({
@@ -55,25 +59,55 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || sendMessageMutation.isPending) return;
     
+    if (smartRoutingEnabled) {
+      // Check routing first - if Ollama needs fallback, show confirmation dialog
+      const routing = await aiRouter.routeRequest(newMessage, {
+        maxBudgetUSD: 0.02,
+        preferLocal: true
+      });
+      
+      // If Ollama needs fallback and would cost money, confirm with user
+      if (routing.ollamaStatus?.needsFallback && routing.estimatedCost > 0) {
+        setPendingMessage(newMessage);
+        setCrashDialogData({
+          routing,
+          ollamaStatus: routing.ollamaStatus,
+          estimatedCost: routing.estimatedCost,
+          taskComplexity: routing.taskComplexity,
+          recommendedModel: routing.model
+        });
+        setShowOllamaCrashDialog(true);
+        return; // Wait for user confirmation
+      }
+      
+      // Proceed with sending the message
+      await executeChatRequest(newMessage, routing);
+    } else {
+      // Use original direct API call
+      setIsGenerating(true);
+      try {
+        await sendMessageMutation.mutateAsync(newMessage);
+      } finally {
+        setIsGenerating(false);
+      }
+    }
+  };
+
+  const executeChatRequest = async (message: string, routing?: any) => {
     setIsGenerating(true);
     try {
-      if (smartRoutingEnabled) {
-        // Use smart budget-aware routing
-        const routing = await aiRouter.routeRequest(newMessage, {
-          maxBudgetUSD: 0.02, // 2 cents max per request
-          preferLocal: true // Prefer Ollama when available
-        });
-        
+      if (routing) {
         setLastRouting({
           model: routing.model,
           cost: routing.estimatedCost,
           complexity: routing.taskComplexity,
           confidence: routing.confidence,
-          reasoning: routing.reasoning
+          reasoning: routing.reasoning,
+          ollamaStatus: routing.ollamaStatus
         });
 
         // Execute the AI request with routing info
-        const result = await aiRouter.executeRequest(newMessage, {
+        const result = await aiRouter.executeRequest(message, {
           maxBudgetUSD: 0.02,
           preferLocal: true
         });
@@ -83,7 +117,7 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
-            message: newMessage,
+            message: message,
             response: result.response,
             model: result.model,
             cost: result.actualCost,
@@ -93,13 +127,31 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
         
         queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/ai-chats`] });
         setNewMessage("");
-      } else {
-        // Use original direct API call
-        await sendMessageMutation.mutateAsync(newMessage);
       }
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleOllamaConfirmation = async (useChatGPT: boolean) => {
+    setShowOllamaCrashDialog(false);
+    
+    if (useChatGPT) {
+      // Force use ChatGPT with the stored routing data
+      await executeChatRequest(pendingMessage, crashDialogData.routing);
+    } else {
+      // Try Ollama again - force routing with preferLocal = true
+      const routing = await aiRouter.routeRequest(pendingMessage, {
+        maxBudgetUSD: 0.02,
+        preferLocal: true,
+        forceComplexity: crashDialogData.taskComplexity
+      });
+      
+      await executeChatRequest(pendingMessage, routing);
+    }
+    
+    setPendingMessage("");
+    setCrashDialogData(null);
   };
 
   return (
@@ -183,6 +235,9 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
         <div className="px-4 py-2 border-t border-replit-border bg-replit-elevated/50">
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-2">
+              {lastRouting.ollamaStatus?.needsFallback && (
+                <AlertTriangle className="w-3 h-3 text-orange-500" />
+              )}
               <Zap className="w-3 h-3 text-yellow-500" />
               <span className="text-replit-text-secondary">Smart Router:</span>
               <Badge variant="secondary" className="text-xs">
@@ -193,11 +248,16 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
                      className="text-xs">
                 {lastRouting.complexity}
               </Badge>
+              {lastRouting.model === 'ollama-llama3' && (
+                <Badge variant="outline" className="text-xs text-green-600">
+                  FREE
+                </Badge>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <DollarSign className="w-3 h-3 text-green-500" />
               <span className="text-replit-text-secondary">
-                ${lastRouting.cost.toFixed(4)}
+                {lastRouting.cost === 0 ? 'FREE' : `$${lastRouting.cost.toFixed(4)}`}
               </span>
               <span className="text-replit-text-muted">
                 ({Math.round(lastRouting.confidence * 100)}% confidence)
@@ -205,7 +265,25 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
             </div>
           </div>
           <p className="text-xs text-replit-text-muted mt-1">{lastRouting.reasoning}</p>
+          {lastRouting.ollamaStatus?.needsFallback && (
+            <div className="text-xs text-orange-600 mt-1 font-medium">
+              ⚠️ Ollama {lastRouting.ollamaStatus.status} - Using paid API fallback
+            </div>
+          )}
         </div>
+      )}
+
+      {/* Ollama Crash Confirmation Dialog */}
+      {showOllamaCrashDialog && crashDialogData && (
+        <OllamaCrashConfirmDialog
+          open={showOllamaCrashDialog}
+          onOpenChange={setShowOllamaCrashDialog}
+          onConfirm={handleOllamaConfirmation}
+          ollamaStatus={crashDialogData.ollamaStatus}
+          estimatedCost={crashDialogData.estimatedCost}
+          taskComplexity={crashDialogData.taskComplexity}
+          recommendedModel={crashDialogData.recommendedModel}
+        />
       )}
 
       {/* Input Area */}

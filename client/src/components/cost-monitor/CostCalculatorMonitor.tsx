@@ -313,12 +313,22 @@ export function CostCalculatorMonitor() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 {modelBreakdown.map(({ model, totalCost, totalCalls }) => {
                   const pricing = AI_PRICING[model as keyof typeof AI_PRICING];
+                  const isFree = model === 'ollama-llama3';
                   return (
                     <div key={model} className="flex items-center gap-2 text-xs p-2 bg-background rounded border">
                       <span className={pricing.color}>{pricing.icon}</span>
                       <div className="flex-1">
-                        <div className="font-medium">{model}</div>
-                        <div className="text-muted-foreground">{totalCalls} calls • ${totalCost.toFixed(3)}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="font-medium">{model}</div>
+                          {isFree ? (
+                            <Badge variant="outline" className="text-xs text-green-600 border-green-600">FREE</Badge>
+                          ) : (
+                            <Badge variant="destructive" className="text-xs">PAID</Badge>
+                          )}
+                        </div>
+                        <div className="text-muted-foreground">
+                          {totalCalls} calls • {isFree ? 'FREE' : `$${totalCost.toFixed(3)}`}
+                        </div>
                       </div>
                     </div>
                   );
@@ -327,6 +337,22 @@ export function CostCalculatorMonitor() {
             </div>
           )}
 
+          {/* Ollama Status Warning */}
+          <div className="mb-4 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-4 h-4 text-orange-600" />
+              <span className="font-medium text-sm text-orange-700 dark:text-orange-300">Ollama Service Monitor</span>
+            </div>
+            <div className="text-xs text-orange-600 dark:text-orange-400 space-y-1">
+              <div>• Ollama detected as offline - falling back to paid ChatGPT API</div>
+              <div>• Estimated fallback cost: $0.0024 per request</div>
+              <div>• Consider restarting Ollama service to use free local processing</div>
+            </div>
+            <Button variant="outline" size="sm" className="mt-2 text-xs">
+              Retry Ollama Connection
+            </Button>
+          </div>
+
           {/* Smart Recommendations */}
           <div className="text-xs text-muted-foreground">
             <div className="flex items-center gap-2 mb-1">
@@ -334,9 +360,10 @@ export function CostCalculatorMonitor() {
               <span className="font-medium">Smart Recommendations:</span>
             </div>
             <div className="ml-5">
-              • For simple tasks: Use {recommendModel('simple', dailyUsage < budgetSettings.dailyLimit * 0.5 ? 0.01 : 0.001)}
+              • For simple tasks: Use Ollama (FREE) or {recommendModel('simple', dailyUsage < budgetSettings.dailyLimit * 0.5 ? 0.01 : 0.001)}
               • For debugging: Use {recommendModel('medium', dailyUsage < budgetSettings.dailyLimit * 0.7 ? 0.02 : 0.005)}
               • For architecture: Use {recommendModel('complex', dailyUsage < budgetSettings.dailyLimit * 0.9 ? 0.05 : 0.01)}
+              • Always check Ollama status first to avoid unnecessary costs
             </div>
           </div>
         </div>

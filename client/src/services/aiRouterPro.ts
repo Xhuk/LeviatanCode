@@ -151,26 +151,46 @@ export class AIRouterPro {
   }
 
   /**
-   * Check if Ollama is available for local processing
+   * Check if Ollama is available for local processing with detailed status
    */
-  private async isOllamaAvailable(): Promise<boolean> {
+  private async isOllamaAvailable(): Promise<{available: boolean, status: string, needsFallback: boolean}> {
     try {
       // Check if Ollama service is available via our backend
-      const response = await fetch('/api/ai/ollama/status');
+      const response = await fetch('/api/ai/ollama/status', {
+        method: 'GET',
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+      
       if (response.ok) {
         const status = await response.json();
-        return status.status === 'connected';
+        const isConnected = status.status === 'connected';
+        const isCrashing = status.failures >= 3 || status.status === 'disconnected';
+        
+        return {
+          available: isConnected,
+          status: status.status || 'unknown',
+          needsFallback: isCrashing
+        };
       }
-      return false;
-    } catch {
-      return false;
+      
+      return {
+        available: false,
+        status: 'service_unavailable',
+        needsFallback: true
+      };
+    } catch (error) {
+      return {
+        available: false,
+        status: 'network_error',
+        needsFallback: true
+      };
     }
   }
 
   /**
-   * Choose optimal model based on task complexity, budget, and availability
+   * Choose optimal model based on task complexity, budget, and availability with Ollama crash monitoring
    */
-  public async routeRequest(prompt: string, options: RouterOptions = {}): Promise<RouteResult> {
+  public async routeRequest(prompt: string, options: RouterOptions = {}): Promise<RouteResult & {ollamaStatus?: any}> {
     const {
       maxBudgetUSD = 0.01,
       forceComplexity,
@@ -189,12 +209,26 @@ export class AIRouterPro {
     
     const effectiveBudget = Math.min(maxBudgetUSD, remainingDaily, remainingWeekly, remainingMonthly);
     
-    // Check if Ollama is available for free processing
-    const ollamaAvailable = await this.isOllamaAvailable();
+    // Check Ollama status with detailed crash monitoring
+    const ollamaStatus = await this.isOllamaAvailable();
     
-    // Define model preferences by complexity
+    // Define model preferences by complexity with crash-aware fallback
     const modelCandidates: AIModel[] = (() => {
-      if (preferLocal && ollamaAvailable) {
+      // If Ollama is crashing/failed, prioritize ChatGPT models
+      if (ollamaStatus.needsFallback) {
+        switch (taskComplexity) {
+          case 'complex':
+            return ['gpt-4o', 'gpt-4o-mini', 'gemini-pro'];
+          case 'medium':
+            return ['gpt-4o-mini', 'gpt-4o', 'gemini-flash'];
+          case 'simple':
+          default:
+            return ['gpt-4o-mini', 'gemini-flash', 'gpt-4o'];
+        }
+      }
+      
+      // If prefer local and Ollama is available, try it first
+      if (preferLocal && ollamaStatus.available) {
         return ['ollama-llama3', 'gpt-4o-mini', 'gemini-flash'];
       }
       
@@ -205,14 +239,14 @@ export class AIRouterPro {
           return ['gpt-4o-mini', 'gemini-flash', 'gpt-4o'];
         case 'simple':
         default:
-          return ollamaAvailable 
+          return ollamaStatus.available 
             ? ['ollama-llama3', 'gemini-flash', 'gpt-4o-mini']
-            : ['gemini-flash', 'gpt-4o-mini', 'gpt-4o'];
+            : ['gpt-4o-mini', 'gemini-flash', 'gpt-4o'];
       }
     })();
 
     // Find best model within budget
-    let chosenModel: AIModel = 'ollama-llama3'; // Fallback to free local
+    let chosenModel: AIModel = 'gpt-4o-mini'; // Default fallback to cheapest ChatGPT
     let estimatedCost = 0;
     let reasoning = '';
 
@@ -226,29 +260,40 @@ export class AIRouterPro {
       }
     }
 
-    // Generate reasoning
+    // Generate reasoning with Ollama status awareness
     if (chosenModel === 'ollama-llama3') {
-      reasoning = ollamaAvailable 
-        ? 'Using free local Ollama model - no API costs'
-        : 'Budget exceeded, falling back to local processing';
+      if (ollamaStatus.available) {
+        reasoning = 'Using free local Ollama model - no API costs';
+      } else {
+        reasoning = `Ollama ${ollamaStatus.status}, falling back to ChatGPT`;
+        chosenModel = 'gpt-4o-mini'; // Force fallback
+        estimatedCost = this.estimateCost({ model: chosenModel, inputTokens });
+      }
     } else if (estimatedCost === 0) {
       reasoning = `Free local model selected for ${taskComplexity} task`;
     } else {
-      reasoning = `${chosenModel} selected for ${taskComplexity} task (est. $${estimatedCost.toFixed(4)})`;
+      const statusMsg = ollamaStatus.needsFallback ? ' (Ollama crashed, using paid API)' : '';
+      reasoning = `${chosenModel} selected for ${taskComplexity} task (est. $${estimatedCost.toFixed(4)})${statusMsg}`;
     }
 
-    // Calculate confidence based on model suitability
+    // Calculate confidence based on model suitability and Ollama status
     const confidence = (() => {
+      let baseConfidence = 0.7;
+      
       if (taskComplexity === 'simple' && ['gemini-flash', 'gpt-4o-mini', 'ollama-llama3'].includes(chosenModel)) {
-        return 0.9;
+        baseConfidence = 0.9;
+      } else if (taskComplexity === 'medium' && ['gpt-4o-mini', 'gemini-flash', 'gpt-4o'].includes(chosenModel)) {
+        baseConfidence = 0.85;
+      } else if (taskComplexity === 'complex' && ['gpt-4o', 'gemini-pro'].includes(chosenModel)) {
+        baseConfidence = 0.9;
       }
-      if (taskComplexity === 'medium' && ['gpt-4o-mini', 'gemini-flash', 'gpt-4o'].includes(chosenModel)) {
-        return 0.85;
+      
+      // Reduce confidence if Ollama was preferred but is unavailable
+      if (preferLocal && !ollamaStatus.available && chosenModel !== 'ollama-llama3') {
+        baseConfidence -= 0.1;
       }
-      if (taskComplexity === 'complex' && ['gpt-4o', 'gemini-pro'].includes(chosenModel)) {
-        return 0.9;
-      }
-      return 0.7; // Suboptimal match
+      
+      return Math.max(0.5, baseConfidence);
     })();
 
     return {
@@ -256,7 +301,8 @@ export class AIRouterPro {
       estimatedCost,
       taskComplexity,
       reasoning,
-      confidence
+      confidence,
+      ollamaStatus
     };
   }
 
