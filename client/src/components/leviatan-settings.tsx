@@ -82,6 +82,51 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
       setSaveStatus('❌ Failed to test Ollama connection');
       setTimeout(() => setSaveStatus(''), 5000);
     }
+  }
+
+  const detectOllama = async () => {
+    try {
+      setSaveStatus('🔍 Detecting Ollama service...');
+      
+      // Test common Ollama URLs
+      const urls = ['http://localhost:11434', 'http://127.0.0.1:11434'];
+      
+      for (const url of urls) {
+        try {
+          const response = await fetch('/api/ai/test-ollama', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              url: url,
+              model: 'llama3'
+            })
+          });
+          
+          const result = await response.json();
+          if (result.success) {
+            // Auto-populate configuration
+            setSettings({
+              ...settings,
+              enableOllama: true,
+              ollamaUrl: url,
+              ollamaModel: 'llama3'
+            });
+            setSaveStatus(`✅ Ollama detected and configured! URL: ${url}`);
+            setTimeout(() => setSaveStatus(''), 5000);
+            return;
+          }
+        } catch (error) {
+          // Continue to next URL
+          continue;
+        }
+      }
+      
+      setSaveStatus('❌ Ollama service not detected. Please start Ollama and try again.');
+      setTimeout(() => setSaveStatus(''), 5000);
+    } catch (error) {
+      setSaveStatus(`❌ Error detecting Ollama: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setTimeout(() => setSaveStatus(''), 5000);
+    }
   };
 
   const [systemInfo, setSystemInfo] = useState({
@@ -749,14 +794,25 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
                     </Select>
                   </div>
 
-                  <Button
-                    onClick={() => testOllamaConnection()}
-                    disabled={!settings.enableOllama}
-                    className="modern-button bg-replit-blue hover:bg-replit-blue-secondary"
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Test Connection
-                  </Button>
+                  <div className="flex space-x-2">
+                    <Button
+                      onClick={() => detectOllama()}
+                      className="modern-button bg-green-600 hover:bg-green-700"
+                      data-testid="button-detect-ollama"
+                    >
+                      <Search className="w-4 h-4 mr-2" />
+                      Detect Ollama
+                    </Button>
+                    <Button
+                      onClick={() => testOllamaConnection()}
+                      disabled={!settings.enableOllama}
+                      className="modern-button bg-replit-blue hover:bg-replit-blue-secondary"
+                      data-testid="button-test-ollama"
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Test Connection
+                    </Button>
+                  </div>
                 </div>
               </div>
 

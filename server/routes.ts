@@ -3985,6 +3985,29 @@ Please provide a JSON response with this exact structure:
   app.use('/api/workspace/:id/git', ContextMiddleware.trackGitOperation);
   app.use('/api/settings', ContextMiddleware.trackConfiguration);
 
+  // Test Ollama connection endpoint
+  app.post("/api/ai/test-ollama", async (req, res) => {
+    try {
+      const { url, model } = req.body;
+      
+      if (!url || !model) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "URL and model are required" 
+        });
+      }
+      
+      const result = await aiService.testOllamaConnection(url, model);
+      res.json(result);
+    } catch (error) {
+      console.error("Ollama test error:", error);
+      res.status(500).json({ 
+        success: false, 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
   // AI-powered project structure generation
   app.post("/api/projects/generate-structure", async (req, res) => {
     try {
