@@ -4249,6 +4249,70 @@ Please provide a JSON response with this exact structure:
     }
   });
 
+  // Shutdown Ollama service endpoint
+  app.post("/api/ai/ollama/shutdown", async (req, res) => {
+    try {
+      console.log('🛑 [Ollama] Shutdown request received');
+      
+      // Try to gracefully shutdown Ollama service
+      const { exec } = require('child_process');
+      const { promisify } = require('util');
+      const execAsync = promisify(exec);
+      
+      let shutdownResult = { success: false, message: '', method: '' };
+      
+      // Try different shutdown methods for different platforms
+      if (process.platform === 'win32') {
+        // Windows - try to kill Ollama processes
+        try {
+          await execAsync('taskkill /f /im ollama.exe');
+          shutdownResult = { success: true, message: 'Ollama service stopped successfully', method: 'taskkill' };
+          console.log('🛑 [Ollama] Windows service stopped via taskkill');
+        } catch (error) {
+          try {
+            // Try stopping the service if it's installed as a service
+            await execAsync('net stop ollama');
+            shutdownResult = { success: true, message: 'Ollama service stopped successfully', method: 'net stop' };
+            console.log('🛑 [Ollama] Windows service stopped via net stop');
+          } catch (serviceError) {
+            console.log('🛑 [Ollama] No running Ollama processes found');
+            shutdownResult = { success: true, message: 'No running Ollama processes found', method: 'none' };
+          }
+        }
+      } else {
+        // Unix-like systems (Linux, macOS)
+        try {
+          await execAsync('pkill -f ollama');
+          shutdownResult = { success: true, message: 'Ollama service stopped successfully', method: 'pkill' };
+          console.log('🛑 [Ollama] Unix service stopped via pkill');
+        } catch (error) {
+          console.log('🛑 [Ollama] No running Ollama processes found');
+          shutdownResult = { success: true, message: 'No running Ollama processes found', method: 'none' };
+        }
+      }
+
+      // Update AI service status to reflect shutdown
+      if (aiService.updateOllamaStatus) {
+        aiService.updateOllamaStatus('disconnected');
+      }
+
+      res.json({
+        success: shutdownResult.success,
+        message: shutdownResult.message,
+        method: shutdownResult.method,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (error) {
+      console.error('🛑 [Ollama] Shutdown error:', error);
+      res.status(500).json({ 
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+        message: "Failed to shutdown Ollama service"
+      });
+    }
+  });
+
   // Update Ollama configuration endpoint
   app.post("/api/ai/update-ollama-config", async (req, res) => {
     try {

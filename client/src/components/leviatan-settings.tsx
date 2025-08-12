@@ -16,7 +16,9 @@ import {
   RefreshCw,
   Check,
   AlertTriangle,
-  Info
+  Info,
+  Power,
+  Square
 } from "lucide-react";
 
 export const LeviatanSettings = ({ currentProject }: { currentProject: string }) => {
@@ -59,6 +61,60 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
 
   const [saveStatus, setSaveStatus] = useState<string>('');
   const [ollamaStatus, setOllamaStatus] = useState<'unknown' | 'connected' | 'disconnected'>('unknown');
+  const [ollamaServiceStatus, setOllamaServiceStatus] = useState<'running' | 'stopped' | 'unknown'>('unknown');
+
+  const shutdownOllama = async () => {
+    try {
+      setSaveStatus('Shutting down Ollama service...');
+      const response = await fetch('/api/ai/ollama/shutdown', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        setSaveStatus('Ollama service shutdown successfully');
+        setOllamaStatus('disconnected');
+        setOllamaServiceStatus('stopped');
+        setTimeout(() => setSaveStatus(''), 3000);
+      } else {
+        setSaveStatus(`Failed to shutdown Ollama: ${result.message}`);
+        setTimeout(() => setSaveStatus(''), 5000);
+      }
+    } catch (error) {
+      setSaveStatus('Error shutting down Ollama service');
+      setTimeout(() => setSaveStatus(''), 5000);
+    }
+  };
+
+  const disableOllama = async () => {
+    try {
+      setSaveStatus('Disabling Ollama integration...');
+      
+      // Update settings to disable Ollama
+      const updatedSettings = { ...settings, enableOllama: false, aiMode: 'chatgpt-only' };
+      setSettings(updatedSettings);
+      
+      // Save settings to server
+      const response = await fetch(`/api/workspace/${currentProject}/settings`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedSettings)
+      });
+      
+      if (response.ok) {
+        setSaveStatus('Ollama integration disabled successfully');
+        setTimeout(() => setSaveStatus(''), 3000);
+      } else {
+        setSaveStatus('Failed to save Ollama settings');
+        setTimeout(() => setSaveStatus(''), 3000);
+      }
+    } catch (error) {
+      setSaveStatus('Error disabling Ollama integration');
+      setTimeout(() => setSaveStatus(''), 3000);
+    }
+  };
 
   const testOllamaConnection = async () => {
     try {
@@ -831,7 +887,7 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
                     </Select>
                   </div>
 
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-2 flex-wrap">
                     <Button
                       onClick={() => detectOllama()}
                       className="modern-button bg-green-600 hover:bg-green-700"
@@ -849,6 +905,30 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
                       <RefreshCw className="w-4 h-4 mr-2" />
                       Test Connection
                     </Button>
+                    <Button
+                      onClick={disableOllama}
+                      className="modern-button bg-orange-600 hover:bg-orange-700"
+                      data-testid="button-disable-ollama"
+                    >
+                      <Square className="w-4 h-4 mr-2" />
+                      Disable Integration
+                    </Button>
+                    <Button
+                      onClick={shutdownOllama}
+                      className="modern-button bg-red-600 hover:bg-red-700"
+                      data-testid="button-shutdown-ollama"
+                    >
+                      <Power className="w-4 h-4 mr-2" />
+                      Shutdown Service
+                    </Button>
+                  </div>
+
+                  <div className="bg-blue-500/20 border border-blue-500/50 rounded-lg p-3 mt-4">
+                    <div className="text-blue-400 text-sm">
+                      <strong>Service Control:</strong><br/>
+                      • <strong>Disable Integration:</strong> Turn off Ollama in LeviatanCode, switch to ChatGPT only<br/>
+                      • <strong>Shutdown Service:</strong> Stop the Ollama service completely to free resources
+                    </div>
                   </div>
                 </div>
               </div>
