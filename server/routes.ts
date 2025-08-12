@@ -2732,9 +2732,8 @@ Analysis target: ${scriptDir}
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          projectId,
-          projectPath: analysisDir || ".",
-          analysisType: analysisType || "comprehensive",
+          project_path: analysisDir || ".",
+          analysis_type: analysisType || "comprehensive",
           generateScript: generateScript || false
         })
       });
@@ -2769,9 +2768,8 @@ Analysis target: ${scriptDir}
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          projectId,
-          projectPath,
-          analysisType: 'file_structure'
+          project_path: projectPath,
+          analysis_type: 'file_structure'
         })
       });
       
