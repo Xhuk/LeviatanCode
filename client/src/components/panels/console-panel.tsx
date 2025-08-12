@@ -27,7 +27,8 @@ export function ConsolePanel({ projectId }: ConsolePanelProps) {
     const connectWebSocket = () => {
       try {
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-        const wsUrl = `${protocol}//${window.location.host}/ws/console`;
+        const host = window.location.host || 'localhost:5005';
+        const wsUrl = `${protocol}//${host}/ws/console`;
         const ws = new WebSocket(wsUrl);
         
         ws.onopen = () => {

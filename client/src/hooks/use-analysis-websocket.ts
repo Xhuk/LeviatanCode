@@ -25,7 +25,8 @@ export function useAnalysisWebSocket(projectId: string) {
   useEffect(() => {
     // Create WebSocket connection
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const host = window.location.host || 'localhost:5005';
+    const wsUrl = `${protocol}//${host}/ws`;
     
     console.log('📡 Connecting to WebSocket for analysis updates:', wsUrl);
     

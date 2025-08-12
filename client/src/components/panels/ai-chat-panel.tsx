@@ -23,8 +23,9 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: chats = [] } = useQuery<AiMessage[]>({
+  const { data: chats = [], isLoading, error } = useQuery<AiMessage[]>({
     queryKey: [`/api/projects/${projectId}/ai-chats`],
+    select: (data) => Array.isArray(data) ? data : [],
   });
 
   const sendMessageMutation = useMutation({
@@ -61,7 +62,24 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
       {/* Chat Messages */}
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
-          {chats.length === 0 ? (
+          {error ? (
+            <div className="flex flex-col items-center justify-center h-48 text-center">
+              <Bot className="w-12 h-12 text-red-400 mb-4" />
+              <h3 className="text-sm font-medium text-red-400 mb-2">
+                Error loading chat history
+              </h3>
+              <p className="text-xs text-replit-text-muted max-w-xs">
+                Unable to connect to chat service
+              </p>
+            </div>
+          ) : isLoading ? (
+            <div className="flex flex-col items-center justify-center h-48 text-center">
+              <Bot className="w-12 h-12 text-replit-text-muted mb-4 animate-pulse" />
+              <h3 className="text-sm font-medium text-replit-text-secondary mb-2">
+                Loading chat history...
+              </h3>
+            </div>
+          ) : chats.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-center">
               <Bot className="w-12 h-12 text-replit-text-muted mb-4" />
               <h3 className="text-sm font-medium text-replit-text-secondary mb-2">

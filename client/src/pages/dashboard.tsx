@@ -73,7 +73,7 @@ const Logger = () => {
 
   useEffect(() => {
     // WebSocket connection for real-time logs
-    const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`);
+    const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host || 'localhost:5005'}/ws`);
     
     ws.onopen = () => {
       setIsConnected(true);
@@ -1128,7 +1128,7 @@ const FileAnalysis = ({ currentProject }: { currentProject: string }) => {
         <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
           <h3 className="text-lg font-medium text-replit-text mb-4">Language Distribution</h3>
           <div className="space-y-3">
-            {analysisResults.languages.map((lang) => (
+            {analysisResults.languages.map((lang: any) => (
               <div key={lang.name} className="flex items-center space-x-4">
                 <div className="w-24 text-sm text-replit-text">{lang.name}</div>
                 <div className="flex-1 bg-replit-elevated rounded-full h-3 relative">
@@ -1458,7 +1458,7 @@ const FileEditor = ({ activeFile, fileName }: { activeFile: string | null; fileN
             colorDecorators: true,
             codeLens: true,
             lightbulb: {
-              enabled: "on"
+              enabled: true
             }
           }}
           loading={<div className="flex items-center justify-center h-full text-replit-text">Loading editor...</div>}
