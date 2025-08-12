@@ -23,10 +23,23 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: chats = [], isLoading, error } = useQuery<AiMessage[]>({
+  const { data: chatsData = [], isLoading, error } = useQuery<AiMessage[]>({
     queryKey: [`/api/projects/${projectId}/ai-chats`],
-    select: (data) => Array.isArray(data) ? data : [],
   });
+
+  // Ensure chats is always an array with debugging
+  const chats = (() => {
+    console.log('AI Chat Panel - Raw data:', chatsData);
+    console.log('AI Chat Panel - Is array?', Array.isArray(chatsData));
+    console.log('AI Chat Panel - Type:', typeof chatsData);
+    
+    if (Array.isArray(chatsData)) {
+      return chatsData;
+    }
+    
+    console.warn('AI Chat Panel - Data is not an array, falling back to empty array');
+    return [];
+  })();
 
   const sendMessageMutation = useMutation({
     mutationFn: async (message: string) => {
@@ -90,7 +103,7 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
               </p>
             </div>
           ) : (
-            chats.map((chat) => (
+            (Array.isArray(chats) ? chats : []).map((chat) => (
               <div key={chat.id} className={`flex ${chat.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] rounded-lg p-3 ${
                   chat.role === 'user' 
