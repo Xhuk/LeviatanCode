@@ -16,7 +16,13 @@ Architecture preference: Dual-service setup with main app + Flask analyzer for c
 Theme implementation: Comprehensive light/dark mode for entire application (completed January 2025)
 Startup scripts: Enhanced Python scripts with encrypted vault as primary config source (January 2025)
 Secrets management: Encrypted vault with master password protection replaces .env files for secure local storage
-AI Integration: Dual AI system with Ollama Llama3 worker integration for development tasks (January 2025)
+AI Integration: Unified AI interface with intelligent routing (January 2025)
+- **Unified AI Panel**: Single interface replacing separate AI Chat and Developer Agent components
+- **Intelligent Routing**: Automatically detects whether user input requires chat conversation or development tasks
+- **Mode Selection**: Manual override with Auto-Detect, Chat Only, or Development Only modes
+- **Smart Classification**: Keywords and context analysis determines optimal AI service routing
+- **Agent Status System**: Real-time status indicators (Working, Creating, Reviewing, Editing, Executing, Analyzing, Debugging)
+- **Dual AI System**: Ollama Llama3 for local processing, ChatGPT for complex architectural tasks
 
 # System Architecture
 

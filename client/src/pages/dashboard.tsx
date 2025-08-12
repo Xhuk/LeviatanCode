@@ -57,8 +57,7 @@ import { ProjectInsightsSaveButton } from "@/components/project-insights-save-bu
 import { AiDocumentAnalysisDialog } from "@/components/ai-document-analysis-dialog";
 import { VaultExplorer } from "@/components/vault-explorer";
 import { LeviatanSettings } from "@/components/leviatan-settings";
-import { AiChatPanel } from "@/components/panels/ai-chat-panel";
-import { DeveloperAgent } from "@/components/developer-agent";
+import { UnifiedAiPanel } from "@/components/panels/unified-ai-panel";
 import { ContextPanel } from "@/components/context-panel";
 import { NewProjectDialog } from "@/components/new-project-dialog";
 import { CostCalculatorMonitor } from "@/components/cost-monitor/CostCalculatorMonitor";
@@ -2006,8 +2005,8 @@ export default function Dashboard() {
                 <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "file-analysis" ? "active" : ""}`} onClick={() => setActiveTab("file-analysis")}>
                   <FileText className="w-4 h-4" />
                 </Button>
-                <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "developer-agent" ? "active" : ""}`} onClick={() => setActiveTab("developer-agent")}>
-                  <Code className="w-4 h-4" />
+                <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "ai-assistant" ? "active" : ""}`} onClick={() => setActiveTab("ai-assistant")}>
+                  <Bot className="w-4 h-4" />
                 </Button>
                 <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "git-management" ? "active" : ""}`} onClick={() => setActiveTab("git-management")}>
                   <GitBranch className="w-4 h-4" />
@@ -2060,14 +2059,14 @@ export default function Dashboard() {
 
                 <Button 
                   variant="ghost" 
-                  className={`agent-tool-button w-full justify-start gap-3 p-3 h-auto ${activeTab === "developer-agent" ? "active" : ""}`}
-                  onClick={() => setActiveTab("developer-agent")}
-                  title="AI-powered development assistant"
+                  className={`agent-tool-button w-full justify-start gap-3 p-3 h-auto ${activeTab === "ai-assistant" ? "active" : ""}`}
+                  onClick={() => setActiveTab("ai-assistant")}
+                  title="Unified AI assistant for chat and development"
                 >
-                  <Code className="w-5 h-5" />
+                  <Bot className="w-5 h-5" />
                   <div className="text-left">
-                    <div className="font-medium text-sm">Developer Agent</div>
-                    <div className="text-xs text-replit-text-secondary">AI assistant for code tasks</div>
+                    <div className="font-medium text-sm">AI Assistant</div>
+                    <div className="text-xs text-replit-text-secondary">Chat & development tasks</div>
                   </div>
                 </Button>
 
@@ -2221,7 +2220,7 @@ export default function Dashboard() {
                 <Bot className="w-6 h-6 text-replit-text-secondary" />
               </div>
             ) : (
-              <AiChatPanel projectId={currentProject} />
+              <UnifiedAiPanel projectId={currentProject} />
             )}
           </div>
         </div>
@@ -2302,10 +2301,10 @@ export default function Dashboard() {
               </TabsContent>
             )}
             
-            {activeTab === "developer-agent" && (
-              <TabsContent value="developer-agent" className="flex-1 m-0">
-                <div className="h-full bg-replit-panel p-4">
-                  <DeveloperAgent />
+            {activeTab === "ai-assistant" && (
+              <TabsContent value="ai-assistant" className="flex-1 m-0">
+                <div className="h-full bg-replit-panel">
+                  <UnifiedAiPanel projectId={currentProject} />
                 </div>
               </TabsContent>
             )}

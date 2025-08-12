@@ -4113,6 +4113,125 @@ Please provide a JSON response with this exact structure:
     });
   });
 
+  // Developer Agent Execute endpoint for unified panel
+  app.post('/api/developer-agent/execute', async (req, res) => {
+    try {
+      const { instruction, projectId } = req.body;
+
+      if (!instruction?.trim()) {
+        return res.status(400).json({ error: 'Instruction is required' });
+      }
+
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(400).json({ error: 'OpenAI API key not configured' });
+      }
+
+      const messages = [
+        {
+          role: 'system' as const,
+          content: `You are a helpful developer agent for project "${projectId}". Use tools to read, write, and modify files as needed. Be precise and explain what you are doing. Focus on implementing the user's instruction effectively.`
+        },
+        {
+          role: 'user' as const,
+          content: instruction
+        }
+      ];
+
+      const startTime = Date.now();
+      const logs: string[] = [];
+
+      // Execute via the existing agent endpoint logic
+      const { default: OpenAI } = await import('openai');
+      const openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+      });
+
+      const toolDefs = Object.keys(agentTools).map(name => ({
+        type: 'function' as const,
+        function: { 
+          name, 
+          description: `Tool: ${name}`,
+          parameters: { 
+            type: 'object', 
+            properties: {}, 
+            additionalProperties: true 
+          } 
+        }
+      }));
+
+      let history = messages;
+      let finalResponse = '';
+      const toolCalls: any[] = [];
+
+      // Allow up to 6 tool iterations for development tasks
+      for (let i = 0; i < 6; i++) {
+        const completion = await openai.chat.completions.create({
+          model: 'gpt-4o-mini',
+          messages: history,
+          tools: toolDefs,
+        });
+
+        const message = completion.choices[0].message;
+        const toolCall = message.tool_calls?.[0];
+        
+        if (!toolCall) {
+          // No more tools to call, capture final response
+          finalResponse = message.content || 'Task completed successfully';
+          logs.push(`✅ ${finalResponse}`);
+          break;
+        }
+
+        let result: any;
+        try {
+          const args = toolCall.function.arguments ? JSON.parse(toolCall.function.arguments) : {};
+          logs.push(`🔧 Using tool: ${toolCall.function.name}`);
+          
+          // @ts-ignore - Dynamic tool execution
+          result = await agentTools[toolCall.function.name as keyof typeof agentTools](args);
+          logs.push(`✅ Tool ${toolCall.function.name} completed`);
+        } catch (error: any) {
+          result = { error: error.message || String(error) };
+          logs.push(`❌ Tool ${toolCall.function.name} failed: ${error.message || String(error)}`);
+        }
+
+        toolCalls.push({
+          name: toolCall.function.name,
+          arguments: toolCall.function.arguments,
+          result
+        });
+
+        // Add the tool call and result to history
+        history = [
+          ...history, 
+          message, 
+          { 
+            role: 'tool' as const, 
+            name: toolCall.function.name, 
+            content: JSON.stringify(result), 
+            tool_call_id: toolCall.id 
+          }
+        ];
+      }
+
+      const executionTime = Date.now() - startTime;
+
+      res.json({
+        response: finalResponse,
+        logs,
+        toolCalls,
+        executionTime,
+        success: true
+      });
+
+    } catch (error: any) {
+      console.error('Developer Agent Execute error:', error);
+      res.status(500).json({ 
+        error: error.message || 'Agent execution failed',
+        success: false 
+      });
+    }
+  });
+
   // Apply context middleware to track actions
   app.use('/api', ContextMiddleware.initializeContext);
 
