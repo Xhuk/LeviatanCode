@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAnalysisWebSocket } from "@/hooks/use-analysis-websocket";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Loader2, FileText, Code, Database, Brain, CheckCircle, AlertCircle } from "lucide-react";
+import { Sparkles, Loader2, FileText, Code, Database, Brain, CheckCircle, AlertCircle, Clock } from "lucide-react";
 
 interface DocumentAnalysisResult {
   summary: string;
@@ -61,6 +61,13 @@ export function AiDocumentAnalysisDialog({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  // Progress tracking state
+  const [progressState, setProgressState] = useState({
+    pythonAnalysis: { completed: false, inProgress: false },
+    fileSystemAnalysis: { completed: false, inProgress: false },
+    replitMdIntegration: { completed: false, inProgress: false }
+  });
+  
   // WebSocket connection for real-time analysis updates
   const { updates, isConnected, currentStatus, clearUpdates, latestUpdate } = useAnalysisWebSocket(projectId);
 
@@ -90,14 +97,60 @@ export function AiDocumentAnalysisDialog({
     },
   });
 
-  const handleAnalyze = () => {
-    analysisMutation.mutate();
-  };
-
   const resetAnalysis = () => {
     setAnalysisResult(null);
     setGenerateScript(false);
+    setProgressState({
+      pythonAnalysis: { completed: false, inProgress: false },
+      fileSystemAnalysis: { completed: false, inProgress: false },
+      replitMdIntegration: { completed: false, inProgress: false }
+    });
     clearUpdates();
+  };
+
+  // Update progress based on WebSocket updates
+  useEffect(() => {
+    if (latestUpdate) {
+      const newProgressState = { ...progressState };
+      
+      switch (latestUpdate.status) {
+        case 'project_scanning_start':
+        case 'flask_analysis_start':
+          newProgressState.fileSystemAnalysis = { completed: false, inProgress: true };
+          break;
+        case 'flask_analysis_complete':
+        case 'loaded_existing':
+          newProgressState.fileSystemAnalysis = { completed: true, inProgress: false };
+          if (generateScript) {
+            newProgressState.pythonAnalysis = { completed: false, inProgress: true };
+          }
+          break;
+        case 'ai_analysis_start':
+          newProgressState.pythonAnalysis = { completed: false, inProgress: true };
+          break;
+        case 'ai_analysis_complete':
+          newProgressState.pythonAnalysis = { completed: true, inProgress: false };
+          newProgressState.replitMdIntegration = { completed: false, inProgress: true };
+          break;
+        case 'replit_md_updated':
+          newProgressState.replitMdIntegration = { completed: true, inProgress: false };
+          break;
+      }
+      
+      setProgressState(newProgressState);
+    }
+  }, [latestUpdate, generateScript, progressState]);
+
+  // Start analysis and set initial progress
+  const handleAnalyze = () => {
+    // Reset and start progress tracking
+    setProgressState({
+      pythonAnalysis: { completed: false, inProgress: false },
+      fileSystemAnalysis: { completed: false, inProgress: true },
+      replitMdIntegration: { completed: false, inProgress: false }
+    });
+    
+    analysisMutation.mutate();
   };
 
   return (
@@ -151,34 +204,81 @@ export function AiDocumentAnalysisDialog({
               <CardContent className="space-y-4">
                 <div className="space-y-3">
                   <div className="space-y-3">
+                    {/* Python Analysis Script */}
                     <div className="flex items-center space-x-3">
-                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center border border-green-400 dark:border-green-600">
-                        <span className="text-white text-xs">✓</span>
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${
+                        progressState.pythonAnalysis.completed 
+                          ? 'bg-green-500 border-green-400 dark:border-green-600' 
+                          : progressState.pythonAnalysis.inProgress
+                          ? 'bg-blue-500 border-blue-400 dark:border-blue-600 animate-pulse'
+                          : 'bg-gray-300 border-gray-400 dark:bg-gray-600 dark:border-gray-500'
+                      }`}>
+                        {progressState.pythonAnalysis.completed ? (
+                          <CheckCircle className="w-3 h-3 text-white" />
+                        ) : progressState.pythonAnalysis.inProgress ? (
+                          <Loader2 className="w-3 h-3 text-white animate-spin" />
+                        ) : (
+                          <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+                        )}
                       </div>
                       <div>
-                        <div className="font-medium">Python Analysis Script</div>
+                        <div className={`font-medium ${progressState.pythonAnalysis.completed ? 'text-green-700 dark:text-green-300' : progressState.pythonAnalysis.inProgress ? 'text-blue-700 dark:text-blue-300' : ''}`}>
+                          Python Analysis Script
+                        </div>
                         <div className="text-sm text-muted-foreground">
                           Automatically creates a comprehensive Python script for project analysis with Gemini AI integration
                         </div>
                       </div>
                     </div>
+                    
+                    {/* File System Analysis */}
                     <div className="flex items-center space-x-3">
-                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center border border-green-400 dark:border-green-600">
-                        <span className="text-white text-xs">✓</span>
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${
+                        progressState.fileSystemAnalysis.completed 
+                          ? 'bg-green-500 border-green-400 dark:border-green-600' 
+                          : progressState.fileSystemAnalysis.inProgress
+                          ? 'bg-blue-500 border-blue-400 dark:border-blue-600 animate-pulse'
+                          : 'bg-gray-300 border-gray-400 dark:bg-gray-600 dark:border-gray-500'
+                      }`}>
+                        {progressState.fileSystemAnalysis.completed ? (
+                          <CheckCircle className="w-3 h-3 text-white" />
+                        ) : progressState.fileSystemAnalysis.inProgress ? (
+                          <Loader2 className="w-3 h-3 text-white animate-spin" />
+                        ) : (
+                          <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+                        )}
                       </div>
                       <div>
-                        <div className="font-medium">File System Analysis</div>
+                        <div className={`font-medium ${progressState.fileSystemAnalysis.completed ? 'text-green-700 dark:text-green-300' : progressState.fileSystemAnalysis.inProgress ? 'text-blue-700 dark:text-blue-300' : ''}`}>
+                          File System Analysis
+                        </div>
                         <div className="text-sm text-muted-foreground">
                           Scans project files, detects technologies, and creates detailed file trees
                         </div>
                       </div>
                     </div>
+                    
+                    {/* Replit.md Integration */}
                     <div className="flex items-center space-x-3">
-                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center border border-green-400 dark:border-green-600">
-                        <span className="text-white text-xs">✓</span>
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${
+                        progressState.replitMdIntegration.completed 
+                          ? 'bg-green-500 border-green-400 dark:border-green-600' 
+                          : progressState.replitMdIntegration.inProgress
+                          ? 'bg-blue-500 border-blue-400 dark:border-blue-600 animate-pulse'
+                          : 'bg-gray-300 border-gray-400 dark:bg-gray-600 dark:border-gray-500'
+                      }`}>
+                        {progressState.replitMdIntegration.completed ? (
+                          <CheckCircle className="w-3 h-3 text-white" />
+                        ) : progressState.replitMdIntegration.inProgress ? (
+                          <Loader2 className="w-3 h-3 text-white animate-spin" />
+                        ) : (
+                          <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+                        )}
                       </div>
                       <div>
-                        <div className="font-medium">Replit.md Integration</div>
+                        <div className={`font-medium ${progressState.replitMdIntegration.completed ? 'text-green-700 dark:text-green-300' : progressState.replitMdIntegration.inProgress ? 'text-blue-700 dark:text-blue-300' : ''}`}>
+                          Replit.md Integration
+                        </div>
                         <div className="text-sm text-muted-foreground">
                           Updates your replit.md file with project insights for enhanced AI context awareness
                         </div>
