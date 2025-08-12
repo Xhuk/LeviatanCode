@@ -48,7 +48,8 @@ import {
   Copy,
   Bot,
   Plus,
-  FolderPlus
+  FolderPlus,
+  Layers
 } from "lucide-react";
 import { ProjectImportDialog } from "@/components/project-import-dialog";
 import { SettingsDialog } from "@/components/settings-dialog";
@@ -61,6 +62,7 @@ import { DeveloperAgent } from "@/components/developer-agent";
 import { ContextPanel } from "@/components/context-panel";
 import { NewProjectDialog } from "@/components/new-project-dialog";
 import { CostCalculatorMonitor } from "@/components/cost-monitor/CostCalculatorMonitor";
+import { ArtifactAnalysisPanel } from "@/components/panels/artifact-analysis-panel";
 
 
 // Logger component with WebSocket integration
@@ -2025,6 +2027,9 @@ export default function Dashboard() {
                 <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "configuration" ? "active" : ""}`} onClick={() => setActiveTab("configuration")}>
                   <Key className="w-4 h-4" />
                 </Button>
+                <Button variant="ghost" size="sm" className={`agent-tool-button w-full h-10 p-2 flex items-center justify-center ${activeTab === "artifact-analysis" ? "active" : ""}`} onClick={() => setActiveTab("artifact-analysis")}>
+                  <Layers className="w-4 h-4" />
+                </Button>
 
               </div>
             ) : (
@@ -2130,6 +2135,19 @@ export default function Dashboard() {
                   <div className="text-left">
                     <div className="font-medium text-sm">Vault Explorer</div>
                     <div className="text-xs text-replit-text-secondary">Manage secrets and credentials</div>
+                  </div>
+                </Button>
+                
+                <Button 
+                  variant="ghost" 
+                  className={`agent-tool-button w-full justify-start gap-3 p-3 h-auto ${activeTab === "artifact-analysis" ? "active" : ""}`}
+                  onClick={() => setActiveTab("artifact-analysis")}
+                  title="Analyze and generate code patterns"
+                >
+                  <Layers className="w-5 h-5" />
+                  <div className="text-left">
+                    <div className="font-medium text-sm">Artifact Analysis</div>
+                    <div className="text-xs text-replit-text-secondary">Pattern library & code generation</div>
                   </div>
                 </Button>
 
@@ -2307,6 +2325,12 @@ export default function Dashboard() {
             {activeTab === "leviatan-settings" && (
               <TabsContent value="leviatan-settings" className="flex-1 m-0">
                 <LeviatanSettings currentProject={currentProject} />
+              </TabsContent>
+            )}
+            
+            {activeTab === "artifact-analysis" && (
+              <TabsContent value="artifact-analysis" className="flex-1 m-0">
+                <ArtifactAnalysisPanel currentProject={currentProject} />
               </TabsContent>
             )}
             

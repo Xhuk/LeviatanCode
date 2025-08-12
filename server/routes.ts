@@ -554,6 +554,218 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get file content by file path
+  app.get("/api/files/content", async (req, res) => {
+    try {
+      const { filePath } = req.query;
+      
+      if (!filePath || typeof filePath !== 'string') {
+        return res.status(400).json({ message: "File path is required" });
+      }
+
+      // Security check - ensure the path is within allowed directories
+      const resolvedPath = path.resolve(filePath);
+      const workspacePath = path.resolve('.');
+      
+      if (!resolvedPath.startsWith(workspacePath)) {
+        return res.status(403).json({ message: "Access denied to file outside workspace" });
+      }
+
+      // Check if file exists and is accessible
+      if (!fs.existsSync(resolvedPath)) {
+        return res.status(404).json({ message: "File not found" });
+      }
+
+      const stat = fs.statSync(resolvedPath);
+      if (!stat.isFile()) {
+        return res.status(400).json({ message: "Path is not a file" });
+      }
+
+      // Check file size (limit to 10MB)
+      if (stat.size > 10 * 1024 * 1024) {
+        return res.status(413).json({ message: "File too large" });
+      }
+
+      // Read file content
+      const content = fs.readFileSync(resolvedPath, 'utf-8');
+      res.json({ content, filePath });
+    } catch (error) {
+      console.error("Error reading file:", error);
+      res.status(500).json({ message: "Failed to read file content" });
+    }
+  });
+
+  // Artifact Analysis API
+  app.post("/api/artifact-analysis/extract", async (req, res) => {
+    try {
+      const { projectPath, analysisType = 'patterns', extractionRules } = req.body;
+
+      if (!projectPath) {
+        return res.status(400).json({ message: "Project path is required" });
+      }
+
+      // Security check - ensure the path is within allowed directories
+      const resolvedPath = path.resolve(projectPath);
+      const workspacePath = path.resolve('.');
+      
+      if (!resolvedPath.startsWith(workspacePath)) {
+        return res.status(403).json({ message: "Access denied to path outside workspace" });
+      }
+
+      if (!fs.existsSync(resolvedPath)) {
+        return res.status(404).json({ message: "Project path not found" });
+      }
+
+      // Read existing insights to get project metadata
+      let projectInsights = null;
+      try {
+        projectInsights = await InsightsFileService.read(resolvedPath);
+      } catch (error) {
+        console.log("No existing insights found, will analyze structure directly");
+      }
+
+      // Extract patterns based on analysis type
+      const patterns = [];
+      const components = [];
+      const structures = [];
+
+      const scanForPatterns = (dir: string) => {
+        try {
+          const items = fs.readdirSync(dir);
+          
+          for (const item of items) {
+            const fullPath = path.join(dir, item);
+            const stat = fs.statSync(fullPath);
+            
+            if (item.includes('node_modules') || item.includes('.git') || item.includes('dist')) {
+              continue;
+            }
+            
+            if (stat.isDirectory()) {
+              scanForPatterns(fullPath);
+            } else if (stat.isFile()) {
+              const ext = path.extname(item).toLowerCase();
+              const relativePath = path.relative(resolvedPath, fullPath);
+              
+              // Extract React components
+              if (['.tsx', '.jsx'].includes(ext)) {
+                try {
+                  const content = fs.readFileSync(fullPath, 'utf-8');
+                  
+                  // Look for component patterns
+                  const componentMatches = content.match(/(?:export\s+(?:default\s+)?(?:function\s+(\w+)|const\s+(\w+)\s*=)|function\s+(\w+)\s*\()/g);
+                  const hookMatches = content.match(/use[A-Z]\w*/g);
+                  const importMatches = content.match(/import\s+.*?\s+from\s+['"]([^'"]+)['"]/g);
+                  
+                  if (componentMatches) {
+                    components.push({
+                      name: item,
+                      path: relativePath,
+                      type: 'react-component',
+                      patterns: componentMatches,
+                      hooks: hookMatches || [],
+                      imports: importMatches || [],
+                      size: stat.size,
+                      linesOfCode: content.split('\n').length
+                    });
+                  }
+                } catch (err) {
+                  console.log(`Could not read file ${fullPath}`);
+                }
+              }
+              
+              // Extract API patterns
+              if (['.ts', '.js'].includes(ext) && (relativePath.includes('api') || relativePath.includes('route'))) {
+                try {
+                  const content = fs.readFileSync(fullPath, 'utf-8');
+                  const apiPatterns = content.match(/app\.(get|post|put|delete|patch)\s*\(/g);
+                  const middlewarePatterns = content.match(/use\s*\(/g);
+                  
+                  if (apiPatterns) {
+                    patterns.push({
+                      name: item,
+                      path: relativePath,
+                      type: 'api-endpoints',
+                      patterns: apiPatterns,
+                      middleware: middlewarePatterns || [],
+                      size: stat.size
+                    });
+                  }
+                } catch (err) {
+                  console.log(`Could not read file ${fullPath}`);
+                }
+              }
+              
+              // Extract configuration patterns
+              if (['package.json', 'tsconfig.json', 'vite.config.ts', 'tailwind.config.ts'].includes(item)) {
+                try {
+                  const content = fs.readFileSync(fullPath, 'utf-8');
+                  structures.push({
+                    name: item,
+                    path: relativePath,
+                    type: 'configuration',
+                    content: content.length > 5000 ? content.substring(0, 5000) + '...' : content,
+                    size: stat.size
+                  });
+                } catch (err) {
+                  console.log(`Could not read file ${fullPath}`);
+                }
+              }
+            }
+          }
+        } catch (err) {
+          console.log(`Could not scan directory ${dir}`);
+        }
+      };
+
+      scanForPatterns(resolvedPath);
+
+      // Generate artifact analysis report
+      const analysis = {
+        projectPath,
+        analysisType,
+        timestamp: new Date().toISOString(),
+        metadata: {
+          totalComponents: components.length,
+          totalPatterns: patterns.length,
+          totalStructures: structures.length,
+          projectInsights: projectInsights ? {
+            technologies: projectInsights.technologies,
+            totalFiles: projectInsights.totalFiles,
+            lastAnalyzed: projectInsights.lastAnalyzed
+          } : null
+        },
+        extraction: {
+          components,
+          patterns,
+          structures
+        },
+        recommendations: [
+          components.length > 0 ? `Found ${components.length} React components that could be reused as templates` : null,
+          patterns.length > 0 ? `Identified ${patterns.length} API patterns for backend development` : null,
+          structures.length > 0 ? `Extracted ${structures.length} configuration files for project setup` : null
+        ].filter(Boolean)
+      };
+
+      res.json(analysis);
+    } catch (error) {
+      console.error("Error performing artifact analysis:", error);
+      res.status(500).json({ message: "Failed to perform artifact analysis" });
+    }
+  });
+
+  // Get artifact analysis history
+  app.get("/api/artifact-analysis/history", async (req, res) => {
+    try {
+      // For now, return empty array - in a real implementation, this would query a database
+      // of stored artifact analyses
+      res.json([]);
+    } catch (error) {
+      console.error("Error fetching artifact analysis history:", error);
+      res.status(500).json({ message: "Failed to fetch artifact analysis history" });
+    }
+  });
+
   // Project executions (running programs)
   app.get("/api/projects/:id/executions", async (req, res) => {
     try {
