@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Folder, File, Plus, RefreshCw, Search, GitBranch, FolderOpen } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
 
 interface FileTreeItem {
@@ -25,6 +26,7 @@ interface FileExplorerProps {
 export function FileExplorer({ workingDirectory, selectedProject, activeFile, onFileSelect }: FileExplorerProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Get current directory path based on selected project
   const getCurrentDirPath = () => {
@@ -33,7 +35,7 @@ export function FileExplorer({ workingDirectory, selectedProject, activeFile, on
     return `${workingDirectory}/${selectedProject}`;
   };
 
-  const { data: fileTreeData, refetch: refetchFileTree } = useQuery({
+  const { data: fileTreeData, refetch: refetchFileTree, isFetching } = useQuery({
     queryKey: ["/api/settings/file-tree", getCurrentDirPath()],
     queryFn: async () => {
       const dirPath = getCurrentDirPath();
@@ -44,6 +46,15 @@ export function FileExplorer({ workingDirectory, selectedProject, activeFile, on
     },
     enabled: !!getCurrentDirPath(),
   });
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetchFileTree();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const getFileIcon = (fileName: string, isDirectory: boolean = false) => {
     if (isDirectory) {
@@ -182,21 +193,42 @@ export function FileExplorer({ workingDirectory, selectedProject, activeFile, on
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-medium text-replit-text">Files</h3>
           <div className="flex space-x-1">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => refetchFileTree()}
-              className="h-6 w-6 p-0"
-            >
-              <RefreshCw size={12} />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-6 w-6 p-0"
-            >
-              <Plus size={12} />
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={handleRefresh}
+                    disabled={isRefreshing || isFetching}
+                    className="h-6 w-6 p-0 hover:bg-replit-secondary/50"
+                    data-testid="button-refresh-files"
+                  >
+                    <RefreshCw size={12} className={`${isRefreshing || isFetching ? 'animate-spin' : ''}`} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p>Refresh file tree</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 w-6 p-0 hover:bg-replit-secondary/50"
+                    data-testid="button-new-file"
+                  >
+                    <Plus size={12} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p>New file</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
         
