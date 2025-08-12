@@ -4,6 +4,12 @@ LeviatanCode is a comprehensive web-based development environment that can run a
 
 The system features production-ready components such as robust security middleware, secure session management, global error handling, and secure file upload mechanisms. It also includes an advanced agent system with interactive windows for terminal, file analysis, web preview, system monitoring, and database console, alongside a comprehensive Git management system.
 
+## Recent Updates (August 2025)
+- **Unified AI Interface**: Successfully consolidated separate AI Chat and Developer Agent panels into single intelligent interface with automatic task routing
+- **Flask Analyzer Integration**: Fixed parameter compatibility issues, now fully operational for comprehensive project analysis including code quality assessment, technology detection, and AI-powered recommendations
+- **Intelligent Agent Status**: Added real-time status indicators with animated icons showing agent activity (Working, Creating, Reviewing, Editing, Executing, Analyzing, Debugging)
+- **Service Management**: Enhanced Ollama service recovery and Flask analyzer startup coordination for improved reliability
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
