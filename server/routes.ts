@@ -4040,7 +4040,7 @@ Make sure to include realistic, working code for the starter files that follows 
       // Use AI to generate the project structure
       let generatedStructure;
       try {
-        const response = await aiService.generateCompletion([
+        const response = await aiService.generateChatResponse([
           {
             role: "system",
             content: "You are an expert software architect who creates well-structured, production-ready project templates. Always return valid JSON."
@@ -4059,17 +4059,17 @@ Make sure to include realistic, working code for the starter files that follows 
           throw new Error("No valid JSON found in response");
         }
       } catch (parseError) {
-        console.error("Failed to parse AI response:", parseError);
+        logger.error("Failed to parse AI response: " + (parseError as Error).message, "system");
         // Fallback structure based on technologies
         generatedStructure = generateFallbackStructure(name, description, technologies);
       }
 
-      console.log(`✅ Generated structure with ${generatedStructure.files.length} files`);
+      logger.system(`Generated structure with ${generatedStructure.files.length} files`);
       
       res.json(generatedStructure);
       
     } catch (error) {
-      console.error("❌ Error generating project structure:", error);
+      logger.error("Error generating project structure: " + (error as Error).message, "system");
       res.status(500).json({ 
         error: "Structure generation failed", 
         details: error instanceof Error ? error.message : "Unknown error" 

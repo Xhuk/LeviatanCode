@@ -20,6 +20,15 @@ export class AIService {
     model: process.env.OLLAMA_MODEL || 'llama3'
   };
 
+  // Alias for backward compatibility
+  async generateCompletion(
+    messages: ChatMessage[], 
+    model: string = "gpt-4o",
+    aiMode: string = "chatgpt-only"
+  ): Promise<string> {
+    return this.generateChatResponse(messages, model, aiMode);
+  }
+
   async generateChatResponse(
     messages: ChatMessage[], 
     model: string = "gpt-4o",

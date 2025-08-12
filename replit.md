@@ -64,6 +64,13 @@ AI Integration: Dual AI system with Ollama Llama3 worker integration for develop
 - **Visual Consistency**: Professional button interactions with Leviatan green (#22c55e) theming
 - **Middleware Monitor**: Fully functional middleware configuration panel with real-time performance tracking
 
+## Color-Coded Logging System (January 2025)
+- **Service-Specific Colors**: ChatGPT (green 🤖), Gemini (blue ✨), Ollama (magenta 🦙), Flask (cyan 🐍)
+- **Log Level Colors**: Errors (red), warnings (yellow), info (service-specific colors)
+- **Enhanced Debugging**: Clear visual distinction between AI service requests and system operations
+- **Cross-Platform Compatibility**: ANSI color codes work in both Node.js server and Python startup scripts
+- **Consistent Icons**: Each service has distinctive emoji icons for quick visual identification
+
 ## Authentication and Authorization
 - **User Management**: Username/password authentication with bcrypt hashing.
 - **Session Management**: Express sessions with PostgreSQL store.
