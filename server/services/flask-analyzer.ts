@@ -131,6 +131,50 @@ class FlaskAnalyzerService {
     }
   }
 
+  async analyzeProjectChunked(
+    projectPath: string, 
+    chunkSize: number = 1000, 
+    chunkIndex: number = 0
+  ): Promise<FlaskAnalysisResult | null> {
+    try {
+      console.log(`🔄 Analyzing project chunk ${chunkIndex + 1} with Flask: ${projectPath}`);
+      
+      const response = await fetch(`${this.flaskUrl}/analyze`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          project_path: projectPath,
+          chunk_mode: true,
+          chunk_size: chunkSize,
+          chunk_index: chunkIndex
+        }),
+        signal: AbortSignal.timeout(this.timeout)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Flask analyzer returned ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      // Handle chunked response which might have different structure
+      if (result.success && result.analysis && result.analysis.chunk_metadata) {
+        console.log(`✅ Chunk ${chunkIndex + 1} analysis completed`);
+        console.log(`📊 Progress: ${result.analysis.chunk_metadata.completion_percentage}%`);
+        console.log(`📁 Files in chunk: ${result.analysis.chunk_metadata.files_in_chunk}`);
+        
+        return result;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Flask chunked analyzer error:', error);
+      return null;
+    }
+  }
+
   async analyzeZipFile(zipBuffer: Buffer, originalFilename: string): Promise<FlaskAnalysisResult | null> {
     try {
       console.log(`🔍 Analyzing ZIP file with Flask: ${originalFilename}`);

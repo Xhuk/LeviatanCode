@@ -915,6 +915,182 @@ class ComprehensiveProjectAnalyzer:
         
         return self.insights_data
 
+    def run_chunked_analysis(self, chunk_size: int = 1000, chunk_index: int = 0):
+        """Run chunked analysis for large projects to prevent timeouts."""
+        print(f"🔄 Starting chunked analysis - Chunk {chunk_index + 1} (max {chunk_size} files)")
+        print("=" * 80)
+        
+        # Step 1: Get file list for chunking
+        all_files = list(self.get_all_analyzable_files())
+        total_files = len(all_files)
+        
+        # Calculate chunk boundaries
+        start_idx = chunk_index * chunk_size
+        end_idx = min(start_idx + chunk_size, total_files)
+        chunk_files = all_files[start_idx:end_idx]
+        has_more = end_idx < total_files
+        
+        print(f"📊 Processing files {start_idx + 1}-{end_idx} of {total_files}")
+        
+        # Step 2: Analyze only the current chunk of files
+        self.scan_files_chunk(chunk_files)
+        print()
+        
+        # Step 3: Technology detection (lightweight, always do this)
+        self.detect_comprehensive_technologies()
+        print()
+        
+        # Step 4: Dependency analysis (only on first chunk or if config files found)
+        if chunk_index == 0 or any(config_file in str(f) for config_file in 
+                                  ['package.json', 'requirements.txt', 'pom.xml', 'Cargo.toml'] 
+                                  for f in chunk_files):
+            self.analyze_dependencies_comprehensive()
+            print()
+        
+        # Step 5: Project type detection (only on first chunk)
+        if chunk_index == 0:
+            self.detect_project_type()
+            print()
+        
+        # Step 6: Git analysis (only on first chunk)
+        if chunk_index == 0:
+            self.analyze_git_repository()
+            print()
+        
+        # Step 7: Generate insights only if this is the last chunk or every 3rd chunk
+        if not has_more or chunk_index % 3 == 0:
+            self.generate_comprehensive_insights()
+            print()
+            
+            # Step 8: Quality metrics
+            self.calculate_quality_metrics()
+            print()
+        
+        # Add chunk metadata
+        self.insights_data['chunk_metadata'] = {
+            'chunk_index': chunk_index,
+            'chunk_size': chunk_size,
+            'files_in_chunk': len(chunk_files),
+            'total_files_found': total_files,
+            'has_more_chunks': has_more,
+            'processed_range': f"{start_idx + 1}-{end_idx}",
+            'completion_percentage': round((end_idx / total_files) * 100, 1)
+        }
+        
+        print(f"✅ Chunk {chunk_index + 1} analysis completed! ({self.insights_data['chunk_metadata']['completion_percentage']}%)")
+        return self.insights_data
+
+    def get_all_analyzable_files(self):
+        """Get list of all analyzable files for chunking."""
+        ignore_patterns = {
+            'node_modules', '.git', '__pycache__', '.venv', 'venv', 'env',
+            'dist', 'build', '.next', 'target', 'bin', 'obj', 'out',
+            '.idea', '.vscode', '.vs', '.nyc_output', 'coverage',
+            'site-packages', 'lib', 'lib64', 'include', 'Scripts', 'pyvenv.cfg',
+            'logs', 'temp', 'tmp', '.temp', '.tmp', 'uploads', '.pytest_cache',
+        }
+        
+        for root, dirs, files in os.walk(self.project_path):
+            # Filter out ignored directories
+            dirs[:] = [d for d in dirs if d not in ignore_patterns]
+            
+            # Skip very deep nested directories
+            current_depth = len(Path(root).relative_to(self.project_path).parts)
+            if current_depth > 6:
+                dirs.clear()
+                continue
+                
+            for file in files:
+                if any(pattern in file for pattern in ['*.pyc', '*.log', '*.tmp', '*.cache', '*.lock']):
+                    continue
+                    
+                file_path = Path(root) / file
+                if self.is_analyzable_file(file_path):
+                    yield str(file_path.relative_to(self.project_path))
+
+    def scan_files_chunk(self, file_list):
+        """Scan a specific chunk of files."""
+        print(f"📁 Scanning {len(file_list)} files in current chunk...")
+        
+        important_files = {
+            'package.json', 'requirements.txt', 'pom.xml', 'build.gradle',
+            'Cargo.toml', 'go.mod', 'composer.json', 'Gemfile',
+            'setup.py', 'pyproject.toml', 'CMakeLists.txt', 'Makefile',
+            'Dockerfile', 'docker-compose.yml', '.env', '.env.example',
+            'README.md', 'README.txt', 'CHANGELOG.md', 'LICENSE',
+            'tsconfig.json', 'babel.config.js', 'webpack.config.js',
+            'vite.config.js', 'rollup.config.js', 'jest.config.js'
+        }
+        
+        entry_point_patterns = [
+            'index.js', 'index.ts', 'main.py', 'app.py', 'server.js',
+            'main.js', 'main.ts', 'App.js', 'App.tsx', 'main.go',
+            'main.java', 'Program.cs', 'main.cpp', 'main.c'
+        ]
+        
+        file_count = 0
+        total_lines = 0
+        
+        for relative_path in file_list:
+            file_path = Path(self.project_path) / relative_path
+            if not file_path.exists():
+                continue
+                
+            try:
+                stat = file_path.stat()
+                ext = file_path.suffix.lower()
+                file = file_path.name
+                
+                # Count file types
+                self.insights_data["fileTypes"][ext] = self.insights_data["fileTypes"].get(ext, 0) + 1
+                
+                # Categorize files
+                if file in important_files:
+                    self.insights_data["importantFiles"][relative_path] = {
+                        "type": "configuration",
+                        "size": stat.st_size,
+                        "modified": datetime.fromtimestamp(stat.st_mtime).isoformat()
+                    }
+                    self.insights_data["configFiles"].append(relative_path)
+                
+                if file in entry_point_patterns:
+                    self.insights_data["mainEntryPoints"].append(relative_path)
+                
+                if 'test' in relative_path.lower() or file.lower().endswith(('.test.js', '.test.ts', '.spec.js', '.spec.ts')):
+                    self.insights_data["testFiles"].append(relative_path)
+                
+                if file.lower().endswith(('.md', '.txt', '.rst', '.adoc')):
+                    self.insights_data["documentationFiles"].append(relative_path)
+                
+                # Analyze text files
+                if self.is_analyzable_file(file_path):
+                    try:
+                        content = file_path.read_text(encoding='utf-8', errors='ignore')
+                        lines = len(content.splitlines())
+                        total_lines += lines
+                        
+                        # Store file structure info
+                        self.insights_data["fileStructure"][relative_path] = {
+                            "size": stat.st_size,
+                            "lines": lines,
+                            "extension": ext,
+                            "language": self.detect_file_language(ext),
+                            "modified": datetime.fromtimestamp(stat.st_mtime).isoformat()
+                        }
+                        
+                    except (UnicodeDecodeError, PermissionError):
+                        continue
+                
+                file_count += 1
+                
+            except (OSError, PermissionError):
+                continue
+        
+        self.insights_data["totalFiles"] = self.insights_data.get("totalFiles", 0) + file_count
+        self.insights_data["totalLinesOfCode"] = self.insights_data.get("totalLinesOfCode", 0) + total_lines
+        
+        print(f"📊 Processed {file_count} files, {total_lines:,} lines of code in this chunk")
+
 def main():
     """Main function to run comprehensive analysis."""
     import argparse

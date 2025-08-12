@@ -1570,7 +1570,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // First try Flask analyzer for comprehensive analysis
           console.log(`🔍 Attempting Flask analysis on directory: ${projectDir}`);
-          let flaskAnalysis = await flaskAnalyzerService.analyzeProjectPath(projectDir);
+          // Check if chunked analysis is requested
+          const chunkMode = req.query.chunk_mode === 'true';
+          const chunkSize = parseInt(req.query.chunk_size as string) || 1000;
+          const chunkIndex = parseInt(req.query.chunk_index as string) || 0;
+          
+          let flaskAnalysis;
+          if (chunkMode) {
+            flaskAnalysis = await flaskAnalyzerService.analyzeProjectChunked(projectDir, chunkSize, chunkIndex);
+          } else {
+            flaskAnalysis = await flaskAnalyzerService.analyzeProjectPath(projectDir);
+          }
           
           if (flaskAnalysis) {
             console.log(`✅ Flask analysis completed successfully!`);
@@ -4751,6 +4761,75 @@ Make sure to include realistic, working code for the starter files that follows 
       res.json({ 
         success: false, 
         error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
+  // Chunked analysis endpoint
+  app.post('/api/projects/:projectId/analyze-chunked', async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      const { chunkSize = 1000, chunkIndex = 0 } = req.body;
+      
+      // Get working directory
+      const workingDirectory = storage.getWorkingDirectory();
+      const projectDir = workingDirectory || process.cwd();
+      
+      console.log(`🔄 Starting chunked analysis ${chunkIndex + 1} for project: ${projectId}`);
+      console.log(`📁 Directory: ${projectDir}, Chunk size: ${chunkSize}`);
+      
+      // Send WebSocket notification
+      broadcastAnalysisUpdate(projectId, {
+        status: 'chunked_analysis_start',
+        message: `Starting chunk ${chunkIndex + 1} analysis (${chunkSize} files max)`,
+        chunkIndex,
+        chunkSize
+      });
+      
+      // Run chunked analysis
+      const flaskAnalysis = await flaskAnalyzerService.analyzeProjectChunked(projectDir, chunkSize, chunkIndex);
+      
+      if (flaskAnalysis && flaskAnalysis.success) {
+        const chunkMeta = flaskAnalysis.analysis.chunk_metadata;
+        
+        console.log(`✅ Chunk ${chunkIndex + 1} completed: ${chunkMeta.completion_percentage}%`);
+        
+        // Send chunk completion notification
+        broadcastAnalysisUpdate(projectId, {
+          status: 'chunk_complete',
+          message: `Chunk ${chunkIndex + 1} completed (${chunkMeta.completion_percentage}%)`,
+          chunkIndex,
+          hasMoreChunks: chunkMeta.has_more_chunks,
+          completionPercentage: chunkMeta.completion_percentage,
+          filesProcessed: chunkMeta.files_in_chunk,
+          totalFiles: chunkMeta.total_files_found
+        });
+        
+        return res.json({
+          success: true,
+          projectId,
+          chunkIndex,
+          hasMoreChunks: chunkMeta.has_more_chunks,
+          completionPercentage: chunkMeta.completion_percentage,
+          analysis: flaskAnalysis.analysis,
+          metadata: chunkMeta
+        });
+      }
+      
+      // Analysis failed
+      res.status(500).json({
+        success: false,
+        error: 'Chunked analysis failed',
+        projectId,
+        chunkIndex
+      });
+      
+    } catch (error) {
+      console.error('Chunked analysis error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Chunked analysis failed',
+        details: error.message
       });
     }
   });

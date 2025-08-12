@@ -777,22 +777,64 @@ def analyze_project():
             if not project_path.is_dir():
                 return jsonify({'error': f'Project path is not a directory: {project_path}'}), 400
             
-            # Analyze the project with timeout protection
-            try:
-                analyzer = ProjectAnalyzer(str(project_path))
-                analysis = analyzer.analyze_project()
-            except Exception as analysis_error:
-                logger.error(f"Project analysis failed: {analysis_error}")
-                # Return partial results if analysis fails
-                return jsonify({
-                    'success': False,
-                    'error': f'Analysis failed: {str(analysis_error)}',
-                    'partial_analysis': {
-                        'project_path': str(project_path),
-                        'error_type': type(analysis_error).__name__,
-                        'message': 'Analysis timed out or failed on large project'
-                    }
-                }), 500
+            # Check for chunked analysis mode
+            chunk_mode = data.get('chunk_mode', False)
+            chunk_size = data.get('chunk_size', 1000)  # files per chunk
+            chunk_index = data.get('chunk_index', 0)
+            
+            if chunk_mode:
+                # Import the comprehensive analyzer for chunked analysis
+                import sys
+                import os
+                sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+                from comprehensive_analyzer import ComprehensiveProjectAnalyzer
+                
+                # Chunked analysis for large projects
+                analyzer = ComprehensiveProjectAnalyzer(str(project_path))
+                try:
+                    analysis = analyzer.run_chunked_analysis(chunk_size, chunk_index)
+                    
+                    return jsonify({
+                        'success': True,
+                        'analysis': analysis,
+                        'metadata': {
+                            'analysis_duration': 'completed',
+                            'project_path': str(project_path),
+                            'chunk_mode': True,
+                            'chunk_size': chunk_size,
+                            'chunk_index': chunk_index,
+                            'has_more_chunks': analysis.get('has_more_chunks', False),
+                            'total_files_found': analysis.get('total_files_found', 0)
+                        }
+                    })
+                except Exception as analysis_error:
+                    logger.error(f"Chunked analysis failed: {analysis_error}")
+                    return jsonify({
+                        'success': False,
+                        'error': f'Chunked analysis failed: {str(analysis_error)}',
+                        'chunk_info': {
+                            'chunk_index': chunk_index,
+                            'chunk_size': chunk_size,
+                            'error_type': type(analysis_error).__name__
+                        }
+                    }), 500
+            else:
+                # Standard analysis with timeout protection
+                try:
+                    analyzer = ProjectAnalyzer(str(project_path))
+                    analysis = analyzer.analyze_project()
+                except Exception as analysis_error:
+                    logger.error(f"Project analysis failed: {analysis_error}")
+                    # Return partial results if analysis fails
+                    return jsonify({
+                        'success': False,
+                        'error': f'Analysis failed: {str(analysis_error)}',
+                        'partial_analysis': {
+                            'project_path': str(project_path),
+                            'error_type': type(analysis_error).__name__,
+                            'message': 'Analysis timed out or failed on large project'
+                        }
+                    }), 500
             
             return jsonify({
                 'success': True,
