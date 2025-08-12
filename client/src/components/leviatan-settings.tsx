@@ -59,6 +59,7 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
   });
 
   const [saveStatus, setSaveStatus] = useState<string>('');
+  const [ollamaStatus, setOllamaStatus] = useState<'unknown' | 'connected' | 'disconnected'>('unknown');
 
   const testOllamaConnection = async () => {
     try {
@@ -167,7 +168,26 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
       }
     };
     
+    // Poll Ollama status
+    const pollOllamaStatus = async () => {
+      try {
+        const response = await fetch('/api/ai/ollama-status');
+        if (response.ok) {
+          const data = await response.json();
+          setOllamaStatus(data.status);
+        }
+      } catch (error) {
+        setOllamaStatus('disconnected');
+      }
+    };
+    
     loadData();
+    pollOllamaStatus();
+    
+    // Set up polling interval for Ollama status
+    const statusInterval = setInterval(pollOllamaStatus, 30000);
+    
+    return () => clearInterval(statusInterval);
   }, [currentProject]);
 
   const handleSave = async () => {
@@ -753,7 +773,19 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
               </div>
 
               <div className="bg-replit-panel rounded-lg p-6 border border-replit-border">
-                <h3 className="text-lg font-medium text-replit-text mb-4">Ollama Configuration</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-medium text-replit-text">Ollama Configuration</h3>
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-3 h-3 rounded-full ${
+                      ollamaStatus === 'connected' ? 'bg-green-500' :
+                      ollamaStatus === 'disconnected' ? 'bg-red-500' : 'bg-gray-500'
+                    }`}></div>
+                    <span className="text-sm text-replit-text-secondary">
+                      {ollamaStatus === 'connected' ? 'Connected' :
+                       ollamaStatus === 'disconnected' ? 'Disconnected' : 'Unknown'}
+                    </span>
+                  </div>
+                </div>
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2">
                     <input

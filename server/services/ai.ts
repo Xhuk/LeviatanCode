@@ -20,6 +20,51 @@ export class AIService {
     model: process.env.OLLAMA_MODEL || 'llama3'
   };
 
+  private ollamaHealthCheck: NodeJS.Timeout | null = null;
+  private ollamaStatus: 'unknown' | 'connected' | 'disconnected' = 'unknown';
+
+  constructor() {
+    // Start health monitoring if Ollama is configured
+    this.startOllamaHealthMonitoring();
+  }
+
+  private startOllamaHealthMonitoring() {
+    // Check every 30 seconds
+    this.ollamaHealthCheck = setInterval(async () => {
+      try {
+        const result = await this.testOllamaConnection(this.ollamaConfig.url, this.ollamaConfig.model);
+        if (result.success && this.ollamaStatus !== 'connected') {
+          this.ollamaStatus = 'connected';
+          logger.ollama("Health check: Service is running and accessible");
+        } else if (!result.success && this.ollamaStatus !== 'disconnected') {
+          this.ollamaStatus = 'disconnected';
+          logger.ollama("Health check: Service appears to be down", "warn");
+        }
+      } catch (error) {
+        if (this.ollamaStatus !== 'disconnected') {
+          this.ollamaStatus = 'disconnected';
+          logger.ollama("Health check failed - service unreachable", "warn");
+        }
+      }
+    }, 30000); // 30 seconds
+  }
+
+  updateOllamaConfig(url: string, model: string) {
+    this.ollamaConfig.url = url;
+    this.ollamaConfig.model = model;
+    // Reset status to trigger fresh health check
+    this.ollamaStatus = 'unknown';
+    logger.ollama(`Configuration updated: ${url} with model ${model}`);
+  }
+
+  getOllamaStatus() {
+    return {
+      status: this.ollamaStatus,
+      url: this.ollamaConfig.url,
+      model: this.ollamaConfig.model
+    };
+  }
+
   // Alias for backward compatibility
   async generateCompletion(
     messages: ChatMessage[], 

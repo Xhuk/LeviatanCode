@@ -4008,6 +4008,40 @@ Please provide a JSON response with this exact structure:
     }
   });
 
+  // Get Ollama status endpoint
+  app.get("/api/ai/ollama-status", async (req, res) => {
+    try {
+      const status = aiService.getOllamaStatus();
+      res.json(status);
+    } catch (error) {
+      console.error("Ollama status error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
+  // Update Ollama configuration endpoint
+  app.post("/api/ai/update-ollama-config", async (req, res) => {
+    try {
+      const { url, model } = req.body;
+      
+      if (!url || !model) {
+        return res.status(400).json({ 
+          error: "URL and model are required" 
+        });
+      }
+      
+      aiService.updateOllamaConfig(url, model);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Ollama config update error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
   // AI-powered project structure generation
   app.post("/api/projects/generate-structure", async (req, res) => {
     try {
