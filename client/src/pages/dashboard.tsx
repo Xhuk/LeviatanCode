@@ -60,6 +60,7 @@ import { AiChatPanel } from "@/components/panels/ai-chat-panel";
 import { DeveloperAgent } from "@/components/developer-agent";
 import { ContextPanel } from "@/components/context-panel";
 import { NewProjectDialog } from "@/components/new-project-dialog";
+import { CostCalculatorMonitor } from "@/components/cost-monitor/CostCalculatorMonitor";
 
 
 // Logger component with WebSocket integration
@@ -1458,7 +1459,7 @@ const FileEditor = ({ activeFile, fileName }: { activeFile: string | null; fileN
             colorDecorators: true,
             codeLens: true,
             lightbulb: {
-              enabled: true
+              enabled: "on"
             }
           }}
           loading={<div className="flex items-center justify-center h-full text-replit-text">Loading editor...</div>}
@@ -2354,6 +2355,9 @@ export default function Dashboard() {
         open={showNewProjectDialog} 
         onOpenChange={setShowNewProjectDialog} 
       />
+      
+      {/* Cost Calculator Monitor - Fixed at bottom */}
+      <CostCalculatorMonitor />
     </div>
   );
 }

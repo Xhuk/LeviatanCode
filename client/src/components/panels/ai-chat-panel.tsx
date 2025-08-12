@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { Send, Bot, User } from "lucide-react";
+import { Send, Bot, User, Zap, DollarSign } from "lucide-react";
+import { aiRouter } from "@/services/aiRouterPro";
 
 interface AiChatPanelProps {
   projectId: string;
@@ -21,6 +23,8 @@ interface AiMessage {
 export function AiChatPanel({ projectId }: AiChatPanelProps) {
   const [newMessage, setNewMessage] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [smartRoutingEnabled, setSmartRoutingEnabled] = useState(true);
+  const [lastRouting, setLastRouting] = useState<any>(null);
   const queryClient = useQueryClient();
 
   const { data: chatsData = [], isLoading, error } = useQuery<AiMessage[]>({
@@ -53,7 +57,46 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
     
     setIsGenerating(true);
     try {
-      await sendMessageMutation.mutateAsync(newMessage);
+      if (smartRoutingEnabled) {
+        // Use smart budget-aware routing
+        const routing = await aiRouter.routeRequest(newMessage, {
+          maxBudgetUSD: 0.02, // 2 cents max per request
+          preferLocal: true // Prefer Ollama when available
+        });
+        
+        setLastRouting({
+          model: routing.model,
+          cost: routing.estimatedCost,
+          complexity: routing.taskComplexity,
+          confidence: routing.confidence,
+          reasoning: routing.reasoning
+        });
+
+        // Execute the AI request with routing info
+        const result = await aiRouter.executeRequest(newMessage, {
+          maxBudgetUSD: 0.02,
+          preferLocal: true
+        });
+        
+        // Add the message to chat with routing info
+        await fetch(`/api/projects/${projectId}/ai-chats`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            message: newMessage,
+            response: result.response,
+            model: result.model,
+            cost: result.actualCost,
+            tokensUsed: result.tokensUsed
+          })
+        });
+        
+        queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/ai-chats`] });
+        setNewMessage("");
+      } else {
+        // Use original direct API call
+        await sendMessageMutation.mutateAsync(newMessage);
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -134,6 +177,36 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
           )}
         </div>
       </ScrollArea>
+
+      {/* Smart Routing Status */}
+      {smartRoutingEnabled && lastRouting && (
+        <div className="px-4 py-2 border-t border-replit-border bg-replit-elevated/50">
+          <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <Zap className="w-3 h-3 text-yellow-500" />
+              <span className="text-replit-text-secondary">Smart Router:</span>
+              <Badge variant="secondary" className="text-xs">
+                {lastRouting.model}
+              </Badge>
+              <Badge variant={lastRouting.complexity === 'complex' ? 'destructive' : 
+                             lastRouting.complexity === 'medium' ? 'default' : 'secondary'} 
+                     className="text-xs">
+                {lastRouting.complexity}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-2">
+              <DollarSign className="w-3 h-3 text-green-500" />
+              <span className="text-replit-text-secondary">
+                ${lastRouting.cost.toFixed(4)}
+              </span>
+              <span className="text-replit-text-muted">
+                ({Math.round(lastRouting.confidence * 100)}% confidence)
+              </span>
+            </div>
+          </div>
+          <p className="text-xs text-replit-text-muted mt-1">{lastRouting.reasoning}</p>
+        </div>
+      )}
 
       {/* Input Area */}
       <div className="p-4 border-t border-replit-border">

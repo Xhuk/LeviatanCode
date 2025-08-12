@@ -1,0 +1,200 @@
+Awesome — here’s a **smart, budget-aware router** that (1) auto-detects task complexity, (2) estimates token/cost, (3) caps spend, and (4) auto-escalates to a stronger model if confidence is low.
+
+Drop this in `src/aiRouterPro.js`:
+
+```javascript
+// src/aiRouterPro.js
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: import.meta.env.VITE_OPENAI_API_KEY, // Prefer a server proxy in production
+});
+
+/**
+ * ---- CONFIG: update these with your latest pricing if needed ----
+ * Prices are per 1M tokens. Keep them in USD or your base currency.
+ */
+const PRICES = {
+  "gpt-5":       { in: 1.25, out: 10.0 },
+  "gpt-5-mini":  { in: 0.25, out: 2.0 },
+  "gpt-5-nano":  { in: 0.05, out: 0.4 },
+};
+
+/**
+ * Very rough token estimator (avg ~4 chars/token for English code+text).
+ * Replace with a proper tokenizer server-side if you need accuracy.
+ */
+function estimateTokens(str) {
+  if (!str) return 0;
+  const approx = Math.ceil(str.length / 4);
+  // small bonus for code blocks/newlines
+  return Math.ceil(approx * 1.05);
+}
+
+/** Estimate cost for a call given input/output token counts and model. */
+function estimateCost({ model, inputTokens, outputTokens = 800 }) {
+  const p = PRICES[model];
+  if (!p) return Infinity;
+  const inCost  = (inputTokens / 1_000_000) * p.in;
+  const outCost = (outputTokens / 1_000_000) * p.out;
+  return +(inCost + outCost).toFixed(6);
+}
+
+/** Heuristic task classifier: returns "simple" | "medium" | "complex" */
+function classifyTask(prompt) {
+  const t = estimateTokens(prompt);
+  const lower = prompt.toLowerCase();
+
+  const complexHints = [
+    "architect", "architecture", "refactor project", "microservice",
+    "design pattern", "migrate", "debug production", "memory leak",
+    "concurrency", "race condition", "database schema", "monorepo",
+  ];
+  const mediumHints = [
+    "refactor", "unit test", "integration test", "optimize", "perf",
+    "bug", "error", "stack trace", "vite config", "webpack", "eslint",
+  ];
+
+  const has = (arr) => arr.some(k => lower.includes(k));
+
+  if (t > 8000 || has(complexHints)) return "complex";
+  if (t > 2000 || has(mediumHints))  return "medium";
+  return "simple";
+}
+
+/** Pick the cheapest model that fits task type and budget. */
+function chooseModel({ taskType, inputTokens, budgetUSD }) {
+  // default map by complexity
+  const defaultModel =
+    taskType === "complex" ? "gpt-5" :
+    taskType === "medium"  ? "gpt-5-mini" :
+                             "gpt-5-nano";
+
+  // If budget is tight, try cheaper models first when feasible
+  const candidates =
+    taskType === "complex"
+      ? ["gpt-5", "gpt-5-mini"]         // allow downshift if budget forces it
+      : taskType === "medium"
+      ? ["gpt-5-mini", "gpt-5"]
+      : ["gpt-5-nano", "gpt-5-mini"];   // simple prefers cheapest
+
+  for (const m of candidates) {
+    const c = estimateCost({ model: m, inputTokens });
+    if (c <= budgetUSD) return m;
+  }
+  // If nothing fits, pick the absolute cheapest so we still attempt
+  return "gpt-5-nano";
+}
+
+/**
+ * Run a dev task with budget + auto-escalation.
+ * @param {string} userPrompt
+ * @param {object} opts
+ *   - maxBudgetUSD: hard cap per call (default 0.01 = 1 cent)
+ *   - desiredTemp: default 0.2 for deterministic outputs
+ *   - reasoningEffort: "low"|"medium"|"high" (mini/full support it)
+ *   - forceComplexity: "simple"|"medium"|"complex" to override auto
+ *   - stream: boolean (if you want to wire up streaming later)
+ */
+export async function runDevTaskSmart(
+  userPrompt,
+  {
+    maxBudgetUSD = 0.01, // adjust to your comfort
+    desiredTemp = 0.2,
+    reasoningEffort = "low",
+    forceComplexity,
+    stream = false,
+  } = {}
+) {
+  const inputTokens = estimateTokens(userPrompt);
+  const taskType = forceComplexity || classifyTask(userPrompt);
+  let model = chooseModel({ taskType, inputTokens, budgetUSD: maxBudgetUSD });
+
+  // Guard: if even the cheapest estimate exceeds budget by a LOT, truncate.
+  const cheapestCost = estimateCost({ model: "gpt-5-nano", inputTokens });
+  let promptToSend = userPrompt;
+  if (cheapestCost > maxBudgetUSD * 2) {
+    // keep head & tail; drop middle to save tokens
+    const head = userPrompt.slice(0, Math.floor(userPrompt.length * 0.35));
+    const tail = userPrompt.slice(-Math.floor(userPrompt.length * 0.15));
+    promptToSend =
+      head +
+      "\n\n[... content truncated automatically to respect budget ...]\n\n" +
+      tail;
+  }
+
+  const systemPrompt = [
+    "You are a meticulous senior developer.",
+    "Return code blocks when appropriate.",
+    "ALWAYS append a line 'CONFIDENCE: <0.0-1.0>' at the end,",
+    "representing your confidence the output fully addresses the task.",
+  ].join(" ");
+
+  const callOnce = async (chosenModel) => {
+    const resp = await openai.responses.create({
+      model: chosenModel,
+      temperature: desiredTemp,
+      // For models that support it, you can pass detailed reasoning options:
+      reasoning: reasoningEffort, // or { effort: "low" } if you prefer object form
+      input: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: promptToSend },
+      ],
+    });
+
+    const text = resp.output_text ?? "";
+    // Parse trailing CONFIDENCE
+    const match = text.match(/CONFIDENCE:\s*([01](?:\.\d+)?)/i);
+    const confidence = match ? Math.max(0, Math.min(1, parseFloat(match[1]))) : 0.5;
+
+    // Strip the confidence line from the returned text for cleaner UX
+    const cleaned = text.replace(/^\s*CONFIDENCE:.*$/im, "").trim();
+
+    return { text: cleaned, confidence, modelUsed: chosenModel };
+  };
+
+  // First pass
+  let result = await callOnce(model);
+
+  // If confidence is low and we still have budget for escalation, try next stronger model
+  const canEscalate =
+    result.confidence < 0.6 &&
+    (model === "gpt-5-nano" || model === "gpt-5-mini");
+
+  if (canEscalate) {
+    const stronger = model === "gpt-5-nano" ? "gpt-5-mini" : "gpt-5";
+    const est = estimateCost({ model: stronger, inputTokens });
+    if (est <= maxBudgetUSD) {
+      result = await callOnce(stronger);
+      result.escalated = true;
+    }
+  }
+
+  return result;
+}
+```
+
+**How to use it:**
+
+```javascript
+import { runDevTaskSmart } from "./aiRouterPro.js";
+
+// Example 1: quick refactor (cheap)
+const r1 = await runDevTaskSmart(
+  "Refactor this function for readability and add JSDoc:\n" + code,
+  { maxBudgetUSD: 0.003 } // ~0.3 cents cap
+);
+console.log(r1.modelUsed, r1.confidence);
+console.log(r1.text);
+
+// Example 2: deeper debugging (allow escalation)
+const r2 = await runDevTaskSmart(
+  "Here is a failing Vite build log; diagnose and fix:\n" + logs,
+  { maxBudgetUSD: 0.015, reasoningEffort: "medium" }
+);
+```
+
+**Notes**
+
+* For production, **don’t expose your API key in the browser**. Put this router on a tiny serverless endpoint and call it from your Vite app.
+* If you want, I can add: real tokenization (server-side), streaming, or a tiny UI widget that shows **estimated vs. actual** cost per call.

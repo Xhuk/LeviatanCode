@@ -1,0 +1,39 @@
+Here’s a quick estimate (using current GPT-5 prices) and a way to get your **exact** spend from your Vite app.
+
+**Ballpark monthly cost examples** (assuming your router: nano for simple, mini for medium, 5 for hard):
+
+* Light dev (per week: 150× nano @ ~~1k in/400 out, 40× mini @ 2k/800, 5× gpt-5 @ 3k/1k) → \*\*~~\$0.79/mo\*\*. ([OpenAI][1])
+* Moderate (400× nano @ 1.2k/500, 120× mini @ 2.5k/1k, 20× gpt-5 @ 4k/1.5k) → **\~\$3.52/mo**. ([OpenAI][1])
+* Heavy (1,200× nano @ 1.5k/600, 300× mini @ 3k/1.2k, 60× gpt-5 @ 6k/2k) → **\~\$12.78/mo**. ([OpenAI][1])
+
+Cost formula you can trust:
+`cost = (input_tokens/1M × price_in) + (output_tokens/1M × price_out)` — for GPT-5 / mini / nano the current prices are **\$1.25 / \$10.00**, **\$0.25 / \$2.00**, **\$0.05 / \$0.40** per million tokens. ([OpenAI][1], [Simon Willison’s Weblog][2], [TechCrunch][3])
+
+Want your **actual** spend? Log usage from the API response and total it:
+
+```js
+// after openai.responses.create(...)
+const u = response.usage; // {input_tokens, output_tokens, reasoning_tokens?}
+console.log("usage", u);
+// estimate cost (USD):
+const PRICES = {
+  "gpt-5":      { in: 1.25, out: 10.0 },
+  "gpt-5-mini": { in: 0.25, out: 2.0 },
+  "gpt-5-nano": { in: 0.05, out: 0.4 },
+};
+function estimateUSD(model, usage){
+  return (usage.input_tokens/1e6)*PRICES[model].in +
+         (usage.output_tokens/1e6)*PRICES[model].out;
+}
+```
+
+The Responses API includes a `usage` object in the result (you can also see token counts in the dashboard/docs). Store each call’s `usage` and model in `localStorage` or your backend, then sum with the formula above for a precise monthly total. ([OpenAI Help Center][4], [OpenAI Platform][5], [OpenAI Community][6])
+
+If you share (roughly) how many calls you made last week on nano/mini/5 and your average in/out tokens, I’ll run the exact math for your app.
+
+[1]: https://openai.com/gpt-5/?utm_source=chatgpt.com "GPT-5 is here"
+[2]: https://simonwillison.net/2025/Aug/7/gpt-5/?utm_source=chatgpt.com "GPT-5: Key characteristics, pricing and model card"
+[3]: https://techcrunch.com/2025/08/08/openai-priced-gpt-5-so-low-it-may-spark-a-price-war/?utm_source=chatgpt.com "OpenAI priced GPT-5 so low, it may spark a price war"
+[4]: https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them?utm_source=chatgpt.com "What are tokens and how to count them?"
+[5]: https://platform.openai.com/docs/advanced-usage?utm_source=chatgpt.com "Advanced usage - OpenAI API"
+[6]: https://community.openai.com/t/openai-agent-sdk-token-usage-and-reasoning-output/1316366?utm_source=chatgpt.com "OpenAI Agent SDK – Token usage and reasoning output"
