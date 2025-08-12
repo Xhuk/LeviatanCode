@@ -129,7 +129,9 @@ class ComprehensiveProjectAnalyzer:
             'node_modules', '.git', '__pycache__', '.venv', 'venv', 'env',
             'dist', 'build', '.next', 'target', 'bin', 'obj', 'out',
             '.idea', '.vscode', '.vs', '.nyc_output', 'coverage',
-            '*.pyc', '*.log', '*.tmp', '*.cache', '*.lock'
+            'site-packages', 'lib', 'lib64', 'include', 'Scripts', 'pyvenv.cfg',
+            'logs', 'temp', 'tmp', '.temp', '.tmp', 'uploads', '.pytest_cache',
+            '*.pyc', '*.log', '*.tmp', '*.cache', '*.lock', '*.pyo', '*.pyd'
         }
         
         important_files = {
@@ -150,10 +152,22 @@ class ComprehensiveProjectAnalyzer:
         
         file_count = 0
         total_lines = 0
+        max_files = 5000  # Limit analysis to prevent timeouts
         
         for root, dirs, files in os.walk(self.project_path):
-            # Filter out ignored directories
+            # Filter out ignored directories  
             dirs[:] = [d for d in dirs if d not in ignore_patterns]
+            
+            # Skip very deep nested directories (usually dependencies)
+            current_depth = len(Path(root).relative_to(self.project_path).parts)
+            if current_depth > 6:
+                dirs.clear()  # Don't recurse deeper
+                continue
+                
+            # Early termination if too many files
+            if file_count > max_files:
+                print(f"⚠️ Analysis limited to {max_files} files to prevent timeout")
+                break
             
             for file in files:
                 if any(pattern in file for pattern in ignore_patterns if '*' not in pattern):

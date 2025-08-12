@@ -2727,7 +2727,7 @@ Analysis target: ${scriptDir}
       console.log(`🔍 Starting document analysis for project: ${projectId}`);
       console.log(`📁 Analysis directory: ${analysisDir}`);
 
-      // Call Flask Analyzer for document analysis
+      // Call Flask Analyzer for document analysis with timeout handling
       const flaskResponse = await fetch('http://localhost:5001/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2735,7 +2735,8 @@ Analysis target: ${scriptDir}
           project_path: analysisDir || ".",
           analysis_type: analysisType || "comprehensive",
           generateScript: generateScript || false
-        })
+        }),
+        signal: AbortSignal.timeout(120000) // 2 minute timeout for large projects
       });
       
       if (flaskResponse.ok) {
@@ -2770,7 +2771,8 @@ Analysis target: ${scriptDir}
         body: JSON.stringify({
           project_path: projectPath,
           analysis_type: 'file_structure'
-        })
+        }),
+        signal: AbortSignal.timeout(60000) // 1 minute timeout for file analysis
       });
       
       if (flaskResponse.ok) {

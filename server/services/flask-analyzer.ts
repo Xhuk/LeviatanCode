@@ -80,14 +80,14 @@ class FlaskAnalyzerService {
 
   constructor() {
     this.flaskUrl = process.env.FLASK_ANALYZER_URL || 'http://localhost:5001';
-    this.timeout = 60000; // 60 seconds timeout
+    this.timeout = 120000; // 2 minutes timeout for large projects
   }
 
   async isAvailable(): Promise<boolean> {
     try {
       const response = await fetch(`${this.flaskUrl}/health`, {
         method: 'GET',
-        timeout: 5000
+        signal: AbortSignal.timeout(5000)
       });
       return response.ok;
     } catch (error) {
@@ -106,7 +106,7 @@ class FlaskAnalyzerService {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ project_path: projectPath }),
-        timeout: this.timeout
+        signal: AbortSignal.timeout(this.timeout)
       });
 
       if (!response.ok) {
@@ -143,7 +143,7 @@ class FlaskAnalyzerService {
       const response = await fetch(`${this.flaskUrl}/analyze`, {
         method: 'POST',
         body: formData,
-        timeout: this.timeout
+        signal: AbortSignal.timeout(this.timeout)
       });
 
       if (!response.ok) {

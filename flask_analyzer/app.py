@@ -777,9 +777,22 @@ def analyze_project():
             if not project_path.is_dir():
                 return jsonify({'error': f'Project path is not a directory: {project_path}'}), 400
             
-            # Analyze the project
-            analyzer = ProjectAnalyzer(str(project_path))
-            analysis = analyzer.analyze_project()
+            # Analyze the project with timeout protection
+            try:
+                analyzer = ProjectAnalyzer(str(project_path))
+                analysis = analyzer.analyze_project()
+            except Exception as analysis_error:
+                logger.error(f"Project analysis failed: {analysis_error}")
+                # Return partial results if analysis fails
+                return jsonify({
+                    'success': False,
+                    'error': f'Analysis failed: {str(analysis_error)}',
+                    'partial_analysis': {
+                        'project_path': str(project_path),
+                        'error_type': type(analysis_error).__name__,
+                        'message': 'Analysis timed out or failed on large project'
+                    }
+                }), 500
             
             return jsonify({
                 'success': True,
