@@ -29,21 +29,37 @@ export class AIService {
   }
 
   private startOllamaHealthMonitoring() {
-    // Check every 30 seconds
+    let failureCount = 0;
+    const maxFailures = 3;
+    
+    // Check every 30 seconds with exponential backoff on failures
     this.ollamaHealthCheck = setInterval(async () => {
       try {
         const result = await this.testOllamaConnection(this.ollamaConfig.url, this.ollamaConfig.model);
-        if (result.success && this.ollamaStatus !== 'connected') {
-          this.ollamaStatus = 'connected';
-          logger.ollama("Health check: Service is running and accessible");
-        } else if (!result.success && this.ollamaStatus !== 'disconnected') {
-          this.ollamaStatus = 'disconnected';
-          logger.ollama("Health check: Service appears to be down", "warn");
+        
+        if (result.success) {
+          if (this.ollamaStatus !== 'connected') {
+            this.ollamaStatus = 'connected';
+            logger.ollama("Health check: Service is running and accessible");
+            failureCount = 0; // Reset failure count on success
+          }
+        } else {
+          failureCount++;
+          
+          // Only mark as disconnected after multiple failures to avoid false positives
+          if (failureCount >= maxFailures && this.ollamaStatus !== 'disconnected') {
+            this.ollamaStatus = 'disconnected';
+            logger.ollama(`Health check: Service appears to be down after ${failureCount} failures`, "warn");
+            logger.ollama(`Last error: ${result.error}`, "warn");
+          } else if (failureCount < maxFailures) {
+            logger.ollama(`Health check failed (${failureCount}/${maxFailures}): ${result.error}`);
+          }
         }
       } catch (error) {
-        if (this.ollamaStatus !== 'disconnected') {
+        failureCount++;
+        if (failureCount >= maxFailures && this.ollamaStatus !== 'disconnected') {
           this.ollamaStatus = 'disconnected';
-          logger.ollama("Health check failed - service unreachable", "warn");
+          logger.ollama(`Health check failed after ${failureCount} attempts - service unreachable`, "warn");
         }
       }
     }, 30000); // 30 seconds
@@ -182,41 +198,72 @@ export class AIService {
       `${msg.role === "user" ? "Human" : "Assistant"}: ${msg.content}`
     ).join("\n\n");
 
-    const response = await fetch(`${this.ollamaConfig.url}/api/generate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: model,
-        prompt: prompt + "\n\nAssistant:",
-        stream: false,
-        options: {
-          temperature: 0.7,
-          top_p: 0.9,
-          max_tokens: 2000
+    // Add timeout and better error handling to prevent resource conflicts
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout for generation
+    
+    try {
+      const response = await fetch(`${this.ollamaConfig.url}/api/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: model,
+          prompt: prompt + "\n\nAssistant:",
+          stream: false,
+          options: {
+            temperature: 0.7,
+            top_p: 0.9,
+            max_tokens: 2000
+          }
+        }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        // Handle resource conflicts gracefully
+        if (response.status === 503 || response.status === 502) {
+          throw new Error(`Ollama service busy or temporarily unavailable (${response.status})`);
         }
-      }),
-    });
+        throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
+      }
 
-    if (!response.ok) {
-      throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
+      const data = await response.json();
+      return data.response || "I couldn't generate a response.";
+    } catch (error) {
+      clearTimeout(timeoutId);
+      
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Ollama request timeout - service may be overloaded');
+      }
+      throw error;
     }
-
-    const data = await response.json();
-    return data.response || "I couldn't generate a response.";
   }
 
   async testOllamaConnection(url: string, model: string): Promise<{ success: boolean; error?: string }> {
     try {
+      // Add timeout and proper error handling for resource conflicts
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
       const response = await fetch(`${url}/api/tags`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
+        // Don't treat temporary unavailability as permanent failure
+        if (response.status === 503 || response.status === 502) {
+          return { success: false, error: `Service temporarily unavailable (${response.status})` };
+        }
         return { success: false, error: `HTTP ${response.status}: ${response.statusText}` };
       }
 
@@ -230,6 +277,15 @@ export class AIService {
 
       return { success: true };
     } catch (error) {
+      // Handle timeout and abort errors gracefully
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          return { success: false, error: 'Connection timeout - service may be busy' };
+        }
+        if (error.message.includes('ECONNREFUSED')) {
+          return { success: false, error: 'Connection refused - service may be starting' };
+        }
+      }
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }

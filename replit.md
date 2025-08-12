@@ -83,7 +83,7 @@ AI Integration: Dual AI system with Ollama Llama3 worker integration for develop
 - **Google Gemini**: Alternative AI model for diversified responses.
 - **AI Features**: Chat interface, code suggestions, documentation generation, data analysis.
 - **Flask Analyzer**: Fully operational Python Flask web application (port 5001) serving RESTful `/analyze` endpoint for AI-powered project analysis, supporting 15+ programming languages and 20+ frameworks. Features automatic startup with main application, health check coordination, graceful shutdown integration, and complete Middleware Monitor management with Windows compatibility.
-- **Ollama Integration**: Background worker service automatically manages Ollama AI service and Llama3 model for local AI processing. Provides intelligent task routing with ChatGPT handling architectural guidance while Ollama processes development tasks like debugging, coding, and implementation. Features automatic model downloading, health monitoring, and graceful shutdown integration.
+- **Ollama Integration**: Background worker service automatically manages Ollama AI service and Llama3 model for local AI processing. Provides intelligent task routing with ChatGPT handling architectural guidance while Ollama processes development tasks like debugging, coding, and implementation. Features automatic model downloading, enhanced health monitoring with failure tolerance, graceful shutdown integration, and automatic restart capability to handle resource conflicts during intensive analysis operations. Enhanced in January 2025 with improved stability, timeout handling, and resource management to prevent service crashes during document analysis.
 
 ## Database and Infrastructure
 - **Neon Database**: Serverless PostgreSQL hosting.

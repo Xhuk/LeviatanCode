@@ -1348,6 +1348,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             projectDir = process.cwd();
           }
           
+          // Check if Ollama is running before starting resource-intensive analysis
+          const ollamaStatus = aiService.getOllamaStatus();
+          if (ollamaStatus.status === 'connected') {
+            console.log(`🦙 Ollama available - will use for enhanced analysis if needed`);
+          } else {
+            console.log(`🦙 Ollama not available - using Flask analyzer only`);
+          }
+          
           // First try Flask analyzer for comprehensive analysis
           console.log(`🔍 Attempting Flask analysis on directory: ${projectDir}`);
           let flaskAnalysis = await flaskAnalyzerService.analyzeProjectPath(projectDir);

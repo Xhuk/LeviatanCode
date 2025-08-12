@@ -294,12 +294,28 @@ class OllamaWorker:
             self.is_running = True
             colored_log("Ollama worker ready - AI dual mode available", "ollama")
             
-            # Keep thread alive and monitor service
+            # Keep thread alive and monitor service with auto-restart capability
+            restart_attempts = 0
+            max_restarts = 3
+            
             while self.is_running:
                 time.sleep(30)  # Check every 30 seconds
                 if self.ollama_process and self.ollama_process.poll() is not None:
+                    restart_attempts += 1
                     colored_log("Ollama service stopped unexpectedly", "ollama", "warn")
-                    break
+                    
+                    if restart_attempts <= max_restarts:
+                        colored_log(f"Attempting restart ({restart_attempts}/{max_restarts})...", "ollama")
+                        time.sleep(5)  # Wait before restart
+                        
+                        if self.start_ollama_service():
+                            colored_log("Ollama service restarted successfully", "ollama")
+                            restart_attempts = 0  # Reset counter on successful restart
+                        else:
+                            colored_log(f"Restart attempt {restart_attempts} failed", "ollama", "error")
+                    else:
+                        colored_log(f"Maximum restart attempts ({max_restarts}) exceeded", "ollama", "error")
+                        break
                     
         except Exception as e:
             colored_log(f"Ollama worker error: {e}", "ollama", "error")
