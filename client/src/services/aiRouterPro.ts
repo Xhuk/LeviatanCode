@@ -1,4 +1,23 @@
-// Smart budget-aware AI router with cost estimation and auto-escalation
+// Smart budget-aware AI router with cost estimation and database tracking
+export interface AiUsageMetrics {
+  model: string;
+  service: 'openai' | 'gemini' | 'ollama';
+  requestType: 'chat' | 'analysis' | 'code_generation' | 'documentation';
+  inputTokens: number;
+  outputTokens: number;
+  estimatedCost: string;
+  timestamp?: string;
+  projectId?: string;
+  userId?: string;
+  sessionId?: string;
+  promptLength?: number;
+  responseLength?: number;
+  requestDuration?: number;
+  success?: boolean;
+  errorMessage?: string;
+  metadata?: Record<string, any>;
+}
+
 interface AIModelPricing {
   input: number;  // per 1M tokens
   output: number; // per 1M tokens
@@ -108,29 +127,100 @@ export class AIRouterPro {
   }
 
   /**
-   * Get current usage from cost monitor
+   * Get current usage from database
    */
-  private getCurrentUsage(): { daily: number; weekly: number; monthly: number } {
+  private async getCurrentUsage(userId: string = 'demo-user'): Promise<{ daily: number; weekly: number; monthly: number }> {
     try {
-      const usageHistory = JSON.parse(localStorage.getItem('ai-usage-history') || '[]');
-      const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const weekStart = new Date(todayStart.getTime() - (todayStart.getDay() * 24 * 60 * 60 * 1000));
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const [dailyResponse, weeklyResponse, monthlyResponse] = await Promise.all([
+        fetch(`/api/ai/cost-summary/${userId}/daily`),
+        fetch(`/api/ai/cost-summary/${userId}/weekly`),
+        fetch(`/api/ai/cost-summary/${userId}/monthly`)
+      ]);
+
+      const [dailyData, weeklyData, monthlyData] = await Promise.all([
+        dailyResponse.json(),
+        weeklyResponse.json(),
+        monthlyResponse.json()
+      ]);
 
       return {
-        daily: usageHistory
-          .filter((u: any) => new Date(u.timestamp) >= todayStart)
-          .reduce((sum: number, u: any) => sum + u.cost, 0),
-        weekly: usageHistory
-          .filter((u: any) => new Date(u.timestamp) >= weekStart)
-          .reduce((sum: number, u: any) => sum + u.cost, 0),
-        monthly: usageHistory
-          .filter((u: any) => new Date(u.timestamp) >= monthStart)
-          .reduce((sum: number, u: any) => sum + u.cost, 0)
+        daily: dailyData.summary ? parseFloat(dailyData.summary.totalCost) : 0,
+        weekly: weeklyData.summary ? parseFloat(weeklyData.summary.totalCost) : 0,
+        monthly: monthlyData.summary ? parseFloat(monthlyData.summary.totalCost) : 0
       };
-    } catch {
-      return { daily: 0, weekly: 0, monthly: 0 };
+    } catch (error) {
+      console.warn('Failed to fetch usage from database, using localStorage fallback:', error);
+      // Fallback to localStorage for backward compatibility
+      try {
+        const usageHistory = JSON.parse(localStorage.getItem('ai-usage-history') || '[]');
+        const now = new Date();
+        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const weekStart = new Date(todayStart.getTime() - (todayStart.getDay() * 24 * 60 * 60 * 1000));
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+        return {
+          daily: usageHistory
+            .filter((u: any) => new Date(u.timestamp) >= todayStart)
+            .reduce((sum: number, u: any) => sum + u.cost, 0),
+          weekly: usageHistory
+            .filter((u: any) => new Date(u.timestamp) >= weekStart)
+            .reduce((sum: number, u: any) => sum + u.cost, 0),
+          monthly: usageHistory
+            .filter((u: any) => new Date(u.timestamp) >= monthStart)
+            .reduce((sum: number, u: any) => sum + u.cost, 0)
+        };
+      } catch {
+        return { daily: 0, weekly: 0, monthly: 0 };
+      }
+    }
+  }
+
+  /**
+   * Log AI usage to database for persistent tracking
+   */
+  public async logUsage(metrics: AiUsageMetrics): Promise<void> {
+    try {
+      const response = await fetch('/api/ai/usage-log', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...metrics,
+          timestamp: metrics.timestamp || new Date().toISOString(),
+          userId: metrics.userId || 'demo-user',
+          success: metrics.success !== false
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to log usage: ${response.statusText}`);
+      }
+
+      // Also keep in localStorage for immediate access and backward compatibility
+      const usageHistory = JSON.parse(localStorage.getItem('ai-usage-history') || '[]');
+      usageHistory.push({
+        ...metrics,
+        cost: parseFloat(metrics.estimatedCost),
+        timestamp: metrics.timestamp || new Date().toISOString()
+      });
+      
+      // Keep last 1000 entries in localStorage
+      if (usageHistory.length > 1000) {
+        usageHistory.splice(0, usageHistory.length - 1000);
+      }
+      
+      localStorage.setItem('ai-usage-history', JSON.stringify(usageHistory));
+    } catch (error) {
+      console.error('Failed to log AI usage:', error);
+      // Fallback to localStorage only
+      const usageHistory = JSON.parse(localStorage.getItem('ai-usage-history') || '[]');
+      usageHistory.push({
+        ...metrics,
+        cost: parseFloat(metrics.estimatedCost),
+        timestamp: metrics.timestamp || new Date().toISOString()
+      });
+      localStorage.setItem('ai-usage-history', JSON.stringify(usageHistory));
     }
   }
 
@@ -199,7 +289,7 @@ export class AIRouterPro {
 
     const taskComplexity = forceComplexity || this.classifyTask(prompt);
     const inputTokens = this.estimateTokens(prompt);
-    const currentUsage = this.getCurrentUsage();
+    const currentUsage = await this.getCurrentUsage();
     const budgetLimits = this.getBudgetLimits();
     
     // Check remaining budget

@@ -52,30 +52,80 @@ export function CostCalculatorMonitor() {
   });
   const [showSettings, setShowSettings] = useState(false);
 
-  // Load usage data from localStorage on mount
+  // Load usage data from database and localStorage on mount
   useEffect(() => {
-    const savedUsage = localStorage.getItem('ai-usage-history');
-    const savedBudget = localStorage.getItem('ai-budget-settings');
-    
-    if (savedUsage) {
+    const loadUsageData = async () => {
       try {
-        const parsed = JSON.parse(savedUsage);
-        setUsageHistory(parsed.map((item: any) => ({
-          ...item,
-          timestamp: new Date(item.timestamp)
-        })));
-      } catch (e) {
-        console.warn('Failed to load usage history:', e);
+        // Try to load from database first
+        const response = await fetch('/api/ai/usage-logs/demo-user');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.logs) {
+            const dbUsage = data.logs.map((item: any) => ({
+              model: item.model,
+              inputTokens: item.inputTokens,
+              outputTokens: item.outputTokens,
+              cost: parseFloat(item.estimatedCost),
+              timestamp: new Date(item.timestamp),
+              taskType: item.requestType === 'analysis' ? 'complex' : 
+                       item.requestType === 'code_generation' ? 'medium' : 'simple'
+            }));
+            setUsageHistory(dbUsage);
+            return;
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to load usage from database, using localStorage:', error);
       }
-    }
-    
-    if (savedBudget) {
+
+      // Fallback to localStorage
+      const savedUsage = localStorage.getItem('ai-usage-history');
+      if (savedUsage) {
+        try {
+          const parsed = JSON.parse(savedUsage);
+          setUsageHistory(parsed.map((item: any) => ({
+            ...item,
+            timestamp: new Date(item.timestamp)
+          })));
+        } catch (e) {
+          console.warn('Failed to load usage history:', e);
+        }
+      }
+    };
+
+    const loadBudgetSettings = async () => {
       try {
-        setBudgetSettings(JSON.parse(savedBudget));
-      } catch (e) {
-        console.warn('Failed to load budget settings:', e);
+        // Try to load from database first
+        const response = await fetch('/api/ai/budget-settings/demo-user');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.settings) {
+            setBudgetSettings({
+              dailyLimit: parseFloat(data.settings.dailyLimit),
+              weeklyLimit: parseFloat(data.settings.weeklyLimit),
+              monthlyLimit: parseFloat(data.settings.monthlyLimit),
+              warningThreshold: data.settings.alertThresholds?.daily || 80
+            });
+            return;
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to load budget from database, using localStorage:', error);
       }
-    }
+
+      // Fallback to localStorage
+      const savedBudget = localStorage.getItem('ai-budget-settings');
+      if (savedBudget) {
+        try {
+          setBudgetSettings(JSON.parse(savedBudget));
+        } catch (e) {
+          console.warn('Failed to load budget settings:', e);
+        }
+      }
+    };
+
+    loadUsageData();
+    loadBudgetSettings();
   }, []);
 
   // Save to localStorage when data changes

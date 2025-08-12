@@ -4313,6 +4313,114 @@ Please provide a JSON response with this exact structure:
     }
   });
 
+  // AI Cost Tracking Endpoints
+  app.post("/api/ai/usage-log", async (req, res) => {
+    try {
+      const { sessionId, projectId, userId, model, service, requestType, inputTokens, outputTokens, estimatedCost, promptLength, responseLength, requestDuration, success, errorMessage, metadata } = req.body;
+      
+      const usageLog = await storage.logAiUsage({
+        sessionId,
+        projectId,
+        userId: userId || 'demo-user',
+        model,
+        service,
+        requestType,
+        inputTokens: inputTokens || 0,
+        outputTokens: outputTokens || 0,
+        estimatedCost: estimatedCost || "0.00",
+        promptLength: promptLength || 0,
+        responseLength: responseLength || 0,
+        requestDuration,
+        success: success !== false,
+        errorMessage,
+        metadata: metadata || {}
+      });
+
+      res.json({ success: true, log: usageLog });
+    } catch (error) {
+      console.error('AI usage log error:', error);
+      res.status(500).json({ 
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
+  app.get("/api/ai/usage-logs/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { projectId, startDate, endDate } = req.query;
+      
+      let dateRange;
+      if (startDate && endDate) {
+        dateRange = {
+          start: new Date(startDate as string),
+          end: new Date(endDate as string)
+        };
+      }
+
+      const logs = await storage.getAiUsageLogs(userId, projectId as string, dateRange);
+      res.json({ success: true, logs });
+    } catch (error) {
+      console.error('Get AI usage logs error:', error);
+      res.status(500).json({ 
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
+  app.get("/api/ai/cost-summary/:userId/:period", async (req, res) => {
+    try {
+      const { userId, period } = req.params;
+      const { projectId } = req.query;
+      
+      if (!['daily', 'weekly', 'monthly'].includes(period)) {
+        return res.status(400).json({ 
+          success: false,
+          error: "Period must be daily, weekly, or monthly" 
+        });
+      }
+
+      const summary = await storage.getAiCostSummary(userId, period as 'daily' | 'weekly' | 'monthly', projectId as string);
+      res.json({ success: true, summary });
+    } catch (error) {
+      console.error('Get AI cost summary error:', error);
+      res.status(500).json({ 
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
+  app.get("/api/ai/budget-settings/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const settings = await storage.getBudgetSettings(userId);
+      res.json({ success: true, settings });
+    } catch (error) {
+      console.error('Get budget settings error:', error);
+      res.status(500).json({ 
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
+  app.put("/api/ai/budget-settings/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const settings = await storage.updateBudgetSettings(userId, req.body);
+      res.json({ success: true, settings });
+    } catch (error) {
+      console.error('Update budget settings error:', error);
+      res.status(500).json({ 
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
   // Update Ollama configuration endpoint
   app.post("/api/ai/update-ollama-config", async (req, res) => {
     try {

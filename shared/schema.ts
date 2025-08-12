@@ -128,6 +128,58 @@ export const sessionContexts = pgTable("session_contexts", {
   endTime: timestamp("end_time"),
 });
 
+// AI Cost Tracking Tables
+export const aiUsageLogs = pgTable("ai_usage_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sessionId: varchar("session_id"),
+  projectId: varchar("project_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  model: text("model").notNull(), // 'gpt-4o', 'gpt-4o-mini', 'gemini-pro', 'llama3'
+  service: text("service").notNull(), // 'openai', 'gemini', 'ollama'
+  requestType: text("request_type").notNull(), // 'chat', 'analysis', 'code_generation', 'documentation'
+  inputTokens: integer("input_tokens").notNull().default(0),
+  outputTokens: integer("output_tokens").notNull().default(0),
+  estimatedCost: text("estimated_cost").notNull().default("0.00"), // stored as string for precision
+  actualCost: text("actual_cost"), // actual cost if available from API
+  promptLength: integer("prompt_length").notNull().default(0),
+  responseLength: integer("response_length").notNull().default(0),
+  requestDuration: integer("request_duration"), // milliseconds
+  success: boolean("success").notNull().default(true),
+  errorMessage: text("error_message"),
+  metadata: jsonb("metadata").default({}), // additional context data
+  timestamp: timestamp("timestamp").notNull().defaultNow(),
+});
+
+export const aiCostSummaries = pgTable("ai_cost_summaries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  projectId: varchar("project_id"),
+  period: text("period").notNull(), // 'daily', 'weekly', 'monthly'
+  periodStart: timestamp("period_start").notNull(),
+  periodEnd: timestamp("period_end").notNull(),
+  totalRequests: integer("total_requests").notNull().default(0),
+  totalTokens: integer("total_tokens").notNull().default(0),
+  totalCost: text("total_cost").notNull().default("0.00"),
+  costByService: jsonb("cost_by_service").default({}), // { "openai": "5.25", "gemini": "1.30" }
+  costByModel: jsonb("cost_by_model").default({}), // { "gpt-4o": "4.50", "gemini-pro": "1.05" }
+  usageStats: jsonb("usage_stats").default({}), // additional usage statistics
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const aiBudgetSettings = pgTable("ai_budget_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique(),
+  dailyLimit: text("daily_limit").notNull().default("1.00"),
+  weeklyLimit: text("weekly_limit").notNull().default("5.00"),
+  monthlyLimit: text("monthly_limit").notNull().default("15.00"),
+  alertThresholds: jsonb("alert_thresholds").default({ "daily": 80, "weekly": 80, "monthly": 80 }), // percentage
+  budgetResetDay: integer("budget_reset_day").default(1), // day of month for monthly reset
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // Project Documentation Interface
 export interface ProjectDocumentation {
   overview: string;
@@ -225,6 +277,49 @@ export const insertSessionContextSchema = createInsertSchema(sessionContexts).pi
   sessionGoal: true,
   totalActions: true,
   achievements: true,
+  isActive: true,
+});
+
+export const insertAiUsageLogSchema = createInsertSchema(aiUsageLogs).pick({
+  sessionId: true,
+  projectId: true,
+  userId: true,
+  model: true,
+  service: true,
+  requestType: true,
+  inputTokens: true,
+  outputTokens: true,
+  estimatedCost: true,
+  actualCost: true,
+  promptLength: true,
+  responseLength: true,
+  requestDuration: true,
+  success: true,
+  errorMessage: true,
+  metadata: true,
+});
+
+export const insertAiCostSummarySchema = createInsertSchema(aiCostSummaries).pick({
+  userId: true,
+  projectId: true,
+  period: true,
+  periodStart: true,
+  periodEnd: true,
+  totalRequests: true,
+  totalTokens: true,
+  totalCost: true,
+  costByService: true,
+  costByModel: true,
+  usageStats: true,
+});
+
+export const insertAiBudgetSettingsSchema = createInsertSchema(aiBudgetSettings).pick({
+  userId: true,
+  dailyLimit: true,
+  weeklyLimit: true,
+  monthlyLimit: true,
+  alertThresholds: true,
+  budgetResetDay: true,
   isActive: true,
 });
 

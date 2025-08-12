@@ -14,7 +14,10 @@ import {
   type VaultSecret,
   type InsertVaultSecret,
   type ChatMessage,
-  type FileSystemItem
+  type FileSystemItem,
+  insertAiUsageLogSchema,
+  insertAiCostSummarySchema,
+  insertAiBudgetSettingsSchema
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { sql } from "drizzle-orm";
@@ -63,6 +66,14 @@ export interface IStorage {
   createVaultSecret(secret: InsertVaultSecret): Promise<VaultSecret>;
   updateVaultSecret(workspace: string, id: string, updates: Partial<VaultSecret>): Promise<VaultSecret | undefined>;
   deleteVaultSecret(workspace: string, id: string): Promise<boolean>;
+
+  // AI Cost Tracking
+  logAiUsage(usage: any): Promise<any>;
+  getAiUsageLogs(userId: string, projectId?: string, dateRange?: { start: Date; end: Date }): Promise<any[]>;
+  getAiCostSummary(userId: string, period: 'daily' | 'weekly' | 'monthly', projectId?: string): Promise<any>;
+  updateAiCostSummary(userId: string, period: 'daily' | 'weekly' | 'monthly', projectId?: string): Promise<any>;
+  getBudgetSettings(userId: string): Promise<any>;
+  updateBudgetSettings(userId: string, settings: any): Promise<any>;
 }
 
 export class MemStorage implements IStorage {
@@ -73,6 +84,9 @@ export class MemStorage implements IStorage {
   private documentation: Map<string, Documentation> = new Map();
   private promptTemplates: Map<string, PromptTemplate> = new Map();
   private vaultSecrets: Map<string, VaultSecret> = new Map();
+  private aiUsageLogs: Map<string, any> = new Map();
+  private aiCostSummaries: Map<string, any> = new Map();
+  private aiBudgetSettings: Map<string, any> = new Map();
 
   constructor() {
     // Initialize with demo data
@@ -434,6 +448,74 @@ export class MemStorage implements IStorage {
     
     return this.vaultSecrets.delete(id);
   }
+
+  // AI Cost Tracking Implementation
+  async logAiUsage(usage: any): Promise<any> {
+    const id = randomUUID();
+    const log = { id, ...usage, timestamp: new Date() };
+    this.aiUsageLogs.set(id, log);
+    return log;
+  }
+
+  async getAiUsageLogs(userId: string, projectId?: string, dateRange?: { start: Date; end: Date }): Promise<any[]> {
+    return Array.from(this.aiUsageLogs.values()).filter(log => {
+      if (log.userId !== userId) return false;
+      if (projectId && log.projectId !== projectId) return false;
+      if (dateRange) {
+        const logDate = new Date(log.timestamp);
+        if (logDate < dateRange.start || logDate > dateRange.end) return false;
+      }
+      return true;
+    });
+  }
+
+  async getAiCostSummary(userId: string, period: 'daily' | 'weekly' | 'monthly', projectId?: string): Promise<any> {
+    const key = `${userId}-${period}-${projectId || 'all'}`;
+    return this.aiCostSummaries.get(key) || null;
+  }
+
+  async updateAiCostSummary(userId: string, period: 'daily' | 'weekly' | 'monthly', projectId?: string): Promise<any> {
+    const key = `${userId}-${period}-${projectId || 'all'}`;
+    const summary = this.aiCostSummaries.get(key) || {
+      id: randomUUID(),
+      userId,
+      projectId,
+      period,
+      totalRequests: 0,
+      totalTokens: 0,
+      totalCost: "0.00",
+      costByService: {},
+      costByModel: {},
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    summary.updatedAt = new Date();
+    this.aiCostSummaries.set(key, summary);
+    return summary;
+  }
+
+  async getBudgetSettings(userId: string): Promise<any> {
+    return this.aiBudgetSettings.get(userId) || {
+      id: randomUUID(),
+      userId,
+      dailyLimit: "1.00",
+      weeklyLimit: "5.00",
+      monthlyLimit: "15.00",
+      alertThresholds: { daily: 80, weekly: 80, monthly: 80 },
+      budgetResetDay: 1,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+  }
+
+  async updateBudgetSettings(userId: string, settings: any): Promise<any> {
+    const existing = await this.getBudgetSettings(userId);
+    const updated = { ...existing, ...settings, updatedAt: new Date() };
+    this.aiBudgetSettings.set(userId, updated);
+    return updated;
+  }
 }
 
 import { db } from "./db";
@@ -446,7 +528,10 @@ import {
   documentation, 
   promptTemplates, 
   vaultSecrets,
-  configurations
+  configurations,
+  aiUsageLogs,
+  aiCostSummaries,
+  aiBudgetSettings
 } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 
@@ -645,6 +730,97 @@ export class DbStorage implements IStorage {
       .returning();
     
     return result.length > 0;
+  }
+
+  // AI Cost Tracking Implementation
+  async logAiUsage(usage: any): Promise<any> {
+    const result = await db.insert(aiUsageLogs).values(usage).returning();
+    return result[0];
+  }
+
+  async getAiUsageLogs(userId: string, projectId?: string, dateRange?: { start: Date; end: Date }): Promise<any[]> {
+    let query = db.select().from(aiUsageLogs).where(eq(aiUsageLogs.userId, userId));
+    
+    if (projectId) {
+      query = query.where(eq(aiUsageLogs.projectId, projectId));
+    }
+    
+    // For date range filtering, we would need more complex where conditions
+    // This is a simplified implementation
+    return await query;
+  }
+
+  async getAiCostSummary(userId: string, period: 'daily' | 'weekly' | 'monthly', projectId?: string): Promise<any> {
+    let query = db
+      .select()
+      .from(aiCostSummaries)
+      .where(and(eq(aiCostSummaries.userId, userId), eq(aiCostSummaries.period, period)));
+    
+    if (projectId) {
+      query = query.where(eq(aiCostSummaries.projectId, projectId));
+    }
+    
+    const result = await query;
+    return result[0] || null;
+  }
+
+  async updateAiCostSummary(userId: string, period: 'daily' | 'weekly' | 'monthly', projectId?: string): Promise<any> {
+    const existing = await this.getAiCostSummary(userId, period, projectId);
+    
+    if (existing) {
+      const result = await db
+        .update(aiCostSummaries)
+        .set({ updatedAt: new Date() })
+        .where(eq(aiCostSummaries.id, existing.id))
+        .returning();
+      return result[0];
+    } else {
+      const newSummary = {
+        userId,
+        projectId,
+        period,
+        periodStart: new Date(),
+        periodEnd: new Date(),
+        totalRequests: 0,
+        totalTokens: 0,
+        totalCost: "0.00",
+        costByService: {},
+        costByModel: {},
+        usageStats: {}
+      };
+      const result = await db.insert(aiCostSummaries).values(newSummary).returning();
+      return result[0];
+    }
+  }
+
+  async getBudgetSettings(userId: string): Promise<any> {
+    const result = await db.select().from(aiBudgetSettings).where(eq(aiBudgetSettings.userId, userId));
+    return result[0] || {
+      userId,
+      dailyLimit: "1.00",
+      weeklyLimit: "5.00",
+      monthlyLimit: "15.00",
+      alertThresholds: { daily: 80, weekly: 80, monthly: 80 },
+      budgetResetDay: 1,
+      isActive: true
+    };
+  }
+
+  async updateBudgetSettings(userId: string, settings: any): Promise<any> {
+    const existing = await this.getBudgetSettings(userId);
+    
+    if (existing.id) {
+      const result = await db
+        .update(aiBudgetSettings)
+        .set({ ...settings, updatedAt: new Date() })
+        .where(eq(aiBudgetSettings.userId, userId))
+        .returning();
+      return result[0];
+    } else {
+      const newSettings = { userId, ...settings };
+      const result = await db.insert(aiBudgetSettings).values(newSettings).returning();
+      return result[0];
+    }
   }
 }
 
