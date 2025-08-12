@@ -16,8 +16,7 @@ import {
   RefreshCw,
   Check,
   AlertTriangle,
-  Info,
-  Search
+  Info
 } from "lucide-react";
 
 export const LeviatanSettings = ({ currentProject }: { currentProject: string }) => {
@@ -838,7 +837,7 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
                       className="modern-button bg-green-600 hover:bg-green-700"
                       data-testid="button-detect-ollama"
                     >
-                      <Search className="w-4 h-4 mr-2" />
+                      <RefreshCw className="w-4 h-4 mr-2" />
                       Detect Ollama
                     </Button>
                     <Button
