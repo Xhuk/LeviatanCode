@@ -789,7 +789,8 @@ def analyze_project():
                 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
                 from comprehensive_analyzer import ComprehensiveProjectAnalyzer
                 
-                # Chunked analysis for large projects
+                # Chunked analysis for large projects with smart project detection
+                print(f"🔍 Starting chunked analysis with smart project detection")
                 analyzer = ComprehensiveProjectAnalyzer(str(project_path))
                 try:
                     analysis = analyzer.run_chunked_analysis(chunk_size, chunk_index)
@@ -819,9 +820,23 @@ def analyze_project():
                         }
                     }), 500
             else:
-                # Standard analysis with timeout protection
+                # Standard analysis with smart project detection and timeout protection
                 try:
-                    analyzer = ProjectAnalyzer(str(project_path))
+                    # Import the focused analyzer
+                    from vite_analyzer import detect_project_type_fast, ViteFocusedAnalyzer
+                    
+                    # Quick project type detection first
+                    project_type = detect_project_type_fast(project_path)
+                    logger.info(f"🎯 Detected project type: {project_type}")
+                    
+                    if project_type in ['vite', 'react-vite']:
+                        # Use focused analyzer for Vite projects
+                        logger.info("🚀 Using focused Vite analysis (faster, targets key directories)")
+                        analyzer = ViteFocusedAnalyzer(str(project_path))
+                    else:
+                        # Use standard analyzer for other projects
+                        analyzer = ProjectAnalyzer(str(project_path))
+                    
                     analysis = analyzer.analyze_project()
                 except Exception as analysis_error:
                     logger.error(f"Project analysis failed: {analysis_error}")

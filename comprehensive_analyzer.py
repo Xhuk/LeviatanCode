@@ -982,15 +982,60 @@ class ComprehensiveProjectAnalyzer:
 
     def get_all_analyzable_files(self):
         """Get list of all analyzable files for chunking."""
+        # Enhanced ignore patterns for better performance
         ignore_patterns = {
             'node_modules', '.git', '__pycache__', '.venv', 'venv', 'env',
             'dist', 'build', '.next', 'target', 'bin', 'obj', 'out',
             '.idea', '.vscode', '.vs', '.nyc_output', 'coverage',
             'site-packages', 'lib', 'lib64', 'include', 'Scripts', 'pyvenv.cfg',
             'logs', 'temp', 'tmp', '.temp', '.tmp', 'uploads', '.pytest_cache',
+            'migrations', 'metadata', 'workspaces', 'attached_assets'
         }
         
-        for root, dirs, files in os.walk(self.project_path):
+        # First, detect if this is a Vite/React project
+        vite_indicators = ['vite.config.js', 'vite.config.ts', 'package.json']
+        is_vite_project = any((self.project_path / indicator).exists() for indicator in vite_indicators)
+        
+        if is_vite_project:
+            # For Vite projects, focus only on essential directories
+            vite_focus_dirs = {'client', 'src', 'server', 'shared', 'public'}
+            print(f"🎯 Detected Vite project - focusing on key directories: {', '.join(vite_focus_dirs)}")
+            
+            # Only analyze files in focus directories + root config files
+            for focus_dir in vite_focus_dirs:
+                focus_path = self.project_path / focus_dir
+                if focus_path.exists() and focus_path.is_dir():
+                    yield from self._scan_directory_focused(focus_path, ignore_patterns, max_depth=4)
+            
+            # Also include root-level config files
+            for file_path in self.project_path.glob('*'):
+                if file_path.is_file() and self.is_analyzable_file(file_path):
+                    yield str(file_path.relative_to(self.project_path))
+        else:
+            # Standard scanning for non-Vite projects
+            yield from self._scan_directory_standard(self.project_path, ignore_patterns)
+
+    def _scan_directory_focused(self, directory, ignore_patterns, max_depth=4, current_depth=0):
+        """Focused scanning for specific directories with depth limit."""
+        if current_depth >= max_depth:
+            return
+            
+        try:
+            for item in directory.iterdir():
+                if item.name in ignore_patterns:
+                    continue
+                    
+                if item.is_file() and self.is_analyzable_file(item):
+                    yield str(item.relative_to(self.project_path))
+                elif item.is_dir() and current_depth < max_depth - 1:
+                    yield from self._scan_directory_focused(item, ignore_patterns, max_depth, current_depth + 1)
+        except (OSError, PermissionError):
+            pass
+
+    def _scan_directory_standard(self, directory, ignore_patterns):
+        """Standard directory scanning with improved performance."""
+        
+        for root, dirs, files in os.walk(directory):
             # Filter out ignored directories
             dirs[:] = [d for d in dirs if d not in ignore_patterns]
             
