@@ -620,9 +620,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI Chat
   app.get("/api/projects/:id/ai-chats", async (req, res) => {
     try {
-      const chats = await storage.getAiChatsByProject(req.params.id);
-      res.json(chats);
+      const projectId = req.params.id;
+      console.log('🤖 [AI Chat] Fetching chats for project ID:', projectId);
+      
+      const chats = await storage.getAiChatsByProject(projectId);
+      console.log('🤖 [AI Chat] Found chats:', chats.length);
+      
+      // Always ensure we return an array
+      const result = Array.isArray(chats) ? chats : [];
+      res.json(result);
     } catch (error) {
+      console.error('🤖 [AI Chat] Error fetching chats:', error);
       res.status(500).json({ message: "Failed to fetch AI chats" });
     }
   });

@@ -1,0 +1,588 @@
+ai-chat-panel.tsx:32 AI Chat Panel - Raw data: (2) [{…}, {…}]
+ai-chat-panel.tsx:33 AI Chat Panel - Is array? true
+ai-chat-panel.tsx:34 AI Chat Panel - Type: object
+ai-chat-panel.tsx:32 AI Chat Panel - Raw data: []
+ai-chat-panel.tsx:33 AI Chat Panel - Is array? true
+ai-chat-panel.tsx:34 AI Chat Panel - Type: object
+use-analysis-websocket.ts:31 📡 Connecting to WebSocket for analysis updates: ws://localhost:5005/ws
+use-analysis-websocket.ts:61 📡 WebSocket disconnected
+use-analysis-websocket.ts:37 📡 WebSocket connected for analysis updates
+ai-chat-panel.tsx:32 AI Chat Panel - Raw data: {id: 'C:/ReactProjects/LeviatanCode/ai-chats', name: 'ai-chats', description: 'Project from C:/ReactProjects/LeviatanCode/ai-chats', createdAt: '2025-08-12T01:32:18.542Z', updatedAt: '2025-08-12T01:32:18.542Z'}
+ai-chat-panel.tsx:33 AI Chat Panel - Is array? false
+ai-chat-panel.tsx:34 AI Chat Panel - Type: object
+ai-chat-panel.tsx:40 AI Chat Panel - Data is not an array, falling back to empty array Error Component Stack
+    at AiChatPanel (ai-chat-panel.tsx:21:31)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1623:47)
+    at Route (wouter.js?v=9ff475c4:323:16)
+    at Switch (wouter.js?v=9ff475c4:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=9ff475c4:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=9ff475c4:951:5)
+    at ThemeProvider (theme-context.tsx:19:33)
+    at QueryClientProvider (@tanstack_react-query.js?v=9ff475c4:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+(anonymous) @ ai-chat-panel.tsx:40
+AiChatPanel @ ai-chat-panel.tsx:42
+renderWithHooks @ chunk-WERSD76P.js?v=9ff475c4:11548
+updateFunctionComponent @ chunk-WERSD76P.js?v=9ff475c4:14582
+beginWork @ chunk-WERSD76P.js?v=9ff475c4:15924
+beginWork$1 @ chunk-WERSD76P.js?v=9ff475c4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=9ff475c4:19198
+workLoopSync @ chunk-WERSD76P.js?v=9ff475c4:19137
+renderRootSync @ chunk-WERSD76P.js?v=9ff475c4:19116
+performSyncWorkOnRoot @ chunk-WERSD76P.js?v=9ff475c4:18874
+flushSyncCallbacks @ chunk-WERSD76P.js?v=9ff475c4:9119
+(anonymous) @ chunk-WERSD76P.js?v=9ff475c4:18627
+setTimeout
+scheduleFn @ @tanstack_react-query.js?v=9ff475c4:555
+flush @ @tanstack_react-query.js?v=9ff475c4:569
+batch @ @tanstack_react-query.js?v=9ff475c4:587
+dispatch_fn @ @tanstack_react-query.js?v=9ff475c4:996
+setData @ @tanstack_react-query.js?v=9ff475c4:696
+onSuccess @ @tanstack_react-query.js?v=9ff475c4:897
+resolve @ @tanstack_react-query.js?v=9ff475c4:456
+Promise.then
+run @ @tanstack_react-query.js?v=9ff475c4:498
+start @ @tanstack_react-query.js?v=9ff475c4:536
+fetch @ @tanstack_react-query.js?v=9ff475c4:926
+executeFetch_fn @ @tanstack_react-query.js?v=9ff475c4:2211
+setOptions @ @tanstack_react-query.js?v=9ff475c4:1955
+(anonymous) @ @tanstack_react-query.js?v=9ff475c4:3032
+commitHookEffectListMount @ chunk-WERSD76P.js?v=9ff475c4:16915
+commitPassiveMountOnFiber @ chunk-WERSD76P.js?v=9ff475c4:18156
+commitPassiveMountEffects_complete @ chunk-WERSD76P.js?v=9ff475c4:18129
+commitPassiveMountEffects_begin @ chunk-WERSD76P.js?v=9ff475c4:18119
+commitPassiveMountEffects @ chunk-WERSD76P.js?v=9ff475c4:18109
+flushPassiveEffectsImpl @ chunk-WERSD76P.js?v=9ff475c4:19490
+flushPassiveEffects @ chunk-WERSD76P.js?v=9ff475c4:19447
+commitRootImpl @ chunk-WERSD76P.js?v=9ff475c4:19416
+commitRoot @ chunk-WERSD76P.js?v=9ff475c4:19277
+performSyncWorkOnRoot @ chunk-WERSD76P.js?v=9ff475c4:18895
+flushSyncCallbacks @ chunk-WERSD76P.js?v=9ff475c4:9119
+(anonymous) @ chunk-WERSD76P.js?v=9ff475c4:18627
+ai-chat-panel.tsx:32 AI Chat Panel - Raw data: {id: 'C:/ReactProjects/LeviatanCode/ai-chats', name: 'ai-chats', description: 'Project from C:/ReactProjects/LeviatanCode/ai-chats', createdAt: '2025-08-12T01:32:18.542Z', updatedAt: '2025-08-12T01:32:18.542Z'}
+ai-chat-panel.tsx:33 AI Chat Panel - Is array? false
+ai-chat-panel.tsx:34 AI Chat Panel - Type: object
+ai-chat-panel.tsx:40 AI Chat Panel - Data is not an array, falling back to empty array Error Component Stack
+    at AiChatPanel (ai-chat-panel.tsx:21:31)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1623:47)
+    at Route (wouter.js?v=9ff475c4:323:16)
+    at Switch (wouter.js?v=9ff475c4:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=9ff475c4:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=9ff475c4:951:5)
+    at ThemeProvider (theme-context.tsx:19:33)
+    at QueryClientProvider (@tanstack_react-query.js?v=9ff475c4:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+(anonymous) @ ai-chat-panel.tsx:40
+AiChatPanel @ ai-chat-panel.tsx:42
+renderWithHooks @ chunk-WERSD76P.js?v=9ff475c4:11548
+updateFunctionComponent @ chunk-WERSD76P.js?v=9ff475c4:14582
+beginWork @ chunk-WERSD76P.js?v=9ff475c4:15924
+beginWork$1 @ chunk-WERSD76P.js?v=9ff475c4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=9ff475c4:19198
+workLoopSync @ chunk-WERSD76P.js?v=9ff475c4:19137
+renderRootSync @ chunk-WERSD76P.js?v=9ff475c4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=9ff475c4:18678
+workLoop @ chunk-WERSD76P.js?v=9ff475c4:197
+flushWork @ chunk-WERSD76P.js?v=9ff475c4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=9ff475c4:384
+ai-chat-panel.tsx:32 AI Chat Panel - Raw data: {id: 'C:/ReactProjects/LeviatanCode/ai-chats', name: 'ai-chats', description: 'Project from C:/ReactProjects/LeviatanCode/ai-chats', createdAt: '2025-08-12T01:32:18.542Z', updatedAt: '2025-08-12T01:32:18.542Z'}
+ai-chat-panel.tsx:33 AI Chat Panel - Is array? false
+ai-chat-panel.tsx:34 AI Chat Panel - Type: object
+ai-chat-panel.tsx:40 AI Chat Panel - Data is not an array, falling back to empty array Error Component Stack
+    at AiChatPanel (ai-chat-panel.tsx:21:31)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1623:47)
+    at Route (wouter.js?v=9ff475c4:323:16)
+    at Switch (wouter.js?v=9ff475c4:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=9ff475c4:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=9ff475c4:951:5)
+    at ThemeProvider (theme-context.tsx:19:33)
+    at QueryClientProvider (@tanstack_react-query.js?v=9ff475c4:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+(anonymous) @ ai-chat-panel.tsx:40
+AiChatPanel @ ai-chat-panel.tsx:42
+renderWithHooks @ chunk-WERSD76P.js?v=9ff475c4:11548
+updateFunctionComponent @ chunk-WERSD76P.js?v=9ff475c4:14582
+beginWork @ chunk-WERSD76P.js?v=9ff475c4:15924
+beginWork$1 @ chunk-WERSD76P.js?v=9ff475c4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=9ff475c4:19198
+workLoopSync @ chunk-WERSD76P.js?v=9ff475c4:19137
+renderRootSync @ chunk-WERSD76P.js?v=9ff475c4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=9ff475c4:18678
+workLoop @ chunk-WERSD76P.js?v=9ff475c4:197
+flushWork @ chunk-WERSD76P.js?v=9ff475c4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=9ff475c4:384
+ai-chat-panel.tsx:32 AI Chat Panel - Raw data: {id: 'C:/ReactProjects/LeviatanCode/ai-chats', name: 'ai-chats', description: 'Project from C:/ReactProjects/LeviatanCode/ai-chats', createdAt: '2025-08-12T01:32:18.542Z', updatedAt: '2025-08-12T01:32:18.542Z'}
+ai-chat-panel.tsx:33 AI Chat Panel - Is array? false
+ai-chat-panel.tsx:34 AI Chat Panel - Type: object
+ai-chat-panel.tsx:40 AI Chat Panel - Data is not an array, falling back to empty array Error Component Stack
+    at AiChatPanel (ai-chat-panel.tsx:21:31)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1623:47)
+    at Route (wouter.js?v=9ff475c4:323:16)
+    at Switch (wouter.js?v=9ff475c4:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=9ff475c4:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=9ff475c4:951:5)
+    at ThemeProvider (theme-context.tsx:19:33)
+    at QueryClientProvider (@tanstack_react-query.js?v=9ff475c4:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+(anonymous) @ ai-chat-panel.tsx:40
+AiChatPanel @ ai-chat-panel.tsx:42
+renderWithHooks @ chunk-WERSD76P.js?v=9ff475c4:11548
+updateFunctionComponent @ chunk-WERSD76P.js?v=9ff475c4:14582
+beginWork @ chunk-WERSD76P.js?v=9ff475c4:15924
+beginWork$1 @ chunk-WERSD76P.js?v=9ff475c4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=9ff475c4:19198
+workLoopSync @ chunk-WERSD76P.js?v=9ff475c4:19137
+renderRootSync @ chunk-WERSD76P.js?v=9ff475c4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=9ff475c4:18678
+workLoop @ chunk-WERSD76P.js?v=9ff475c4:197
+flushWork @ chunk-WERSD76P.js?v=9ff475c4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=9ff475c4:384
+queryClient.ts:15  POST http://localhost:5005/api/projects/C:/ReactProjects/LeviatanCode/analyze-documents 503 (Service Unavailable)
+apiRequest @ queryClient.ts:15
+mutationFn @ ai-document-analysis-dialog.tsx:69
+fn @ @tanstack_react-query.js?v=9ff475c4:1189
+run @ @tanstack_react-query.js?v=9ff475c4:494
+start @ @tanstack_react-query.js?v=9ff475c4:536
+execute @ @tanstack_react-query.js?v=9ff475c4:1225
+await in execute
+mutate @ @tanstack_react-query.js?v=9ff475c4:2630
+(anonymous) @ @tanstack_react-query.js?v=9ff475c4:3295
+handleAnalyze @ ai-document-analysis-dialog.tsx:94
+callCallback2 @ chunk-WERSD76P.js?v=9ff475c4:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=9ff475c4:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=9ff475c4:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=9ff475c4:3736
+executeDispatch @ chunk-WERSD76P.js?v=9ff475c4:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=9ff475c4:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=9ff475c4:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=9ff475c4:7051
+(anonymous) @ chunk-WERSD76P.js?v=9ff475c4:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=9ff475c4:18913
+batchedUpdates @ chunk-WERSD76P.js?v=9ff475c4:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=9ff475c4:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=9ff475c4:5478
+dispatchEvent @ chunk-WERSD76P.js?v=9ff475c4:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=9ff475c4:5449
+ai-chat-panel.tsx:32 AI Chat Panel - Raw data: {id: 'C:/ReactProjects/LeviatanCode/ai-chats', name: 'ai-chats', description: 'Project from C:/ReactProjects/LeviatanCode/ai-chats', createdAt: '2025-08-12T01:32:18.542Z', updatedAt: '2025-08-12T01:32:18.542Z'}
+ai-chat-panel.tsx:33 AI Chat Panel - Is array? false
+ai-chat-panel.tsx:34 AI Chat Panel - Type: object
+ai-chat-panel.tsx:40 AI Chat Panel - Data is not an array, falling back to empty array Error Component Stack
+    at AiChatPanel (ai-chat-panel.tsx:21:31)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1623:47)
+    at Route (wouter.js?v=9ff475c4:323:16)
+    at Switch (wouter.js?v=9ff475c4:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=9ff475c4:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=9ff475c4:951:5)
+    at ThemeProvider (theme-context.tsx:19:33)
+    at QueryClientProvider (@tanstack_react-query.js?v=9ff475c4:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+(anonymous) @ ai-chat-panel.tsx:40
+AiChatPanel @ ai-chat-panel.tsx:42
+renderWithHooks @ chunk-WERSD76P.js?v=9ff475c4:11548
+updateFunctionComponent @ chunk-WERSD76P.js?v=9ff475c4:14582
+beginWork @ chunk-WERSD76P.js?v=9ff475c4:15924
+beginWork$1 @ chunk-WERSD76P.js?v=9ff475c4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=9ff475c4:19198
+workLoopSync @ chunk-WERSD76P.js?v=9ff475c4:19137
+renderRootSync @ chunk-WERSD76P.js?v=9ff475c4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=9ff475c4:18678
+workLoop @ chunk-WERSD76P.js?v=9ff475c4:197
+flushWork @ chunk-WERSD76P.js?v=9ff475c4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=9ff475c4:384
+ai-chat-panel.tsx:32 AI Chat Panel - Raw data: {id: 'C:/ReactProjects/LeviatanCode/ai-chats', name: 'ai-chats', description: 'Project from C:/ReactProjects/LeviatanCode/ai-chats', createdAt: '2025-08-12T01:32:18.542Z', updatedAt: '2025-08-12T01:32:18.542Z'}
+ai-chat-panel.tsx:33 AI Chat Panel - Is array? false
+ai-chat-panel.tsx:34 AI Chat Panel - Type: object
+ai-chat-panel.tsx:40 AI Chat Panel - Data is not an array, falling back to empty array Error Component Stack
+    at AiChatPanel (ai-chat-panel.tsx:21:31)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1623:47)
+    at Route (wouter.js?v=9ff475c4:323:16)
+    at Switch (wouter.js?v=9ff475c4:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=9ff475c4:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=9ff475c4:951:5)
+    at ThemeProvider (theme-context.tsx:19:33)
+    at QueryClientProvider (@tanstack_react-query.js?v=9ff475c4:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+(anonymous) @ ai-chat-panel.tsx:40
+AiChatPanel @ ai-chat-panel.tsx:42
+renderWithHooks @ chunk-WERSD76P.js?v=9ff475c4:11548
+updateFunctionComponent @ chunk-WERSD76P.js?v=9ff475c4:14582
+beginWork @ chunk-WERSD76P.js?v=9ff475c4:15924
+beginWork$1 @ chunk-WERSD76P.js?v=9ff475c4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=9ff475c4:19198
+workLoopSync @ chunk-WERSD76P.js?v=9ff475c4:19137
+renderRootSync @ chunk-WERSD76P.js?v=9ff475c4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=9ff475c4:18678
+workLoop @ chunk-WERSD76P.js?v=9ff475c4:197
+flushWork @ chunk-WERSD76P.js?v=9ff475c4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=9ff475c4:384
+ai-chat-panel.tsx:32 AI Chat Panel - Raw data: {id: 'C:/ReactProjects/LeviatanCode/ai-chats', name: 'ai-chats', description: 'Project from C:/ReactProjects/LeviatanCode/ai-chats', createdAt: '2025-08-12T01:32:18.542Z', updatedAt: '2025-08-12T01:32:18.542Z'}
+ai-chat-panel.tsx:33 AI Chat Panel - Is array? false
+ai-chat-panel.tsx:34 AI Chat Panel - Type: object
+ai-chat-panel.tsx:40 AI Chat Panel - Data is not an array, falling back to empty array Error Component Stack
+    at AiChatPanel (ai-chat-panel.tsx:21:31)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1623:47)
+    at Route (wouter.js?v=9ff475c4:323:16)
+    at Switch (wouter.js?v=9ff475c4:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=9ff475c4:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=9ff475c4:951:5)
+    at ThemeProvider (theme-context.tsx:19:33)
+    at QueryClientProvider (@tanstack_react-query.js?v=9ff475c4:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+(anonymous) @ ai-chat-panel.tsx:40
+AiChatPanel @ ai-chat-panel.tsx:42
+renderWithHooks @ chunk-WERSD76P.js?v=9ff475c4:11548
+updateFunctionComponent @ chunk-WERSD76P.js?v=9ff475c4:14582
+beginWork @ chunk-WERSD76P.js?v=9ff475c4:15924
+beginWork$1 @ chunk-WERSD76P.js?v=9ff475c4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=9ff475c4:19198
+workLoopSync @ chunk-WERSD76P.js?v=9ff475c4:19137
+renderRootSync @ chunk-WERSD76P.js?v=9ff475c4:19116
+performSyncWorkOnRoot @ chunk-WERSD76P.js?v=9ff475c4:18874
+flushSyncCallbacks @ chunk-WERSD76P.js?v=9ff475c4:9119
+(anonymous) @ chunk-WERSD76P.js?v=9ff475c4:18627
+ai-chat-panel.tsx:32 AI Chat Panel - Raw data: {id: 'C:/ReactProjects/LeviatanCode/ai-chats', name: 'ai-chats', description: 'Project from C:/ReactProjects/LeviatanCode/ai-chats', createdAt: '2025-08-12T01:32:18.542Z', updatedAt: '2025-08-12T01:32:18.542Z'}
+ai-chat-panel.tsx:33 AI Chat Panel - Is array? false
+ai-chat-panel.tsx:34 AI Chat Panel - Type: object
+ai-chat-panel.tsx:40 AI Chat Panel - Data is not an array, falling back to empty array Error Component Stack
+    at AiChatPanel (ai-chat-panel.tsx:21:31)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1623:47)
+    at Route (wouter.js?v=9ff475c4:323:16)
+    at Switch (wouter.js?v=9ff475c4:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=9ff475c4:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=9ff475c4:951:5)
+    at ThemeProvider (theme-context.tsx:19:33)
+    at QueryClientProvider (@tanstack_react-query.js?v=9ff475c4:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+(anonymous) @ ai-chat-panel.tsx:40
+AiChatPanel @ ai-chat-panel.tsx:42
+renderWithHooks @ chunk-WERSD76P.js?v=9ff475c4:11548
+updateFunctionComponent @ chunk-WERSD76P.js?v=9ff475c4:14582
+beginWork @ chunk-WERSD76P.js?v=9ff475c4:15924
+beginWork$1 @ chunk-WERSD76P.js?v=9ff475c4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=9ff475c4:19198
+workLoopSync @ chunk-WERSD76P.js?v=9ff475c4:19137
+renderRootSync @ chunk-WERSD76P.js?v=9ff475c4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=9ff475c4:18678
+workLoop @ chunk-WERSD76P.js?v=9ff475c4:197
+flushWork @ chunk-WERSD76P.js?v=9ff475c4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=9ff475c4:384
+ai-chat-panel.tsx:32 AI Chat Panel - Raw data: {id: 'C:/ReactProjects/LeviatanCode/ai-chats', name: 'ai-chats', description: 'Project from C:/ReactProjects/LeviatanCode/ai-chats', createdAt: '2025-08-12T01:32:18.542Z', updatedAt: '2025-08-12T01:32:18.542Z'}
+ai-chat-panel.tsx:33 AI Chat Panel - Is array? false
+ai-chat-panel.tsx:34 AI Chat Panel - Type: object
+ai-chat-panel.tsx:40 AI Chat Panel - Data is not an array, falling back to empty array Error Component Stack
+    at AiChatPanel (ai-chat-panel.tsx:21:31)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1623:47)
+    at Route (wouter.js?v=9ff475c4:323:16)
+    at Switch (wouter.js?v=9ff475c4:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=9ff475c4:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=9ff475c4:951:5)
+    at ThemeProvider (theme-context.tsx:19:33)
+    at QueryClientProvider (@tanstack_react-query.js?v=9ff475c4:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+(anonymous) @ ai-chat-panel.tsx:40
+AiChatPanel @ ai-chat-panel.tsx:42
+renderWithHooks @ chunk-WERSD76P.js?v=9ff475c4:11548
+updateFunctionComponent @ chunk-WERSD76P.js?v=9ff475c4:14582
+beginWork @ chunk-WERSD76P.js?v=9ff475c4:15924
+beginWork$1 @ chunk-WERSD76P.js?v=9ff475c4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=9ff475c4:19198
+workLoopSync @ chunk-WERSD76P.js?v=9ff475c4:19137
+renderRootSync @ chunk-WERSD76P.js?v=9ff475c4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=9ff475c4:18678
+workLoop @ chunk-WERSD76P.js?v=9ff475c4:197
+flushWork @ chunk-WERSD76P.js?v=9ff475c4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=9ff475c4:384
+ai-chat-panel.tsx:32 AI Chat Panel - Raw data: {id: 'C:/ReactProjects/LeviatanCode/ai-chats', name: 'ai-chats', description: 'Project from C:/ReactProjects/LeviatanCode/ai-chats', createdAt: '2025-08-12T01:32:18.542Z', updatedAt: '2025-08-12T01:32:18.542Z'}
+ai-chat-panel.tsx:33 AI Chat Panel - Is array? false
+ai-chat-panel.tsx:34 AI Chat Panel - Type: object
+ai-chat-panel.tsx:40 AI Chat Panel - Data is not an array, falling back to empty array Error Component Stack
+    at AiChatPanel (ai-chat-panel.tsx:21:31)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1623:47)
+    at Route (wouter.js?v=9ff475c4:323:16)
+    at Switch (wouter.js?v=9ff475c4:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=9ff475c4:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=9ff475c4:951:5)
+    at ThemeProvider (theme-context.tsx:19:33)
+    at QueryClientProvider (@tanstack_react-query.js?v=9ff475c4:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+(anonymous) @ ai-chat-panel.tsx:40
+AiChatPanel @ ai-chat-panel.tsx:42
+renderWithHooks @ chunk-WERSD76P.js?v=9ff475c4:11548
+updateFunctionComponent @ chunk-WERSD76P.js?v=9ff475c4:14582
+beginWork @ chunk-WERSD76P.js?v=9ff475c4:15924
+beginWork$1 @ chunk-WERSD76P.js?v=9ff475c4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=9ff475c4:19198
+workLoopSync @ chunk-WERSD76P.js?v=9ff475c4:19137
+renderRootSync @ chunk-WERSD76P.js?v=9ff475c4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=9ff475c4:18678
+workLoop @ chunk-WERSD76P.js?v=9ff475c4:197
+flushWork @ chunk-WERSD76P.js?v=9ff475c4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=9ff475c4:384
+ai-chat-panel.tsx:32 AI Chat Panel - Raw data: {id: 'C:/ReactProjects/LeviatanCode/ai-chats', name: 'ai-chats', description: 'Project from C:/ReactProjects/LeviatanCode/ai-chats', createdAt: '2025-08-12T01:32:18.542Z', updatedAt: '2025-08-12T01:32:18.542Z'}
+ai-chat-panel.tsx:33 AI Chat Panel - Is array? false
+ai-chat-panel.tsx:34 AI Chat Panel - Type: object
+ai-chat-panel.tsx:40 AI Chat Panel - Data is not an array, falling back to empty array Error Component Stack
+    at AiChatPanel (ai-chat-panel.tsx:21:31)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1623:47)
+    at Route (wouter.js?v=9ff475c4:323:16)
+    at Switch (wouter.js?v=9ff475c4:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=9ff475c4:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=9ff475c4:951:5)
+    at ThemeProvider (theme-context.tsx:19:33)
+    at QueryClientProvider (@tanstack_react-query.js?v=9ff475c4:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+(anonymous) @ ai-chat-panel.tsx:40
+AiChatPanel @ ai-chat-panel.tsx:42
+renderWithHooks @ chunk-WERSD76P.js?v=9ff475c4:11548
+updateFunctionComponent @ chunk-WERSD76P.js?v=9ff475c4:14582
+beginWork @ chunk-WERSD76P.js?v=9ff475c4:15924
+beginWork$1 @ chunk-WERSD76P.js?v=9ff475c4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=9ff475c4:19198
+workLoopSync @ chunk-WERSD76P.js?v=9ff475c4:19137
+renderRootSync @ chunk-WERSD76P.js?v=9ff475c4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=9ff475c4:18678
+workLoop @ chunk-WERSD76P.js?v=9ff475c4:197
+flushWork @ chunk-WERSD76P.js?v=9ff475c4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=9ff475c4:384
+ai-chat-panel.tsx:32 AI Chat Panel - Raw data: {id: 'C:/ReactProjects/LeviatanCode/ai-chats', name: 'ai-chats', description: 'Project from C:/ReactProjects/LeviatanCode/ai-chats', createdAt: '2025-08-12T01:32:18.542Z', updatedAt: '2025-08-12T01:32:18.542Z'}
+ai-chat-panel.tsx:33 AI Chat Panel - Is array? false
+ai-chat-panel.tsx:34 AI Chat Panel - Type: object
+ai-chat-panel.tsx:40 AI Chat Panel - Data is not an array, falling back to empty array Error Component Stack
+    at AiChatPanel (ai-chat-panel.tsx:21:31)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1623:47)
+    at Route (wouter.js?v=9ff475c4:323:16)
+    at Switch (wouter.js?v=9ff475c4:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=9ff475c4:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=9ff475c4:951:5)
+    at ThemeProvider (theme-context.tsx:19:33)
+    at QueryClientProvider (@tanstack_react-query.js?v=9ff475c4:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+(anonymous) @ ai-chat-panel.tsx:40
+AiChatPanel @ ai-chat-panel.tsx:42
+renderWithHooks @ chunk-WERSD76P.js?v=9ff475c4:11548
+updateFunctionComponent @ chunk-WERSD76P.js?v=9ff475c4:14582
+beginWork @ chunk-WERSD76P.js?v=9ff475c4:15924
+beginWork$1 @ chunk-WERSD76P.js?v=9ff475c4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=9ff475c4:19198
+workLoopSync @ chunk-WERSD76P.js?v=9ff475c4:19137
+renderRootSync @ chunk-WERSD76P.js?v=9ff475c4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=9ff475c4:18678
+workLoop @ chunk-WERSD76P.js?v=9ff475c4:197
+flushWork @ chunk-WERSD76P.js?v=9ff475c4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=9ff475c4:384
+ai-chat-panel.tsx:32 AI Chat Panel - Raw data: {id: 'C:/ReactProjects/LeviatanCode/ai-chats', name: 'ai-chats', description: 'Project from C:/ReactProjects/LeviatanCode/ai-chats', createdAt: '2025-08-12T01:32:18.542Z', updatedAt: '2025-08-12T01:32:18.542Z'}
+ai-chat-panel.tsx:33 AI Chat Panel - Is array? false
+ai-chat-panel.tsx:34 AI Chat Panel - Type: object
+ai-chat-panel.tsx:40 AI Chat Panel - Data is not an array, falling back to empty array Error Component Stack
+    at AiChatPanel (ai-chat-panel.tsx:21:31)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1623:47)
+    at Route (wouter.js?v=9ff475c4:323:16)
+    at Switch (wouter.js?v=9ff475c4:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=9ff475c4:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=9ff475c4:951:5)
+    at ThemeProvider (theme-context.tsx:19:33)
+    at QueryClientProvider (@tanstack_react-query.js?v=9ff475c4:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+(anonymous) @ ai-chat-panel.tsx:40
+AiChatPanel @ ai-chat-panel.tsx:42
+renderWithHooks @ chunk-WERSD76P.js?v=9ff475c4:11548
+updateFunctionComponent @ chunk-WERSD76P.js?v=9ff475c4:14582
+beginWork @ chunk-WERSD76P.js?v=9ff475c4:15924
+beginWork$1 @ chunk-WERSD76P.js?v=9ff475c4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=9ff475c4:19198
+workLoopSync @ chunk-WERSD76P.js?v=9ff475c4:19137
+renderRootSync @ chunk-WERSD76P.js?v=9ff475c4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=9ff475c4:18678
+workLoop @ chunk-WERSD76P.js?v=9ff475c4:197
+flushWork @ chunk-WERSD76P.js?v=9ff475c4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=9ff475c4:384
+ai-chat-panel.tsx:32 AI Chat Panel - Raw data: {id: 'C:/ReactProjects/LeviatanCode/ai-chats', name: 'ai-chats', description: 'Project from C:/ReactProjects/LeviatanCode/ai-chats', createdAt: '2025-08-12T01:32:18.542Z', updatedAt: '2025-08-12T01:32:18.542Z'}
+ai-chat-panel.tsx:33 AI Chat Panel - Is array? false
+ai-chat-panel.tsx:34 AI Chat Panel - Type: object
+ai-chat-panel.tsx:40 AI Chat Panel - Data is not an array, falling back to empty array Error Component Stack
+    at AiChatPanel (ai-chat-panel.tsx:21:31)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1623:47)
+    at Route (wouter.js?v=9ff475c4:323:16)
+    at Switch (wouter.js?v=9ff475c4:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=9ff475c4:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=9ff475c4:951:5)
+    at ThemeProvider (theme-context.tsx:19:33)
+    at QueryClientProvider (@tanstack_react-query.js?v=9ff475c4:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+(anonymous) @ ai-chat-panel.tsx:40
+AiChatPanel @ ai-chat-panel.tsx:42
+renderWithHooks @ chunk-WERSD76P.js?v=9ff475c4:11548
+updateFunctionComponent @ chunk-WERSD76P.js?v=9ff475c4:14582
+beginWork @ chunk-WERSD76P.js?v=9ff475c4:15924
+beginWork$1 @ chunk-WERSD76P.js?v=9ff475c4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=9ff475c4:19198
+workLoopSync @ chunk-WERSD76P.js?v=9ff475c4:19137
+renderRootSync @ chunk-WERSD76P.js?v=9ff475c4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=9ff475c4:18678
+workLoop @ chunk-WERSD76P.js?v=9ff475c4:197
+flushWork @ chunk-WERSD76P.js?v=9ff475c4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=9ff475c4:384
+ai-chat-panel.tsx:32 AI Chat Panel - Raw data: {id: 'C:/ReactProjects/LeviatanCode/ai-chats', name: 'ai-chats', description: 'Project from C:/ReactProjects/LeviatanCode/ai-chats', createdAt: '2025-08-12T01:32:18.542Z', updatedAt: '2025-08-12T01:32:18.542Z'}
+ai-chat-panel.tsx:33 AI Chat Panel - Is array? false
+ai-chat-panel.tsx:34 AI Chat Panel - Type: object
+ai-chat-panel.tsx:40 AI Chat Panel - Data is not an array, falling back to empty array Error Component Stack
+    at AiChatPanel (ai-chat-panel.tsx:21:31)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1623:47)
+    at Route (wouter.js?v=9ff475c4:323:16)
+    at Switch (wouter.js?v=9ff475c4:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=9ff475c4:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=9ff475c4:951:5)
+    at ThemeProvider (theme-context.tsx:19:33)
+    at QueryClientProvider (@tanstack_react-query.js?v=9ff475c4:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+(anonymous) @ ai-chat-panel.tsx:40
+AiChatPanel @ ai-chat-panel.tsx:42
+renderWithHooks @ chunk-WERSD76P.js?v=9ff475c4:11548
+updateFunctionComponent @ chunk-WERSD76P.js?v=9ff475c4:14582
+beginWork @ chunk-WERSD76P.js?v=9ff475c4:15924
+beginWork$1 @ chunk-WERSD76P.js?v=9ff475c4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=9ff475c4:19198
+workLoopSync @ chunk-WERSD76P.js?v=9ff475c4:19137
+renderRootSync @ chunk-WERSD76P.js?v=9ff475c4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=9ff475c4:18678
+workLoop @ chunk-WERSD76P.js?v=9ff475c4:197
+flushWork @ chunk-WERSD76P.js?v=9ff475c4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=9ff475c4:384
+ai-chat-panel.tsx:32 AI Chat Panel - Raw data: {id: 'C:/ReactProjects/LeviatanCode/ai-chats', name: 'ai-chats', description: 'Project from C:/ReactProjects/LeviatanCode/ai-chats', createdAt: '2025-08-12T01:32:18.542Z', updatedAt: '2025-08-12T01:32:18.542Z'}
+ai-chat-panel.tsx:33 AI Chat Panel - Is array? false
+ai-chat-panel.tsx:34 AI Chat Panel - Type: object
+ai-chat-panel.tsx:40 AI Chat Panel - Data is not an array, falling back to empty array Error Component Stack
+    at AiChatPanel (ai-chat-panel.tsx:21:31)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at Dashboard (dashboard.tsx:1623:47)
+    at Route (wouter.js?v=9ff475c4:323:16)
+    at Switch (wouter.js?v=9ff475c4:379:17)
+    at Router (<anonymous>)
+    at div (<anonymous>)
+    at Provider (chunk-PLT6GTVM.js?v=9ff475c4:38:15)
+    at TooltipProvider (@radix-ui_react-tooltip.js?v=9ff475c4:951:5)
+    at ThemeProvider (theme-context.tsx:19:33)
+    at QueryClientProvider (@tanstack_react-query.js?v=9ff475c4:2805:3)
+    at App (<anonymous>)
+overrideMethod @ hook.js:608
+(anonymous) @ ai-chat-panel.tsx:40
+AiChatPanel @ ai-chat-panel.tsx:42
+renderWithHooks @ chunk-WERSD76P.js?v=9ff475c4:11548
+updateFunctionComponent @ chunk-WERSD76P.js?v=9ff475c4:14582
+beginWork @ chunk-WERSD76P.js?v=9ff475c4:15924
+beginWork$1 @ chunk-WERSD76P.js?v=9ff475c4:19753
+performUnitOfWork @ chunk-WERSD76P.js?v=9ff475c4:19198
+workLoopSync @ chunk-WERSD76P.js?v=9ff475c4:19137
+renderRootSync @ chunk-WERSD76P.js?v=9ff475c4:19116
+performConcurrentWorkOnRoot @ chunk-WERSD76P.js?v=9ff475c4:18678
+workLoop @ chunk-WERSD76P.js?v=9ff475c4:197
+flushWork @ chunk-WERSD76P.js?v=9ff475c4:176
+performWorkUntilDeadline @ chunk-WERSD76P.js?v=9ff475c4:384

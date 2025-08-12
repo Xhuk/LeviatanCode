@@ -27,19 +27,8 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
     queryKey: [`/api/projects/${projectId}/ai-chats`],
   });
 
-  // Ensure chats is always an array with debugging
-  const chats = (() => {
-    console.log('AI Chat Panel - Raw data:', chatsData);
-    console.log('AI Chat Panel - Is array?', Array.isArray(chatsData));
-    console.log('AI Chat Panel - Type:', typeof chatsData);
-    
-    if (Array.isArray(chatsData)) {
-      return chatsData;
-    }
-    
-    console.warn('AI Chat Panel - Data is not an array, falling back to empty array');
-    return [];
-  })();
+  // Ensure chats is always an array
+  const chats = Array.isArray(chatsData) ? chatsData : [];
 
   const sendMessageMutation = useMutation({
     mutationFn: async (message: string) => {
@@ -103,7 +92,7 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
               </p>
             </div>
           ) : (
-            (Array.isArray(chats) ? chats : []).map((chat) => (
+            chats.map((chat) => (
               <div key={chat.id} className={`flex ${chat.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[80%] rounded-lg p-3 ${
                   chat.role === 'user' 

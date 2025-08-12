@@ -1,0 +1,39 @@
+[INFO] CSP disabled for development mode
+7:32:18 PM [express] GET /api/projects/C:/ReactProjects/LeviatanCode/insights 200 in 1ms :: {"id":"C…
+[INFO] CSP disabled for development mode
+7:32:18 PM [express] GET /api/workspace/file-tree/C:/ReactProjects/LeviatanCode 200 in 184ms :: {"ro…
+[INFO] CSP disabled for development mode
+7:32:18 PM [express] GET /api/projects/C:/ReactProjects/LeviatanCode/ai-chats 200 in 1ms :: {"id":"C…
+[INFO] CSP disabled for development mode
+7:32:18 PM [express] GET /api/workspace/C:/ReactProjects/LeviatanCode/git/config 304 in 1ms :: {"use…
+[INFO] CSP disabled for development mode
+7:32:18 PM [express] GET /api/projects/C:/ReactProjects/LeviatanCode 200 in 1ms :: {"id":"C:/ReactPr…
+📡 Subscribed to analysis updates for project: C:\ReactProjects\LeviatanCode
+[INFO] CSP disabled for development mode
+🔍 Starting document analysis for project: C:/ReactProjects/LeviatanCode
+📁 Analysis directory: C:\ReactProjects
+INFO:werkzeug:127.0.0.1 - - [11/Aug/2025 19:32:22] "POST /analyze HTTP/1.1" 400 -
+Flask Analyzer unavailable for document analysis
+7:32:22 PM [express] POST /api/projects/C:/ReactProjects/LeviatanCode/analyze-documents 503 in 10ms …
+INFO:werkzeug:127.0.0.1 - - [11/Aug/2025 19:32:25] "GET /health HTTP/1.1" 200 -
+7:32:30 PM [express] GET /api/middleware/status 200 in 2ms :: {"globallyEnabled":true,"total":5,"act…
+7:32:36 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+7:32:41 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+7:32:46 PM [express] GET /api/middleware/status 304 in 0ms :: {"globallyEnabled":true,"total":5,"act…
+7:32:51 PM [express] GET /api/middleware/status 304 in 0ms :: {"globallyEnabled":true,"total":5,"act…
+INFO:werkzeug:127.0.0.1 - - [11/Aug/2025 19:32:55] "GET /health HTTP/1.1" 200 -
+7:32:56 PM [express] GET /api/middleware/status 304 in 0ms :: {"globallyEnabled":true,"total":5,"act…
+7:33:06 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+[INFO] CSP disabled for development mode
+🔍 Starting document analysis for project: C:/ReactProjects/LeviatanCode
+📁 Analysis directory: C:\ReactProjects
+INFO:werkzeug:127.0.0.1 - - [11/Aug/2025 19:33:09] "POST /analyze HTTP/1.1" 400 -
+Flask Analyzer unavailable for document analysis
+7:33:09 PM [express] POST /api/projects/C:/ReactProjects/LeviatanCode/analyze-documents 503 in 6ms :…
+7:33:11 PM [express] GET /api/middleware/status 200 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+7:33:16 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+7:33:21 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+INFO:werkzeug:127.0.0.1 - - [11/Aug/2025 19:33:25] "GET /health HTTP/1.1" 200 -
+7:33:26 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+7:33:31 PM [express] GET /api/middleware/status 304 in 1ms :: {"globallyEnabled":true,"total":5,"act…
+INFO:werkzeug:127.0.0.1 - - [11/Aug/2025 19:33:55] "GET /health HTTP/1.1" 200 -
