@@ -16,7 +16,8 @@ import {
   RefreshCw,
   Check,
   AlertTriangle,
-  Info
+  Info,
+  Search
 } from "lucide-react";
 
 export const LeviatanSettings = ({ currentProject }: { currentProject: string }) => {
@@ -200,6 +201,7 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
       language: 'en',
       fontSize: '14',
       tabSize: '2',
+      accentColor: '#22c55e',
       wordWrap: true,
       minimap: true,
       lineNumbers: true,
@@ -214,7 +216,11 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
       enableHttps: false,
       corsEnabled: true,
       rateLimiting: true,
-      sessionTimeout: '24'
+      sessionTimeout: '24',
+      enableOllama: false,
+      ollamaUrl: 'http://localhost:11434',
+      ollamaModel: 'llama3',
+      aiMode: 'chatgpt-only'
     });
   };
 
@@ -309,10 +315,10 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-replit-text-secondary mb-2">Theme</label>
-                    <Select value={settings.theme} onValueChange={(value) => {
+                    <Select value={settings.theme} onValueChange={(value: 'dark' | 'light' | 'auto') => {
                       const newSettings = {...settings, theme: value};
                       setSettings(newSettings);
-                      applySettings({ theme: value as any, fontSize: settings.fontSize, tabSize: settings.tabSize, accentColor: settings.accentColor });
+                      applySettings({ theme: value, fontSize: settings.fontSize, tabSize: settings.tabSize, accentColor: settings.accentColor });
                     }}>
                       <SelectTrigger className="bg-replit-elevated border-replit-border">
                         <SelectValue />

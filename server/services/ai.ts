@@ -488,7 +488,7 @@ Return only the refined prompt text, ready to use. Include variable placeholders
       return response.choices[0].message.content || "Could not analyze the file.";
     } catch (error) {
       console.error("File analysis error:", error);
-      throw new Error(`Failed to analyze file: ${error.message}`);
+      throw new Error(`Failed to analyze file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
