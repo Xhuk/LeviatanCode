@@ -4064,9 +4064,9 @@ Please provide a JSON response with this exact structure:
         parameters: {
           type: 'object',
           properties: {
-            filepath: { type: 'string', description: 'Path to file to read' }
-          },
-          required: ['filepath']
+            filepath: { type: 'string', description: 'Path to file to read' },
+            path: { type: 'string', description: 'Alias for filepath' }
+          }
         }
       }
     },
