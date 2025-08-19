@@ -3,12 +3,17 @@ import { GoogleGenAI } from "@google/genai";
 import { ChatMessage, AnalysisResult } from "@shared/schema";
 import { storage } from "../storage";
 import { logger } from "../utils/colorLogger";
+import { tokenBudget } from "../utils/tokenBudget";
 // Use native fetch in Node.js 18+
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ 
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ""
 });
+
+const DEFAULT_OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o";
+const OPENAI_INPUT_RATE = 0.000005; // $5 per 1M input tokens
+const OPENAI_OUTPUT_RATE = 0.000015; // $15 per 1M output tokens
 
 const gemini = new GoogleGenAI({ 
   apiKey: process.env.GEMINI_API_KEY || ""
@@ -26,6 +31,24 @@ export class AIService {
   constructor() {
     // Start health monitoring if Ollama is configured
     this.startOllamaHealthMonitoring();
+  }
+
+  private trackOpenAIUsage(response: any, model: string) {
+    if (response?.usage) {
+      const usage = response.usage;
+      const cost =
+        (usage.prompt_tokens || 0) * OPENAI_INPUT_RATE +
+        (usage.completion_tokens || 0) * OPENAI_OUTPUT_RATE;
+      tokenBudget.recordUsage({
+        service: "openai",
+        model,
+        tokens: usage.total_tokens || 0,
+        cost,
+      });
+      if (tokenBudget.shouldHalt()) {
+        throw new Error("AI budget exceeded");
+      }
+    }
   }
 
   private startOllamaHealthMonitoring() {
@@ -83,16 +106,16 @@ export class AIService {
 
   // Alias for backward compatibility
   async generateCompletion(
-    messages: ChatMessage[], 
-    model: string = "gpt-4o",
+    messages: ChatMessage[],
+    model: string = DEFAULT_OPENAI_MODEL,
     aiMode: string = "chatgpt-only"
   ): Promise<string> {
     return this.generateChatResponse(messages, model, aiMode);
   }
 
   async generateChatResponse(
-    messages: ChatMessage[], 
-    model: string = "gpt-4o",
+    messages: ChatMessage[],
+    model: string = DEFAULT_OPENAI_MODEL,
     aiMode: string = "chatgpt-only"
   ): Promise<string> {
     try {
@@ -109,7 +132,7 @@ export class AIService {
           } catch (ollamaError) {
             logger.ollama("Request failed, falling back to ChatGPT", "warn");
             logger.chatgpt("Taking over from Ollama fallback");
-            return await this.generateOpenAIResponse(messages, "gpt-4o");
+            return await this.generateOpenAIResponse(messages, DEFAULT_OPENAI_MODEL);
           }
         }
       }
@@ -170,6 +193,8 @@ export class AIService {
       temperature: 0.7,
       max_tokens: 2000
     });
+
+    this.trackOpenAIUsage(response, model);
 
     return response.choices[0].message.content || "I couldn't generate a response.";
   }
@@ -309,11 +334,12 @@ Format your response as JSON with these fields:
 - recommendations: string[]`;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: DEFAULT_OPENAI_MODEL,
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" }
       });
 
+      this.trackOpenAIUsage(response, DEFAULT_OPENAI_MODEL);
       const result = JSON.parse(response.choices[0].message.content || "{}");
       
       return {
@@ -350,11 +376,11 @@ Include:
 Format as markdown.`;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: DEFAULT_OPENAI_MODEL,
         messages: [{ role: "user", content: prompt }],
         temperature: 0.3
       });
-
+      this.trackOpenAIUsage(response, DEFAULT_OPENAI_MODEL);
       return response.choices[0].message.content || "Documentation could not be generated.";
     } catch (error) {
       console.error("Documentation generation error:", error);
@@ -375,12 +401,12 @@ Focus on:
 - Potential improvements`;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: DEFAULT_OPENAI_MODEL,
         messages: [{ role: "user", content: prompt }],
         temperature: 0.3,
         max_tokens: 500
       });
-
+      this.trackOpenAIUsage(response, DEFAULT_OPENAI_MODEL);
       return response.choices[0].message.content || "Could not explain this code.";
     } catch (error) {
       console.error("Code explanation error:", error);
@@ -390,7 +416,7 @@ Focus on:
 
   async *streamChatResponse(
     messages: ChatMessage[], 
-    model: string = "gpt-4o"
+    model: string = DEFAULT_OPENAI_MODEL
   ): AsyncGenerator<string, void, unknown> {
     try {
       const openaiMessages = messages.map(msg => ({
@@ -438,12 +464,12 @@ Please improve this prompt by:
 Return only the refined prompt text, ready to use. Include variable placeholders where appropriate.`;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: DEFAULT_OPENAI_MODEL,
         messages: [{ role: "user", content: refinementPrompt }],
         temperature: 0.3,
         max_tokens: 1000
       });
-
+      this.trackOpenAIUsage(response, DEFAULT_OPENAI_MODEL);
       return response.choices[0].message.content || promptText;
     } catch (error) {
       console.error("Prompt refinement error:", error);
@@ -454,7 +480,7 @@ Return only the refined prompt text, ready to use. Include variable placeholders
   async generateChatResponseWithContext(
     messages: ChatMessage[], 
     projectId: string,
-    model: string = "gpt-4o",
+    model: string = DEFAULT_OPENAI_MODEL,
     aiMode: string = "chatgpt-only"
   ): Promise<string> {
     try {
@@ -580,12 +606,12 @@ Return only the refined prompt text, ready to use. Include variable placeholders
       }
 
       const response = await openai.chat.completions.create({
-        model: "gpt-4o",
+        model: DEFAULT_OPENAI_MODEL,
         messages: [{ role: "user", content: prompt }],
         temperature: 0.3,
         max_tokens: 2000
       });
-
+      this.trackOpenAIUsage(response, DEFAULT_OPENAI_MODEL);
       return response.choices[0].message.content || "Could not analyze the file.";
     } catch (error) {
       console.error("File analysis error:", error);
