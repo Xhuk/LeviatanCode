@@ -39,7 +39,39 @@ import {
   type VaultSecret,
   type InsertVaultSecret
 } from "@shared/schema";
-import { tools as agentTools, toolDefs } from "../shared/agentTools";
+import { tools as baseTools, toolDefs as baseToolDefs } from "../shared/agentTools";
+
+async function listFiles({ dirpath, ignore = [] }: { dirpath: string; ignore?: string[] }) {
+  const entries = await baseTools.listFiles({ dirpath });
+  const skip = new Set(['node_modules', '.git', 'dist', 'build', ...ignore]);
+  return entries.filter(name => !skip.has(name));
+}
+
+const agentTools = { ...baseTools, listFiles };
+
+const toolDefs = baseToolDefs.map(def => {
+  if (def.function.name === 'listFiles') {
+    return {
+      ...def,
+      function: {
+        ...def.function,
+        parameters: {
+          type: 'object',
+          properties: {
+            dirpath: { type: 'string', description: 'Directory path to list' },
+            ignore: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Directories to ignore',
+            },
+          },
+          required: ['dirpath'],
+        },
+      },
+    };
+  }
+  return def;
+}) as typeof baseToolDefs;
 
 // Function to update replit.md with analysis results
 function updateReplitMdWithAnalysis(existingContent: string, analysisData: any): string {

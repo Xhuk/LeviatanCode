@@ -1,6 +1,6 @@
 import 'dotenv/config'
 import express from 'express'
-import { tools as agentTools, toolDefs } from '../../shared/agentTools'
+import { tools as baseTools, toolDefs as baseToolDefs } from '../../shared/agentTools'
 import OpenAI from 'openai'
 
 const app = express()
@@ -18,6 +18,37 @@ const projectChats = new Map<string, Msg[]>()
 const chatById = new Map<string, Msg[]>()
 const uuid = () => Math.random().toString(36).slice(2) + Date.now().toString(36)
 
+async function listFiles({ dirpath, ignore = [] }: { dirpath: string; ignore?: string[] }) {
+  const entries = await baseTools.listFiles({ dirpath })
+  const skip = new Set(['node_modules', '.git', 'dist', 'build', ...ignore])
+  return entries.filter(name => !skip.has(name))
+}
+
+const agentTools = { ...baseTools, listFiles }
+
+const toolDefs = baseToolDefs.map(def => {
+  if (def.function.name === 'listFiles') {
+    return {
+      ...def,
+      function: {
+        ...def.function,
+        parameters: {
+          type: 'object',
+          properties: {
+            dirpath: { type: 'string', description: 'Directory path to list' },
+            ignore: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Directories to ignore',
+            },
+          },
+          required: ['dirpath'],
+        },
+      },
+    }
+  }
+  return def
+}) as typeof baseToolDefs
 
 async function complete(messages: {role:'user'|'assistant'|'system', content:string}[], model?: string) {
   const m = model || process.env.MODEL || 'gpt-4o-mini'
@@ -138,3 +169,4 @@ app.get('/api/health', (_req, res) => res.json({ ok: true }))
 app.listen(PORT, () => {
   console.log(`Dev Agent server running on :${PORT}`)
 })
+
