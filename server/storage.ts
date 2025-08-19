@@ -518,7 +518,7 @@ export class MemStorage implements IStorage {
   }
 }
 
-import { db } from "./db";
+import { db as dbConn } from "./db";
 import { 
   users, 
   projects, 
@@ -526,14 +526,19 @@ import {
   aiChats, 
   messages,
   documentation, 
-  promptTemplates, 
+  promptTemplates,
   vaultSecrets,
-  configurations,
   aiUsageLogs,
   aiCostSummaries,
   aiBudgetSettings
 } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
+
+// Ensure database is initialized at module load
+if (!dbConn) {
+  throw new Error("Database not initialized");
+}
+const db = dbConn;
 
 export class DbStorage implements IStorage {
   // Users
@@ -739,28 +744,28 @@ export class DbStorage implements IStorage {
   }
 
   async getAiUsageLogs(userId: string, projectId?: string, dateRange?: { start: Date; end: Date }): Promise<any[]> {
-    let query = db.select().from(aiUsageLogs).where(eq(aiUsageLogs.userId, userId));
-    
+    const conditions = [eq(aiUsageLogs.userId, userId)];
     if (projectId) {
-      query = query.where(eq(aiUsageLogs.projectId, projectId));
+      conditions.push(eq(aiUsageLogs.projectId, projectId));
     }
-    
     // For date range filtering, we would need more complex where conditions
     // This is a simplified implementation
-    return await query;
+    return await db.select().from(aiUsageLogs).where(and(...conditions));
   }
 
   async getAiCostSummary(userId: string, period: 'daily' | 'weekly' | 'monthly', projectId?: string): Promise<any> {
-    let query = db
+    const conditions = [
+      eq(aiCostSummaries.userId, userId),
+      eq(aiCostSummaries.period, period)
+    ];
+    if (projectId) {
+      conditions.push(eq(aiCostSummaries.projectId, projectId));
+    }
+
+    const result = await db
       .select()
       .from(aiCostSummaries)
-      .where(and(eq(aiCostSummaries.userId, userId), eq(aiCostSummaries.period, period)));
-    
-    if (projectId) {
-      query = query.where(eq(aiCostSummaries.projectId, projectId));
-    }
-    
-    const result = await query;
+      .where(and(...conditions));
     return result[0] || null;
   }
 

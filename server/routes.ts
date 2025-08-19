@@ -15,6 +15,7 @@ import { InsightsFileService } from "./services/insights-file";
 import { contextService } from "./contextService";
 import { ContextMiddleware } from "./contextMiddleware";
 import { generateFallbackStructure } from "./project-generator";
+import { tokenBudget } from "./utils/tokenBudget";
 import multer from "multer";
 import { z } from "zod";
 import yauzl from "yauzl";
@@ -4543,11 +4544,20 @@ Please provide a JSON response with this exact structure:
       res.json({ success: true, settings });
     } catch (error) {
       console.error('Update budget settings error:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error" 
+        error: error instanceof Error ? error.message : "Unknown error"
       });
     }
+  });
+
+  app.get("/api/ai/budget-status", (_req, res) => {
+    res.json({ success: true, status: tokenBudget.getStatus() });
+  });
+
+  app.post("/api/ai/budget-override", (req, res) => {
+    tokenBudget.setOverride(Boolean(req.body.override));
+    res.json({ success: true, status: tokenBudget.getStatus() });
   });
 
   // Update Ollama configuration endpoint
