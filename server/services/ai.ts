@@ -26,11 +26,11 @@ export class AIService {
   };
 
   private ollamaHealthCheck: NodeJS.Timeout | null = null;
-  private ollamaStatus: 'unknown' | 'connected' | 'disconnected' = 'unknown';
+  private ollamaStatus: 'unknown' | 'connected' | 'disconnected' | 'disabled' = 'disabled';
 
   constructor() {
-    // Start health monitoring if Ollama is configured
-    this.startOllamaHealthMonitoring();
+    // Ollama is disabled by default. Health monitoring will only start when
+    // explicitly enabled through settings.
   }
 
   private trackOpenAIUsage(response: any, model: string) {
@@ -52,14 +52,16 @@ export class AIService {
   }
 
   private startOllamaHealthMonitoring() {
+    if (this.ollamaHealthCheck) return;
+
     let failureCount = 0;
     const maxFailures = 3;
-    
+
     // Check every 30 seconds with exponential backoff on failures
     this.ollamaHealthCheck = setInterval(async () => {
       try {
         const result = await this.testOllamaConnection(this.ollamaConfig.url, this.ollamaConfig.model);
-        
+
         if (result.success) {
           if (this.ollamaStatus !== 'connected') {
             this.ollamaStatus = 'connected';
@@ -68,7 +70,7 @@ export class AIService {
           }
         } else {
           failureCount++;
-          
+
           // Only mark as disconnected after multiple failures to avoid false positives
           if (failureCount >= maxFailures && this.ollamaStatus !== 'disconnected') {
             this.ollamaStatus = 'disconnected';
@@ -88,12 +90,21 @@ export class AIService {
     }, 30000); // 30 seconds
   }
 
-  updateOllamaConfig(url: string, model: string) {
-    this.ollamaConfig.url = url;
-    this.ollamaConfig.model = model;
-    // Reset status to trigger fresh health check
+  enableOllama(url?: string, model?: string) {
+    if (url) this.ollamaConfig.url = url;
+    if (model) this.ollamaConfig.model = model;
     this.ollamaStatus = 'unknown';
-    logger.ollama(`Configuration updated: ${url} with model ${model}`);
+    this.startOllamaHealthMonitoring();
+    logger.ollama('Ollama integration enabled');
+  }
+
+  disableOllama() {
+    if (this.ollamaHealthCheck) {
+      clearInterval(this.ollamaHealthCheck);
+      this.ollamaHealthCheck = null;
+    }
+    this.ollamaStatus = 'disabled';
+    logger.ollama('Ollama integration disabled');
   }
 
   getOllamaStatus() {
