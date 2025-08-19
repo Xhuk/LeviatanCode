@@ -8,6 +8,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { Send, Bot, User, Zap, DollarSign, AlertTriangle, Code, FileText, Search, Bug, Cog } from "lucide-react";
 import { aiRouter } from "@/services/aiRouterPro";
 import { OllamaCrashConfirmDialog } from "@/components/dialogs/OllamaCrashConfirmDialog";
+import { toast } from "@/hooks/use-toast";
 
 interface AiChatPanelProps {
   projectId: string;
@@ -90,7 +91,6 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/ai-chats`] });
-      setNewMessage("");
     },
   });
 
@@ -125,11 +125,20 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
       await executeChatRequest(newMessage, routing);
     } else {
       // Use original direct API call
+      const message = newMessage;
       setIsGenerating(true);
       updateAgentStatus('executing', 'Sending to AI service...');
-      
+
       try {
-        await sendMessageMutation.mutateAsync(newMessage);
+        await sendMessageMutation.mutateAsync(message);
+        setNewMessage("");
+      } catch (error: any) {
+        setNewMessage(message);
+        toast({
+          title: "Failed to send message",
+          description: error?.message || "Please try again.",
+          variant: "destructive",
+        });
       } finally {
         setIsGenerating(false);
         updateAgentStatus('idle', '');
@@ -140,7 +149,7 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
   const executeChatRequest = async (message: string, routing?: any) => {
     setIsGenerating(true);
     updateAgentStatus('working', 'Processing your request...');
-    
+
     try {
       if (routing) {
         updateAgentStatus('analyzing', 'Analyzing task complexity...');
@@ -180,6 +189,12 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
         queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/ai-chats`] });
         setNewMessage("");
       }
+    } catch (error: any) {
+      toast({
+        title: "Failed to send message",
+        description: error?.message || "Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsGenerating(false);
       updateAgentStatus('idle', '');
