@@ -3969,7 +3969,7 @@ Please provide a JSON response with this exact structure:
   });
 
   // Developer Agent - AI-powered code assistant
-  const { readFile, writeFile, mkdir, rename } = await import('fs/promises');
+  const { readFile: fsReadFile, writeFile, mkdir, rename, readdir } = await import('fs/promises');
   const path = await import('path');
   const { spawn } = await import('child_process');
   
@@ -3985,9 +3985,28 @@ Please provide a JSON response with this exact structure:
 
   // Developer Agent tools
   const agentTools = {
-    readFile: async ({ filepath }: { filepath: string }) => {
-      const fullPath = safePath(filepath);
-      return await readFile(fullPath, 'utf8');
+    readFile: async ({ filepath, path: altPath }: { filepath?: string, path?: string }) => {
+      const target = filepath || altPath;
+      if (!target) throw new Error('filepath is required');
+      const fullPath = safePath(target);
+      return await fsReadFile(fullPath, 'utf8');
+    },
+    listFiles: async ({ dirpath = '.', ext }: { dirpath?: string, ext?: string }) => {
+      const dir = safePath(dirpath);
+      const files: string[] = [];
+      async function walk(d: string) {
+        const entries = await readdir(d, { withFileTypes: true });
+        for (const entry of entries) {
+          const full = path.join(d, entry.name);
+          if (entry.isDirectory()) {
+            await walk(full);
+          } else if (!ext || entry.name.endsWith(ext)) {
+            files.push(path.relative(process.cwd(), full));
+          }
+        }
+      }
+      await walk(dir);
+      return files;
     },
     writeFile: async ({ filepath, content }: { filepath: string, content: string }) => {
       const fullPath = safePath(filepath);
@@ -4036,6 +4055,100 @@ Please provide a JSON response with this exact structure:
     },
   };
 
+  const toolDefs = [
+    {
+      type: 'function' as const,
+      function: {
+        name: 'readFile',
+        description: 'Read file contents',
+        parameters: {
+          type: 'object',
+          properties: {
+            filepath: { type: 'string', description: 'Path to file to read' },
+            path: { type: 'string', description: 'Alias for filepath' }
+          }
+        }
+      }
+    },
+    {
+      type: 'function' as const,
+      function: {
+        name: 'listFiles',
+        description: 'List files in a directory',
+        parameters: {
+          type: 'object',
+          properties: {
+            dirpath: { type: 'string', description: 'Directory to list', default: '.' },
+            ext: { type: 'string', description: 'Optional file extension filter (e.g. .tsx)' }
+          }
+        }
+      }
+    },
+    {
+      type: 'function' as const,
+      function: {
+        name: 'writeFile',
+        description: 'Write content to a file',
+        parameters: {
+          type: 'object',
+          properties: {
+            filepath: { type: 'string', description: 'Path to file to write' },
+            content: { type: 'string', description: 'Content to write' }
+          },
+          required: ['filepath', 'content']
+        }
+      }
+    },
+    {
+      type: 'function' as const,
+      function: {
+        name: 'mkdir',
+        description: 'Create a directory',
+        parameters: {
+          type: 'object',
+          properties: {
+            dirpath: { type: 'string', description: 'Directory path to create' }
+          },
+          required: ['dirpath']
+        }
+      }
+    },
+    {
+      type: 'function' as const,
+      function: {
+        name: 'move',
+        description: 'Move or rename a file',
+        parameters: {
+          type: 'object',
+          properties: {
+            from: { type: 'string', description: 'Source path' },
+            to: { type: 'string', description: 'Destination path' }
+          },
+          required: ['from', 'to']
+        }
+      }
+    },
+    {
+      type: 'function' as const,
+      function: {
+        name: 'run',
+        description: 'Execute a shell command',
+        parameters: {
+          type: 'object',
+          properties: {
+            cmd: { type: 'string', description: 'Command to run' },
+            args: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Command arguments'
+            }
+          },
+          required: ['cmd']
+        }
+      }
+    }
+  ];
+
   // Developer Agent endpoint
   app.post('/api/agent', async (req, res) => {
     try {
@@ -4053,19 +4166,6 @@ Please provide a JSON response with this exact structure:
       const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
       });
-
-      const toolDefs = Object.keys(agentTools).map(name => ({
-        type: 'function' as const,
-        function: { 
-          name, 
-          description: `Tool: ${name}`,
-          parameters: { 
-            type: 'object', 
-            properties: {}, 
-            additionalProperties: true 
-          } 
-        }
-      }));
 
       let history = messages;
       
@@ -4156,19 +4256,6 @@ Please provide a JSON response with this exact structure:
       const openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
       });
-
-      const toolDefs = Object.keys(agentTools).map(name => ({
-        type: 'function' as const,
-        function: { 
-          name, 
-          description: `Tool: ${name}`,
-          parameters: { 
-            type: 'object', 
-            properties: {}, 
-            additionalProperties: true 
-          } 
-        }
-      }));
 
       let history = messages;
       let finalResponse = '';
