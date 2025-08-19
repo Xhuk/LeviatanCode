@@ -1,5 +1,5 @@
 import { eq, and, sql } from "drizzle-orm";
-import { db } from "./db";
+import { db as dbConn } from "./db";
 import {
   users,
   projects,
@@ -22,9 +22,12 @@ import {
   type AiChat,
   type Documentation,
   type PromptTemplate,
-  type VaultSecret
+  type VaultSecret,
+  type ProjectDocumentation
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+
+const db = dbConn!;
 
 export interface IStorage {
   // Users
@@ -109,17 +112,21 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(projects).where(eq(projects.userId, userId));
   }
 
-  async createProject(project: InsertProject): Promise<Project> {
-    const newProject = {
-      id: randomUUID(),
-      ...project,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    const result = await db.insert(projects).values(newProject).returning();
-    return result[0];
-  }
+    async createProject(project: InsertProject): Promise<Project> {
+      const newProject = {
+        id: randomUUID(),
+        ...project,
+        description: project.description ?? null,
+        files: project.files ?? {},
+        config: project.config ?? {},
+        documentation: (project.documentation as ProjectDocumentation) ?? null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const result = await db.insert(projects).values(newProject as any).returning();
+      return result[0];
+    }
 
   async updateProject(id: string, updates: Partial<Project>): Promise<Project> {
     const result = await db.update(projects)
