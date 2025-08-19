@@ -738,29 +738,44 @@ export class DbStorage implements IStorage {
     return result[0];
   }
 
-  async getAiUsageLogs(userId: string, projectId?: string, dateRange?: { start: Date; end: Date }): Promise<any[]> {
-    let query = db.select().from(aiUsageLogs).where(eq(aiUsageLogs.userId, userId));
-    
+  async getAiUsageLogs(
+    userId: string,
+    projectId?: string,
+    dateRange?: { start: Date; end: Date }
+  ): Promise<any[]> {
+    if (!db) throw new Error("Database not initialized");
+
+    let conditions = eq(aiUsageLogs.userId, userId);
+
     if (projectId) {
-      query = query.where(eq(aiUsageLogs.projectId, projectId));
+      conditions = and(conditions, eq(aiUsageLogs.projectId, projectId));
     }
-    
+
     // For date range filtering, we would need more complex where conditions
     // This is a simplified implementation
-    return await query;
+    return await db.select().from(aiUsageLogs).where(conditions);
   }
 
-  async getAiCostSummary(userId: string, period: 'daily' | 'weekly' | 'monthly', projectId?: string): Promise<any> {
-    let query = db
+  async getAiCostSummary(
+    userId: string,
+    period: 'daily' | 'weekly' | 'monthly',
+    projectId?: string
+  ): Promise<any> {
+    if (!db) throw new Error("Database not initialized");
+
+    let conditions = and(
+      eq(aiCostSummaries.userId, userId),
+      eq(aiCostSummaries.period, period)
+    );
+
+    if (projectId) {
+      conditions = and(conditions, eq(aiCostSummaries.projectId, projectId));
+    }
+
+    const result = await db
       .select()
       .from(aiCostSummaries)
-      .where(and(eq(aiCostSummaries.userId, userId), eq(aiCostSummaries.period, period)));
-    
-    if (projectId) {
-      query = query.where(eq(aiCostSummaries.projectId, projectId));
-    }
-    
-    const result = await query;
+      .where(conditions);
     return result[0] || null;
   }
 
