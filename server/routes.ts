@@ -24,7 +24,7 @@ import fs from "fs";
 import { promisify } from "util";
 import os from "os";
 import { execSync } from "child_process";
-import { 
+import {
   insertProjectSchema,
   insertProjectExecutionSchema,
   insertAiChatSchema,
@@ -39,6 +39,7 @@ import {
   type VaultSecret,
   type InsertVaultSecret
 } from "@shared/schema";
+import { tools as agentTools, toolDefs } from "../shared/agentTools";
 
 // Function to update replit.md with analysis results
 function updateReplitMdWithAnalysis(existingContent: string, analysisData: any): string {
@@ -3969,154 +3970,6 @@ Please provide a JSON response with this exact structure:
   });
 
   // Developer Agent - AI-powered code assistant
-  const { readFile: fsReadFile, writeFile, mkdir, rename } = await import('fs/promises');
-  const path = await import('path');
-  const { spawn } = await import('child_process');
-  
-  // Safe file system operations within project bounds
-  function safePath(filepath: string): string {
-    const ROOT = process.cwd();
-    const full = path.resolve(ROOT, filepath);
-    if (!full.startsWith(ROOT)) {
-      throw new Error('Path outside project directory not allowed');
-    }
-    return full;
-  }
-
-  // Developer Agent tools
-  const agentTools = {
-    readFile: async ({ filepath, path: altPath }: { filepath?: string, path?: string }) => {
-      const target = filepath || altPath;
-      if (!target) throw new Error('filepath is required');
-      const fullPath = safePath(target);
-      return await fsReadFile(fullPath, 'utf8');
-    },
-    writeFile: async ({ filepath, content }: { filepath: string, content: string }) => {
-      const fullPath = safePath(filepath);
-      await mkdir(path.dirname(fullPath), { recursive: true });
-      await writeFile(fullPath, content, 'utf8');
-      return 'File written successfully';
-    },
-    mkdir: async ({ dirpath }: { dirpath: string }) => {
-      const fullPath = safePath(dirpath);
-      await mkdir(fullPath, { recursive: true });
-      return 'Directory created successfully';
-    },
-    move: async ({ from, to }: { from: string, to: string }) => {
-      const fromPath = safePath(from);
-      const toPath = safePath(to);
-      await rename(fromPath, toPath);
-      return 'File moved successfully';
-    },
-    run: async ({ cmd, args = [] }: { cmd: string, args?: string[] }) => {
-      return new Promise((resolve) => {
-        const child = spawn(cmd, args, { 
-          cwd: process.cwd(), 
-          shell: true,
-          stdio: ['pipe', 'pipe', 'pipe']
-        });
-        
-        let stdout = '';
-        let stderr = '';
-        
-        child.stdout?.on('data', (data) => {
-          stdout += data.toString();
-        });
-        
-        child.stderr?.on('data', (data) => {
-          stderr += data.toString();
-        });
-        
-        child.on('close', (code) => {
-          resolve({ code, stdout, stderr });
-        });
-        
-        child.on('error', (error) => {
-          resolve({ code: -1, stdout: '', stderr: error.message });
-        });
-      });
-    },
-  };
-
-  const toolDefs = [
-    {
-      type: 'function' as const,
-      function: {
-        name: 'readFile',
-        description: 'Read file contents',
-        parameters: {
-          type: 'object',
-          properties: {
-            filepath: { type: 'string', description: 'Path to file to read' }
-          },
-          required: ['filepath']
-        }
-      }
-    },
-    {
-      type: 'function' as const,
-      function: {
-        name: 'writeFile',
-        description: 'Write content to a file',
-        parameters: {
-          type: 'object',
-          properties: {
-            filepath: { type: 'string', description: 'Path to file to write' },
-            content: { type: 'string', description: 'Content to write' }
-          },
-          required: ['filepath', 'content']
-        }
-      }
-    },
-    {
-      type: 'function' as const,
-      function: {
-        name: 'mkdir',
-        description: 'Create a directory',
-        parameters: {
-          type: 'object',
-          properties: {
-            dirpath: { type: 'string', description: 'Directory path to create' }
-          },
-          required: ['dirpath']
-        }
-      }
-    },
-    {
-      type: 'function' as const,
-      function: {
-        name: 'move',
-        description: 'Move or rename a file',
-        parameters: {
-          type: 'object',
-          properties: {
-            from: { type: 'string', description: 'Source path' },
-            to: { type: 'string', description: 'Destination path' }
-          },
-          required: ['from', 'to']
-        }
-      }
-    },
-    {
-      type: 'function' as const,
-      function: {
-        name: 'run',
-        description: 'Execute a shell command',
-        parameters: {
-          type: 'object',
-          properties: {
-            cmd: { type: 'string', description: 'Command to run' },
-            args: {
-              type: 'array',
-              items: { type: 'string' },
-              description: 'Command arguments'
-            }
-          },
-          required: ['cmd']
-        }
-      }
-    }
-  ];
 
   // Developer Agent endpoint
   app.post('/api/agent', async (req, res) => {
