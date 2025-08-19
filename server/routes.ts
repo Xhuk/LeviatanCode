@@ -4356,9 +4356,6 @@ Please provide a JSON response with this exact structure:
     }
 
     const result = await aiService.testOllamaConnection(url, model);
-    if (result.success) {
-      aiService.enableOllama(url, model);
-    }
     res.json(result);
     } catch (error) {
       console.error("Ollama test error:", error);
@@ -4575,13 +4572,14 @@ Please provide a JSON response with this exact structure:
     res.json({ success: true, status: tokenBudget.getStatus() });
   });
 
-  // Update Ollama configuration endpoint
-  app.post("/api/ai/update-ollama-config", async (req, res) => {
+  // Enable Ollama integration endpoint
+  app.post("/api/ai/ollama/enable", async (req, res) => {
     try {
       const { url, model } = req.body;
       
       if (!url || !model) {
         return res.status(400).json({
+          success: false,
           error: "URL and model are required"
         });
       }
@@ -4589,8 +4587,9 @@ Please provide a JSON response with this exact structure:
       aiService.enableOllama(url, model);
       res.json({ success: true });
     } catch (error) {
-      console.error("Ollama config update error:", error);
+      console.error("Ollama enable error:", error);
       res.status(500).json({
+        success: false,
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }
