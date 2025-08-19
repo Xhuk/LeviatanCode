@@ -1,12 +1,12 @@
 import 'dotenv/config'
 import express from 'express'
-import { readFile, writeFile, mkdir, rename } from 'node:fs/promises'
+import { readFile as fsReadFile, writeFile, mkdir, rename, readdir } from 'node:fs/promises'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
 import OpenAI from 'openai'
 
 const app = express()
-app.use(express.json({ limit: '2mb' }))
+app.use(express.json({ limit: '5mb' }))
 
 const PORT = Number(process.env.PORT || 8787)
 const ROOT = path.resolve(process.env.AGENT_ROOT ?? process.cwd())
@@ -115,8 +115,27 @@ app.post('/api/ai-chats/:chatId/stream', async (req, res) => {
 
 /* -------- Developer Agent (tool-calling) -------- */
 const tools = {
-  readFile: async ({ filepath }: { filepath: string }) => {
-    return await readFile(safe(filepath), 'utf8')
+  readFile: async ({ filepath, path: altPath }: { filepath?: string, path?: string }) => {
+    const target = filepath || altPath
+    if (!target) throw new Error('filepath is required')
+    return await fsReadFile(safe(target), 'utf8')
+  },
+  listFiles: async ({ dirpath = '.', ext }: { dirpath?: string, ext?: string }) => {
+    const dir = safe(dirpath)
+    const out: string[] = []
+    async function walk(d: string) {
+      const entries = await readdir(d, { withFileTypes: true })
+      for (const entry of entries) {
+        const full = path.join(d, entry.name)
+        if (entry.isDirectory()) {
+          await walk(full)
+        } else if (!ext || entry.name.endsWith(ext)) {
+          out.push(path.relative(ROOT, full))
+        }
+      }
+    }
+    await walk(dir)
+    return out
   },
   writeFile: async ({ filepath, content }: { filepath: string, content: string }) => {
     const full = safe(filepath)
@@ -143,10 +162,99 @@ const tools = {
 
 app.post('/api/agent', async (req, res) => {
   const { messages, model } = req.body as { messages: any[], model?: string }
-  const toolDefs = Object.keys(tools).map(name => ({
+const toolDefs = [
+  {
     type: 'function' as const,
-    function: { name, description: `Tool: ${name}`, parameters: { type: 'object', properties: {}, additionalProperties: true } }
-  }))
+    function: {
+      name: 'readFile',
+      description: 'Read file contents',
+      parameters: {
+        type: 'object',
+        properties: {
+          filepath: { type: 'string', description: 'Path to file to read' }
+        },
+        required: ['filepath']
+      }
+    }
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'listFiles',
+      description: 'List files in a directory',
+      parameters: {
+        type: 'object',
+        properties: {
+          dirpath: { type: 'string', description: 'Directory to list', default: '.' },
+          ext: { type: 'string', description: 'Optional file extension filter (e.g. .tsx)' }
+        }
+      }
+    }
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'writeFile',
+      description: 'Write content to a file',
+      parameters: {
+        type: 'object',
+        properties: {
+          filepath: { type: 'string', description: 'Path to file to write' },
+          content: { type: 'string', description: 'Content to write' }
+        },
+        required: ['filepath', 'content']
+      }
+    }
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'mkdir',
+      description: 'Create a directory',
+      parameters: {
+        type: 'object',
+        properties: {
+          dirpath: { type: 'string', description: 'Directory path to create' }
+        },
+        required: ['dirpath']
+      }
+    }
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'move',
+      description: 'Move or rename a file',
+      parameters: {
+        type: 'object',
+        properties: {
+          from: { type: 'string', description: 'Source path' },
+          to: { type: 'string', description: 'Destination path' }
+        },
+        required: ['from', 'to']
+      }
+    }
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'run',
+      description: 'Execute a shell command',
+      parameters: {
+        type: 'object',
+        properties: {
+          cmd: { type: 'string', description: 'Command to run' },
+          args: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Command arguments'
+          }
+        },
+        required: ['cmd']
+      }
+    }
+  }
+]
 
   let history = messages
   for (let i = 0; i < 8; i++) {

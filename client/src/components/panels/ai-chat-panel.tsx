@@ -90,18 +90,19 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/ai-chats`] });
-      setNewMessage("");
     },
   });
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || sendMessageMutation.isPending) return;
-    
+    const message = newMessage.trim();
+    if (!message || sendMessageMutation.isPending) return;
+    setNewMessage("");
+
     if (smartRoutingEnabled) {
       updateAgentStatus('analyzing', 'Checking AI routing options...');
-      
+
       // Check routing first - if Ollama needs fallback, show confirmation dialog
-      const routing = await aiRouter.routeRequest(newMessage, {
+      const routing = await aiRouter.routeRequest(message, {
         maxBudgetUSD: 0.02,
         preferLocal: true
       });
@@ -109,7 +110,7 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
       // If Ollama needs fallback and would cost money, confirm with user
       if (routing.ollamaStatus?.needsFallback && routing.estimatedCost > 0) {
         updateAgentStatus('idle', '');
-        setPendingMessage(newMessage);
+        setPendingMessage(message);
         setCrashDialogData({
           routing,
           ollamaStatus: routing.ollamaStatus,
@@ -122,14 +123,14 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
       }
       
       // Proceed with sending the message
-      await executeChatRequest(newMessage, routing);
+      await executeChatRequest(message, routing);
     } else {
       // Use original direct API call
       setIsGenerating(true);
       updateAgentStatus('executing', 'Sending to AI service...');
-      
+
       try {
-        await sendMessageMutation.mutateAsync(newMessage);
+        await sendMessageMutation.mutateAsync(message);
       } finally {
         setIsGenerating(false);
         updateAgentStatus('idle', '');
@@ -178,7 +179,6 @@ export function AiChatPanel({ projectId }: AiChatPanelProps) {
         });
         
         queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/ai-chats`] });
-        setNewMessage("");
       }
     } finally {
       setIsGenerating(false);
