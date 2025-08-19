@@ -4347,23 +4347,23 @@ Please provide a JSON response with this exact structure:
     try {
       const { url, model } = req.body;
       
-      if (!url || !model) {
-        return res.status(400).json({ 
-          success: false, 
-          error: "URL and model are required" 
-        });
-      }
-      
-      const result = await aiService.testOllamaConnection(url, model);
-      res.json(result);
-    } catch (error) {
-      console.error("Ollama test error:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: error instanceof Error ? error.message : "Unknown error" 
+    if (!url || !model) {
+      return res.status(400).json({
+        success: false,
+        error: "URL and model are required"
       });
     }
-  });
+
+      const result = await aiService.testOllamaConnection(url, model);
+      res.json(result);
+      } catch (error) {
+        console.error("Ollama test error:", error);
+        res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : "Unknown error"
+        });
+      }
+    });
 
   // Get Ollama status endpoint
   app.get("/api/ai/ollama-status", async (req, res) => {
@@ -4372,8 +4372,45 @@ Please provide a JSON response with this exact structure:
       res.json(status);
     } catch (error) {
       console.error("Ollama status error:", error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : "Unknown error" 
+      res.status(500).json({
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Enable Ollama integration
+  app.post("/api/ai/ollama/enable", async (req, res) => {
+    try {
+      const { url, model } = req.body;
+
+      if (!url || !model) {
+        return res.status(400).json({
+          success: false,
+          error: "URL and model are required",
+        });
+      }
+
+      aiService.enableOllama(url, model);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Ollama enable error:", error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  });
+
+  // Disable Ollama integration
+  app.post("/api/ai/ollama/disable", async (req, res) => {
+    try {
+      aiService.disableOllama();
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Ollama disable error:", error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error"
       });
     }
   });
@@ -4421,9 +4458,7 @@ Please provide a JSON response with this exact structure:
       }
 
       // Update AI service status to reflect shutdown
-      if (aiService.updateOllamaStatus) {
-        aiService.updateOllamaStatus('disconnected');
-      }
+      aiService.disableOllama();
 
       res.json({
         success: shutdownResult.success,
@@ -4545,27 +4580,6 @@ Please provide a JSON response with this exact structure:
       console.error('Update budget settings error:', error);
       res.status(500).json({ 
         success: false,
-        error: error instanceof Error ? error.message : "Unknown error" 
-      });
-    }
-  });
-
-  // Update Ollama configuration endpoint
-  app.post("/api/ai/update-ollama-config", async (req, res) => {
-    try {
-      const { url, model } = req.body;
-      
-      if (!url || !model) {
-        return res.status(400).json({ 
-          error: "URL and model are required" 
-        });
-      }
-      
-      aiService.updateOllamaConfig(url, model);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Ollama config update error:", error);
-      res.status(500).json({ 
         error: error instanceof Error ? error.message : "Unknown error" 
       });
     }
@@ -4737,30 +4751,6 @@ Make sure to include realistic, working code for the starter files that follows 
       res.status(500).json({ 
         error: "Project creation failed", 
         details: error instanceof Error ? error.message : "Unknown error" 
-      });
-    }
-  });
-
-  // Test Ollama connection endpoint
-  app.post("/api/ai/test-ollama", async (req, res) => {
-    try {
-      const { url, model } = req.body;
-      
-      if (!url || !model) {
-        return res.status(400).json({ 
-          success: false, 
-          error: "URL and model are required" 
-        });
-      }
-
-      const result = await aiService.testOllamaConnection(url, model);
-      res.json(result);
-      
-    } catch (error) {
-      console.error("❌ Error testing Ollama connection:", error);
-      res.json({ 
-        success: false, 
-        error: error instanceof Error ? error.message : "Unknown error" 
       });
     }
   });

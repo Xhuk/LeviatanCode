@@ -60,7 +60,7 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
   });
 
   const [saveStatus, setSaveStatus] = useState<string>('');
-  const [ollamaStatus, setOllamaStatus] = useState<'unknown' | 'connected' | 'disconnected'>('unknown');
+  const [ollamaStatus, setOllamaStatus] = useState<'unknown' | 'connected' | 'disconnected' | 'disabled'>('disabled');
   const [ollamaServiceStatus, setOllamaServiceStatus] = useState<'running' | 'stopped' | 'unknown'>('unknown');
 
   const shutdownOllama = async () => {
@@ -72,10 +72,10 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
       });
       
       const result = await response.json();
-      
+
       if (response.ok) {
         setSaveStatus('Ollama service shutdown successfully');
-        setOllamaStatus('disconnected');
+        setOllamaStatus('disabled');
         setOllamaServiceStatus('stopped');
         setTimeout(() => setSaveStatus(''), 3000);
       } else {
@@ -88,22 +88,49 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
     }
   };
 
+  const enableOllama = async (url = settings.ollamaUrl, model = settings.ollamaModel) => {
+    try {
+      setSaveStatus('Enabling Ollama integration...');
+      const response = await fetch('/api/ai/ollama/enable', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, model })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setOllamaStatus('connected');
+        setSaveStatus('Ollama integration enabled successfully');
+        setTimeout(() => setSaveStatus(''), 3000);
+      } else {
+        setSaveStatus(`Failed to enable Ollama: ${result.error || result.message}`);
+        setTimeout(() => setSaveStatus(''), 5000);
+      }
+    } catch (error) {
+      setSaveStatus('Error enabling Ollama integration');
+      setTimeout(() => setSaveStatus(''), 5000);
+    }
+  };
+
   const disableOllama = async () => {
     try {
       setSaveStatus('Disabling Ollama integration...');
-      
+
       // Update settings to disable Ollama
       const updatedSettings = { ...settings, enableOllama: false, aiMode: 'chatgpt-only' };
       setSettings(updatedSettings);
-      
+
       // Save settings to server
       const response = await fetch(`/api/workspace/${currentProject}/settings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedSettings)
       });
-      
+
       if (response.ok) {
+        await fetch('/api/ai/ollama/disable', { method: 'POST' });
+        setOllamaStatus('disabled');
         setSaveStatus('Ollama integration disabled successfully');
         setTimeout(() => setSaveStatus(''), 3000);
       } else {
@@ -168,6 +195,7 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
               ollamaUrl: url,
               ollamaModel: 'llama3'
             });
+            await enableOllama(url, 'llama3');
             setSaveStatus(`✅ Ollama detected and configured! URL: ${url}`);
             setTimeout(() => setSaveStatus(''), 5000);
             return;
@@ -257,8 +285,14 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
       });
       
       if (response.ok) {
-        setSaveStatus('Settings saved successfully');
-        setTimeout(() => setSaveStatus(''), 3000);
+        if (settings.enableOllama) {
+          await enableOllama();
+        } else {
+          await fetch('/api/ai/ollama/disable', { method: 'POST' });
+          setOllamaStatus('disabled');
+          setSaveStatus('Settings saved successfully');
+          setTimeout(() => setSaveStatus(''), 3000);
+        }
       } else {
         setSaveStatus('Failed to save settings');
         setTimeout(() => setSaveStatus(''), 3000);
@@ -837,7 +871,8 @@ export const LeviatanSettings = ({ currentProject }: { currentProject: string })
                     }`}></div>
                     <span className="text-sm text-replit-text-secondary">
                       {ollamaStatus === 'connected' ? 'Connected' :
-                       ollamaStatus === 'disconnected' ? 'Disconnected' : 'Unknown'}
+                       ollamaStatus === 'disconnected' ? 'Disconnected' :
+                       ollamaStatus === 'disabled' ? 'Disabled' : 'Unknown'}
                     </span>
                   </div>
                 </div>
